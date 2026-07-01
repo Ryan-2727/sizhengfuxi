@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>大学思政课程复习</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <button class="brand" id="homeBtn" type="button" aria-label="返回首页">
+      <span class="brand-mark">思</span>
+      <span>
+        <strong>大学思政复习</strong>
+        <small>章节梳理 · 题目训练 · 资料索引</small>
+      </span>
+    </button>
+    <div class="top-actions">
+      <input id="globalSearch" type="search" placeholder="搜索课程、章节、题目">
+      <button id="randomBtn" type="button">随机一题</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="homeView" class="home-view">
+      <div class="intro" hidden>
+        <p class="eyebrow">5 门高校思想政治理论课</p>
+        <h1>按课程进入复习，按题型训练。</h1>
+        <p>题目分为选择题和大题两类，均提供答案。资料来源包含本地文件夹 <code>F:\思政</code> 与联网可靠入口。</p>
+      </div>
+      <div id="courseGrid" class="course-grid"></div>
+      <section class="donation-section" aria-label="支持作者">
+        <p>💰 有钱的可以捧个钱场，白嫖也没关系，我也是这么过来滴，能帮到你就算对我的支持啦 🙏</p>
+        <div class="qr-grid">
+          <figure class="qr-card">
+            <img src="./assets/alipay.jpg" alt="支付宝收款码">
+            <figcaption>💙 支付宝</figcaption>
+          </figure>
+          <figure class="qr-card">
+            <img src="./assets/wechat.jpg" alt="微信收款码">
+            <figcaption>💚 微信</figcaption>
+          </figure>
+        </div>
+      </section>
+    </section>
+
+    <section id="courseView" class="course-view" hidden>
+      <aside class="side-nav">
+        <button id="backBtn" class="back-btn" type="button">返回首页</button>
+        <h2 id="sideTitle"></h2>
+        <nav id="chapterNav" aria-label="课程章节导航"></nav>
+      </aside>
+      <article class="course-main">
+        <section id="courseHero" class="course-hero"></section>
+        <section id="chapters" class="panel"></section>
+        <section id="keypoints" class="panel"></section>
+        <section id="questions" class="panel"></section>
+        <section id="sources" class="panel"></section>
+      </article>
+    </section>
+  </main>
+
+  <dialog id="quizDialog">
+    <form method="dialog">
+      <button class="dialog-close" aria-label="关闭">×</button>
+    </form>
+    <div id="quizDialogBody"></div>
+  </dialog>
+
+  <script src="./app.js"></script>
+</body>
+</html>
