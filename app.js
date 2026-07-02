@@ -1314,36 +1314,24 @@ function buildHistoryPdfChapterDetail(course, chapter, index) {
     ...detail.keywords.map((word) => `围绕“**${word}**”补充时间、主体、性质、结果和!!历史意义或影响!!。`),
     ...related.slice(0, 8).map((fact) => `把“**${fact[0]}**”放回本章历史阶段理解：${fact[1]}，!!${fact[2]}!!。`)
   ]);
+  const timelineItems = detail.points
+    .filter((item) => /\d{4}|1840|1911|1919|1921|1931|1937|1945|1949|1956|1978|2012/.test(item))
+    .slice(0, 10);
+  const conceptItems = detail.points
+    .filter((item) => /是|包括|即|主线|性质|制度|纲领|路线|思想|理论|宪法|条约/.test(item))
+    .slice(0, 10);
+  const meaningItems = detail.points
+    .filter((item) => /!!|意义|影响|标志|推动|奠定|开辟|促进|提高|确立|基础|转折|胜利|结束/.test(item))
+    .slice(0, 10);
   const examSections = [
-    {
-      title: "时间、地点、事件",
-      items: detail.points.filter((item) => /\d{4}|1840|1911|1919|1921|1931|1937|1945|1949|1956|1978|2012/.test(item)).concat(detail.keywords.map((word) => `**${word}**：按具体时间、地点、主体和结果整理。`)).slice(0, 10)
-    },
-    {
-      title: "概念、人物、制度",
-      items: detail.keywords.map((word) => `**${word}**：说明概念内涵、代表人物或对应制度安排，避免只背名称。`).concat(detail.points.slice(0, 5))
-    },
-    {
-      title: "意义、作用、影响",
-      items: detail.points.filter((item) => /!!|意义|影响|标志|推动|奠定|开辟|促进|提高|确立|基础/.test(item)).concat(detail.advice.map((item) => `!!${item}!!`)).slice(0, 10)
-    },
-    {
-      title: "选择题易考判断句",
-      items: detail.keywords.map((word) => `**${word}** 的选择题要看时间、性质、主体、文件名称和历史地位是否被偷换。`).concat(detail.points.slice(0, 4))
-    },
-    {
-      title: "大题可直接展开的句子",
-      items: detail.points.concat(`答题时按“背景、经过、性质、意义、局限或启示”展开，并把!!历史意义、制度影响和现实启示!!写完整。`).slice(0, 12)
-    },
-    {
-      title: "易混点和失分点",
-      items: detail.advice.concat([
-        "不要把旧民主主义革命和新民主主义革命混同，关键看领导阶级、指导思想和革命前途。",
-        "不要只写事件名称，必须写清所属阶段、代表力量、结果和影响。",
-        "评价类题目不能只肯定或只否定，要同时写积极作用和历史局限。"
-      ])
-    }
-  ];
+    timelineItems.length ? { title: "时间线与关键事件", items: timelineItems } : null,
+    conceptItems.length ? { title: "核心概念、人物与制度", items: conceptItems } : null,
+    meaningItems.length ? { title: "意义、作用、影响", items: meaningItems } : null,
+    { title: "易混点和失分点", items: detail.advice.concat([
+      "先判断材料属于哪个历史阶段，再判断主体力量和事件性质。",
+      "评价历史事件要同时写积极作用和历史局限，不能只肯定或只否定。"
+    ])}
+  ].filter(Boolean);
   return {
     paragraphs,
     sentences,
