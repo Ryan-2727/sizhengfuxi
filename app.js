@@ -1956,7 +1956,7 @@ function renderQuestion(item) {
   return `
     <div class="question-card">
       <div class="question-head">
-        <span class="type-pill">${item.type} ${item.index}</span>
+        <span class="type-pill">${questionTypeLabel(item)} ${item.index}</span>
         <button class="answer-btn" type="button" data-answer>显示答案解析</button>
       </div>
       <div class="question-text">${escapeHtml(item.question)}</div>
@@ -1980,10 +1980,45 @@ function renderAnswerContent(item) {
   }
   return `
     <div class="answer-section">
-      <strong class="answer-label">答案与解析</strong>
-      <div>${escapeHtml(item.answer)}</div>
+      <strong class="answer-label">答案</strong>
+      <div>${escapeHtml(choiceCorrectAnswer(item))}</div>
+    </div>
+    <div class="analysis-section">
+      <strong class="answer-label">解析</strong>
+      <div>${escapeHtml(choiceAnalysis(item))}</div>
     </div>
   `;
+}
+
+function questionTypeLabel(item) {
+  if (item.type === "大题") return item.type;
+  return item.questionType || (choiceAnswerLetters(item).length > 1 ? "多选题" : "单选题");
+}
+
+function choiceAnswerLetters(item) {
+  if (item.correctAnswer) return item.correctAnswer;
+  const answer = item.answer || "";
+  const direct = answer.match(/正确答案[:：]\s*([A-D]{1,4})/i);
+  if (direct) return direct[1].toUpperCase();
+  const leading = answer.match(/^\s*([A-D]{1,4})[。.]/i);
+  if (leading) return leading[1].toUpperCase();
+  return "";
+}
+
+function choiceCorrectAnswer(item) {
+  const letters = choiceAnswerLetters(item);
+  return letters ? `正确答案：${letters}` : item.answer;
+}
+
+function choiceAnalysis(item) {
+  if (item.analysis) return item.analysis;
+  const answer = item.answer || "";
+  const withoutAnswer = answer
+    .replace(/^\s*正确答案[:：]\s*[A-D]{1,4}[。.，,\s]*/i, "")
+    .replace(/^\s*[A-D]{1,4}[。.，,\s]*/i, "")
+    .replace(/\?{5,}/g, "")
+    .trim();
+  return withoutAnswer || "解析：本题需要根据教材中的规范表述逐项判断，重点核对题干限定词、知识点所属章节、选项表述范围和正确项之间的逻辑关系。";
 }
 
 function showRandom() {
@@ -2033,7 +2068,7 @@ function renderRandomQuestion() {
   els.dialogBody.innerHTML = `
     <div class="random-quiz-head">
       <div>
-        <span class="type-pill">${escapeHtml(item.course)} · ${escapeHtml(item.type)}</span>
+        <span class="type-pill">${escapeHtml(item.course)} · ${escapeHtml(questionTypeLabel(item))}</span>
         <h2>随机练习</h2>
         <p>${escapeHtml(item.courseName)}</p>
       </div>
@@ -2044,7 +2079,7 @@ function renderRandomQuestion() {
     </div>
     <div class="question-card random-question-card">
       <div class="question-head">
-        <span class="type-pill">${escapeHtml(item.type)}</span>
+        <span class="type-pill">${escapeHtml(questionTypeLabel(item))}</span>
         <button class="answer-btn" type="button" data-answer>显示答案解析</button>
       </div>
       <div class="question-text">${escapeHtml(item.question)}</div>
