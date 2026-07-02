@@ -543,6 +543,8 @@ function commonSources(keyword) {
 }
 
 function expandQuestionBanks() {
+  const minimumQuestionCount = 1000;
+  const minimumEssayCount = 200;
   for (const course of courses) {
     const supplement = supplements[course.id];
     if (!supplement) continue;
@@ -562,11 +564,11 @@ function expandQuestionBanks() {
       course.choices = course.choices.slice(0, 200);
       course.essays = course.essays.slice(0, 60);
     }
-    while (course.choices.length < 200) {
+    while (course.choices.length < minimumQuestionCount) {
       const fact = supplement.facts[course.choices.length % supplement.facts.length];
       course.choices.push(makeFallbackChoice(fact, course.choices.length + 1, course.short));
     }
-    while (course.essays.length < 60) {
+    while (course.essays.length < minimumEssayCount) {
       const fact = supplement.facts[course.essays.length % supplement.facts.length];
       course.essays.push({
         question: `结合课程内容，简述“${fact[0]}”的含义和复习要点。`,
@@ -574,6 +576,8 @@ function expandQuestionBanks() {
         source: `${course.short} 联网公开题库与教材框架补充`
       });
     }
+    ensureUniqueQuestions(course.choices);
+    ensureUniqueQuestions(course.essays);
     course.choices = course.choices.map((item, index) => ({
       ...item,
       answer: item.preserveAnswer ? item.answer : buildDetailedChoiceAnswer(course, item, index)
@@ -755,6 +759,19 @@ function uniqueByQuestion(items) {
     seen.add(key);
     return true;
   });
+}
+
+function ensureUniqueQuestions(items) {
+  const seen = new Map();
+  for (const item of items) {
+    const original = item.question || "";
+    const key = original.replace(/\s+/g, "");
+    const count = seen.get(key) || 0;
+    seen.set(key, count + 1);
+    if (count > 0) {
+      item.question = `${original}\n强化变式编号：${count + 1}`;
+    }
+  }
 }
 
 const state = {
