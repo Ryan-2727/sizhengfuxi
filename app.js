@@ -904,8 +904,8 @@ function renderCourse() {
 
 function renderQuestions(course) {
   const all = [
-    ...course.choices.map((item, index) => ({ ...item, type: "选择题", index: index + 1 })),
-    ...course.essays.map((item, index) => ({ ...item, type: "大题", index: index + 1 }))
+    ...course.choices.map((item, index) => ({ ...item, courseId: course.id, type: "选择题", index: index + 1 })),
+    ...course.essays.map((item, index) => ({ ...item, courseId: course.id, type: "大题", index: index + 1 }))
   ];
   const filtered = all.filter((item) => {
     const typeOk = state.type === "all" || item.type === state.type;
@@ -1945,11 +1945,11 @@ function renderAnswerContent(item) {
     return `
       <div class="answer-section">
         <strong class="answer-label">答案</strong>
-        <div>${escapeHtml(item.answer)}</div>
+        <div>${escapeHtml(essayAnswerContent(item))}</div>
       </div>
       <div class="analysis-section">
         <strong class="answer-label">解析</strong>
-        <div>${escapeHtml(item.analysis || "本题按教材主线分层作答，注意概念、依据和意义三部分。")}</div>
+        <div>${escapeHtml(essayAnalysisContent(item))}</div>
       </div>
     `;
   }
@@ -1986,12 +1986,18 @@ function choiceCorrectAnswer(item) {
 }
 
 function choiceAnalysis(item) {
-  if (item.analysis) return item.analysis;
   const letters = choiceAnswerLetters(item);
   const opts = parseChoiceOptions(item.question);
   const picked = letters.split("").filter((letter) => opts[letter]).map((letter) => `${letter}. ${opts[letter]}`);
+  const wrong = Object.keys(opts).filter((letter) => !letters.includes(letter)).map((letter) => `${letter}. ${opts[letter]}`);
+  const stem = choiceStem(item.question);
   if (picked.length) {
-    return `解析：本题问的是“${choiceStem(item.question)}”。正确项为${picked.join("；")}。`;
+    return [
+      `解题思路：题干问的是“${stem}”，先抓住题干中的限定词，再到四个选项里找与限定词完全对应的表述。`,
+      `正确项：${picked.join("；")}。这些选项直接回答了题干要求，所以应选。`,
+      wrong.length ? `排除项：${wrong.join("；")}。这些选项与题干限定不一致，或属于相近但不是本题所问的概念。` : "",
+      `记忆方法：把“${shortMemoryKey(stem)}”和答案“${letters}”对应的关键词连在一起记；多选题要逐项核对，凡是同一概念的完整组成部分都要选全。`
+    ].filter(Boolean).join("\n");
   }
   const answer = item.answer || "";
   const withoutAnswer = answer
@@ -2000,6 +2006,46 @@ function choiceAnalysis(item) {
     .replace(/\?{5,}/g, "")
     .trim();
   return withoutAnswer || "解析：按题干要求选择对应项。";
+}
+
+function shortMemoryKey(text) {
+  return text
+    .replace(/[（(]\s*[）)]/g, "")
+    .replace(/[？?。；;：:，,\s]/g, "")
+    .slice(0, 18) || "题干关键词";
+}
+
+function essayAnswerContent(item) {
+  const answer = (item.answer || "").replace(/^答[:：]\s*/, "").trim();
+  if (answer.length >= 120) return item.answer || "";
+  const points = relatedEssayFactsForItem(item).slice(0, 3);
+  if (!points.length) return item.answer || "";
+  const extra = points.map((fact, index) => `${index + 1}. ${fact[0]}：${fact[1]}。${fact[2]}。`);
+  return [`答：${answer}`, "补充得分点：", ...extra].join("\n");
+}
+
+function essayAnalysisContent(item) {
+  const answer = (item.answer || "").replace(/^答[:：]\s*/, "").trim();
+  const points = answer
+    .split(/(?:\n|；|。|①|②|③|④|⑤|⑥)/)
+    .map((part) => part.trim())
+    .filter((part) => part.length >= 8)
+    .slice(0, 5);
+  const scorePoints = points.length
+    ? points.map((point, index) => `${index + 1}. ${point}。`).join("\n")
+    : relatedEssayFactsForItem(item).slice(0, 4).map((fact, index) => `${index + 1}. ${fact[0]}：${fact[1]}。`).join("\n");
+  const memory = relatedEssayFactsForItem(item).slice(0, 3).map((fact) => fact[0]).join("、") || shortMemoryKey(item.question || "");
+  return [
+    `怎么解：先看题干关键词“${shortMemoryKey(item.question || "")}”，判断它问的是概念、意义、原因还是做法；再按“是什么—为什么—怎么做/有什么意义”的顺序组织。`,
+    `得分点：\n${scorePoints}`,
+    `记忆方法：抓住“${memory}”这几个词，先背结论句，再背每个结论后面的解释句；考试时每个关键词至少展开一句。`
+  ].join("\n");
+}
+
+function relatedEssayFactsForItem(item) {
+  const facts = supplements[item.courseId]?.facts || [];
+  if (!facts.length) return [];
+  return pickEssayFacts(`${item.question || ""}${item.answer || ""}`, facts, item.index || 0);
 }
 
 function choiceStem(question) {
@@ -2054,8 +2100,8 @@ function renderRandomQuestion() {
   const selectedCourse = courses.find((course) => course.id === state.randomCourseId) || getCourse() || courses[0];
   state.randomCourseId = selectedCourse.id;
   const pool = [selectedCourse].flatMap((course) => [
-    ...course.choices.map((item) => ({ ...item, course: course.short, courseName: course.name, accent: course.accent, type: "选择题" })),
-    ...course.essays.map((item) => ({ ...item, course: course.short, courseName: course.name, accent: course.accent, type: "大题" }))
+    ...course.choices.map((item) => ({ ...item, courseId: course.id, course: course.short, courseName: course.name, accent: course.accent, type: "选择题" })),
+    ...course.essays.map((item) => ({ ...item, courseId: course.id, course: course.short, courseName: course.name, accent: course.accent, type: "大题" }))
   ]);
   const matches = pool.filter((item) => !state.query || `${item.course}${item.question}${item.answer}`.includes(state.query));
   const item = matches[Math.floor(Math.random() * matches.length)];
