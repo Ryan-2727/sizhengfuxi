@@ -5941,12 +5941,12 @@ const historyLocalQuestionBank = {
       "analysis": "解析：本题问的是“抗日根据地实行减租减息政策的主要意义在于( )。”。正确项为D. 联合地主阶级抗日。"
     },
     {
-      "question": "抗战初期，正面战场所进行的（）战役，给日军以沉重打击。 BCD\nA. 淞沪\nB. 忻口\nC. 徐州\nD. 武汉",
-      "answer": "正确答案：A",
+      "question": "抗战初期，正面战场所进行的（）战役，给日军以沉重打击。\nA. 淞沪\nB. 忻口\nC. 徐州\nD. 武汉",
+      "answer": "正确答案：BCD",
       "source": "近代史复习题库：近现代史.pdf",
       "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
+      "questionType": "多选题",
+      "correctAnswer": "BCD",
       "analysis": "解析：本题问的是“抗战初期，正面战场所进行的（）战役，给日军以沉重打击。 BCD”。正确项为A. 淞沪。"
     },
     {
@@ -6445,12 +6445,12 @@ const historyLocalQuestionBank = {
       "analysis": "解析：本题问的是“革命派和改良派论战的内容是（ ）”。正确项为C. 要不要实行共和制度；D. 要不要进行社会革命。"
     },
     {
-      "question": "三民主义中的民族主义包括内容有 【 】 B\nA. 驱除鞑虏\nB. 恢复中华\nC. 创立民国\nD. 平均地权",
-      "answer": "正确答案：A",
+      "question": "三民主义中的民族主义包括内容有\nA. 驱除鞑虏\nB. 恢复中华\nC. 创立民国\nD. 平均地权",
+      "answer": "正确答案：B",
       "source": "近代史复习题库：近现代史.pdf",
       "preserveAnswer": true,
       "questionType": "单选题",
-      "correctAnswer": "A",
+      "correctAnswer": "B",
       "analysis": "解析：本题问的是“三民主义中的民族主义包括内容有 【 】 B”。正确项为A. 驱除鞑虏。"
     },
     {
@@ -6553,39 +6553,39 @@ const historyLocalQuestionBank = {
       "analysis": "解析：本题问的是“下列属于资产阶级革命派的人物有（ ）”。正确项为D. 黄兴。"
     },
     {
-      "question": "偕同毛泽东赴重庆谈判的有 B\nA. 周恩来\nB. 王若飞\nC. 刘少奇\nD. 陈云",
-      "answer": "正确答案：A",
+      "question": "偕同毛泽东赴重庆谈判的有\nA. 周恩来\nB. 王若飞\nC. 刘少奇\nD. 陈云",
+      "answer": "正确答案：B",
       "source": "近代史复习题库：近现代史.pdf",
       "preserveAnswer": true,
       "questionType": "单选题",
-      "correctAnswer": "A",
+      "correctAnswer": "B",
       "analysis": "解析：本题问的是“偕同毛泽东赴重庆谈判的有 B”。正确项为A. 周恩来。"
     },
     {
-      "question": "1946年召开的政治协商会议讨论的焦点问题有 D\nA. 政治民主化\nB. 国家前途\nC. 国家的性质\nD. 军队国家化",
-      "answer": "正确答案：A",
+      "question": "1946年召开的政治协商会议讨论的焦点问题有\nA. 政治民主化\nB. 国家前途\nC. 国家的性质\nD. 军队国家化",
+      "answer": "正确答案：D",
       "source": "近代史复习题库：近现代史.pdf",
       "preserveAnswer": true,
       "questionType": "单选题",
-      "correctAnswer": "A",
+      "correctAnswer": "D",
       "analysis": "解析：本题问的是“1946年召开的政治协商会议讨论的焦点问题有 D”。正确项为A. 政治民主化。"
     },
     {
-      "question": "1945年8月25日中共中央在对时局的宣言中明确提出的口号有 BC\nA. 和平\nB. 民主\nC. 团结\nD. 统一",
-      "answer": "正确答案：A",
+      "question": "1945年8月25日中共中央在对时局的宣言中明确提出的口号有\nA. 和平\nB. 民主\nC. 团结\nD. 统一",
+      "answer": "正确答案：BC",
       "source": "近代史复习题库：近现代史.pdf",
       "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
+      "questionType": "多选题",
+      "correctAnswer": "BC",
       "analysis": "解析：本题问的是“1945年8月25日中共中央在对时局的宣言中明确提出的口号有 BC”。正确项为A. 和平。"
     },
     {
-      "question": "解放战争时期国民党放弃全面进攻改为重点进攻的方向是 C\nA. 陕北\nB. 陕西\nC. 山东\nD. 山西",
-      "answer": "正确答案：A",
+      "question": "解放战争时期国民党放弃全面进攻改为重点进攻的方向是\nA. 陕北\nB. 陕西\nC. 山东\nD. 山西",
+      "answer": "正确答案：C",
       "source": "近代史复习题库：近现代史.pdf",
       "preserveAnswer": true,
       "questionType": "单选题",
-      "correctAnswer": "A",
+      "correctAnswer": "C",
       "analysis": "解析：本题问的是“解放战争时期国民党放弃全面进攻改为重点进攻的方向是 C”。正确项为A. 陕北。"
     },
     {
@@ -6598,12 +6598,12 @@ const historyLocalQuestionBank = {
       "analysis": "解析：本题问的是“抗战胜利后，蒋介石之所以邀请毛泽东赴重庆和平谈判，最主要是因为 正确答案：”。正确项为A. 全国人民强烈要求和平。"
     },
     {
-      "question": "解放战争中的三大战役是 BC\nA. 辽沈战役\nB. 淮海战役\nC. 平津战役\nD. 济南战役",
-      "answer": "正确答案：A",
+      "question": "解放战争中的三大战役是\nA. 辽沈战役\nB. 淮海战役\nC. 平津战役\nD. 济南战役",
+      "answer": "正确答案：BC",
       "source": "近代史复习题库：近现代史.pdf",
       "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
+      "questionType": "多选题",
+      "correctAnswer": "BC",
       "analysis": "解析：本题问的是“解放战争中的三大战役是 BC”。正确项为A. 辽沈战役。"
     },
     {
@@ -6616,12 +6616,12 @@ const historyLocalQuestionBank = {
       "analysis": "解析：本题问的是“下列名单中被1949年中国人民政治协商会议第一届全体会议选举为中央人民政府副主”。正确项为A. 宋庆龄。"
     },
     {
-      "question": "在中国革命的过程中，毛泽东的突出贡献主要有 BCD\nA. 找到了中国民主革命的正确道路\nB. 领导人民完成了反帝反封建的任务\nC. 领导人民建立了中华人民共和国\nD. 领导人民建立起社会主义制度",
-      "answer": "正确答案：A",
+      "question": "在中国革命的过程中，毛泽东的突出贡献主要有\nA. 找到了中国民主革命的正确道路\nB. 领导人民完成了反帝反封建的任务\nC. 领导人民建立了中华人民共和国\nD. 领导人民建立起社会主义制度",
+      "answer": "正确答案：BCD",
       "source": "近代史复习题库：近现代史.pdf",
       "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
+      "questionType": "多选题",
+      "correctAnswer": "BCD",
       "analysis": "解析：本题问的是“在中国革命的过程中，毛泽东的突出贡献主要有 BCD”。正确项为A. 找到了中国民主革命的正确道路。"
     },
     {
@@ -6643,93 +6643,93 @@ const historyLocalQuestionBank = {
       "analysis": "解析：本题问的是“.1949年3月中共中央离开西柏坡迁往北平。毛泽东说：“今天是进京赶考的日子，我”。正确项为C. 防止产生骄傲麻痹思想。"
     },
     {
-      "question": "社会主义改造时期采取的国家资本主义初级形式有 BC\nA. 加工订货\nB. 统购包销\nC. 经销代销\nD. 公私合营",
-      "answer": "正确答案：A",
+      "question": "社会主义改造时期采取的国家资本主义初级形式有\nA. 加工订货\nB. 统购包销\nC. 经销代销\nD. 公私合营",
+      "answer": "正确答案：BC",
       "source": "近代史复习题库：近现代史.pdf",
       "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
+      "questionType": "多选题",
+      "correctAnswer": "BC",
       "analysis": "解析：本题问的是“社会主义改造时期采取的国家资本主义初级形式有 BC”。正确项为A. 加工订货。"
     },
     {
-      "question": "党在过渡时期总路线的内容是 BCD\nA. 对个体农业的社会主义改造\nB. 对资本主义工商业的社会主义改造\nC. 对个体手工业的社会主义改造\nD. 实现国家的社会主义工业化",
-      "answer": "正确答案：A",
+      "question": "党在过渡时期总路线的内容是\nA. 对个体农业的社会主义改造\nB. 对资本主义工商业的社会主义改造\nC. 对个体手工业的社会主义改造\nD. 实现国家的社会主义工业化",
+      "answer": "正确答案：BCD",
       "source": "近代史复习题库：近现代史.pdf",
       "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
+      "questionType": "多选题",
+      "correctAnswer": "BCD",
       "analysis": "解析：本题问的是“党在过渡时期总路线的内容是 BCD”。正确项为A. 对个体农业的社会主义改造。"
     },
     {
-      "question": "社会主义改造长时间遗留了一些问题是因为 BCD\nA. 要求过急\nB. 工作过粗\nC. 改变过快\nD. 形式过于简单划一",
-      "answer": "正确答案：A",
+      "question": "社会主义改造长时间遗留了一些问题是因为\nA. 要求过急\nB. 工作过粗\nC. 改变过快\nD. 形式过于简单划一",
+      "answer": "正确答案：BCD",
       "source": "近代史复习题库：近现代史.pdf",
       "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
+      "questionType": "多选题",
+      "correctAnswer": "BCD",
       "analysis": "解析：本题问的是“社会主义改造长时间遗留了一些问题是因为 BCD”。正确项为A. 要求过急。"
     },
     {
-      "question": "下列成就属于“一五”计划期间取得的是 C\nA. 武汉长江大桥建成\nB. “东方红一号”卫星发射成功\nC. 长春第一汽车制造厂建成\nD. 第一颗原子弹爆炸成功",
-      "answer": "正确答案：A",
+      "question": "下列成就属于“一五”计划期间取得的是\nA. 武汉长江大桥建成\nB. “东方红一号”卫星发射成功\nC. 长春第一汽车制造厂建成\nD. 第一颗原子弹爆炸成功",
+      "answer": "正确答案：C",
       "source": "近代史复习题库：近现代史.pdf",
       "preserveAnswer": true,
       "questionType": "单选题",
-      "correctAnswer": "A",
+      "correctAnswer": "C",
       "analysis": "解析：本题问的是“下列成就属于“一五”计划期间取得的是 C”。正确项为A. 武汉长江大桥建成。"
     },
     {
-      "question": "抗战胜利后成立的民主党派有 D\nA. 中国国民党革命委员会\nB. 中国民主同盟\nC. 中国致公党\nD. 台湾民主自治同盟",
-      "answer": "正确答案：A",
+      "question": "抗战胜利后成立的民主党派有\nA. 中国国民党革命委员会\nB. 中国民主同盟\nC. 中国致公党\nD. 台湾民主自治同盟",
+      "answer": "正确答案：D",
       "source": "近代史复习题库：近现代史.pdf",
       "preserveAnswer": true,
       "questionType": "单选题",
-      "correctAnswer": "A",
+      "correctAnswer": "D",
       "analysis": "解析：本题问的是“抗战胜利后成立的民主党派有 D”。正确项为A. 中国国民党革命委员会。"
     },
     {
-      "question": "下列关于统一战线中的两个联盟说法正确的是 B\nA. 一个是劳动者的联盟\nB. 一个是劳动者与非劳动者的联盟\nC. 不包括与大资产阶级的联盟\nD. 建立广泛的统一战线，是坚持和发展革命的政治基础",
-      "answer": "正确答案：A",
-      "source": "近代史复习题库：近现代史.pdf",
-      "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
-      "analysis": "解析：本题问的是“下列关于统一战线中的两个联盟说法正确的是 B”。正确项为A. 一个是劳动者的联盟。"
-    },
-    {
-      "question": "下列关于土地改革的说法正确的是 BCD\nA. 土地制度改革是从根本上摧毁中国封建制度根基的社会大变革\nB. 1928年12月毛泽东在井冈山主持制定中国共产党历史上第一个土地法\nC. 1931年毛泽东和邓子恢等制定了可以付诸实施的比较完整的土地革命纲领和路线\nD. 1947年中国共产党制定《中国土地法大纲》",
-      "answer": "正确答案：A",
-      "source": "近代史复习题库：近现代史.pdf",
-      "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
-      "analysis": "解析：本题问的是“下列关于土地改革的说法正确的是 BCD”。正确项为A. 土地制度改革是从根本上摧毁中国封建制度根基的社会大变革。"
-    },
-    {
-      "question": "下列运动中是学生首先发起的有 BD\nA. 一二一运动\nB. 五二0运动\nC. 二•二八\"起义\nD. 一二三0运动",
-      "answer": "正确答案：A",
-      "source": "近代史复习题库：近现代史.pdf",
-      "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
-      "analysis": "解析：本题问的是“下列运动中是学生首先发起的有 BD”。正确项为A. 一二一运动。"
-    },
-    {
-      "question": "在昆明被国民党特务暗杀的有 B\nA. 李公朴\nB. 闻一多\nC. 杜斌丞\nD. 史量才",
-      "answer": "正确答案：A",
-      "source": "近代史复习题库：近现代史.pdf",
-      "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
-      "analysis": "解析：本题问的是“在昆明被国民党特务暗杀的有 B”。正确项为A. 李公朴。"
-    },
-    {
-      "question": "发生在1911年的起义有 C\nA. 金田起义\nB. 武昌起义\nC. 黄花岗起义\nD. 南昌起义",
+      "question": "下列关于统一战线中的两个联盟说法正确的是\nA. 一个是劳动者的联盟\nB. 一个是劳动者与非劳动者的联盟\nC. 不包括与大资产阶级的联盟\nD. 建立广泛的统一战线，是坚持和发展革命的政治基础",
       "answer": "正确答案：B",
       "source": "近代史复习题库：近现代史.pdf",
       "preserveAnswer": true,
       "questionType": "单选题",
       "correctAnswer": "B",
+      "analysis": "解析：本题问的是“下列关于统一战线中的两个联盟说法正确的是 B”。正确项为A. 一个是劳动者的联盟。"
+    },
+    {
+      "question": "下列关于土地改革的说法正确的是\nA. 土地制度改革是从根本上摧毁中国封建制度根基的社会大变革\nB. 1928年12月毛泽东在井冈山主持制定中国共产党历史上第一个土地法\nC. 1931年毛泽东和邓子恢等制定了可以付诸实施的比较完整的土地革命纲领和路线\nD. 1947年中国共产党制定《中国土地法大纲》",
+      "answer": "正确答案：BCD",
+      "source": "近代史复习题库：近现代史.pdf",
+      "preserveAnswer": true,
+      "questionType": "多选题",
+      "correctAnswer": "BCD",
+      "analysis": "解析：本题问的是“下列关于土地改革的说法正确的是 BCD”。正确项为A. 土地制度改革是从根本上摧毁中国封建制度根基的社会大变革。"
+    },
+    {
+      "question": "下列运动中是学生首先发起的有\nA. 一二一运动\nB. 五二0运动\nC. 二•二八\"起义\nD. 一二三0运动",
+      "answer": "正确答案：BD",
+      "source": "近代史复习题库：近现代史.pdf",
+      "preserveAnswer": true,
+      "questionType": "多选题",
+      "correctAnswer": "BD",
+      "analysis": "解析：本题问的是“下列运动中是学生首先发起的有 BD”。正确项为A. 一二一运动。"
+    },
+    {
+      "question": "在昆明被国民党特务暗杀的有\nA. 李公朴\nB. 闻一多\nC. 杜斌丞\nD. 史量才",
+      "answer": "正确答案：B",
+      "source": "近代史复习题库：近现代史.pdf",
+      "preserveAnswer": true,
+      "questionType": "单选题",
+      "correctAnswer": "B",
+      "analysis": "解析：本题问的是“在昆明被国民党特务暗杀的有 B”。正确项为A. 李公朴。"
+    },
+    {
+      "question": "发生在1911年的起义有\nA. 金田起义\nB. 武昌起义\nC. 黄花岗起义\nD. 南昌起义",
+      "answer": "正确答案：C",
+      "source": "近代史复习题库：近现代史.pdf",
+      "preserveAnswer": true,
+      "questionType": "单选题",
+      "correctAnswer": "C",
       "analysis": "解析：本题问的是“发生在1911年的起义有 C”。正确项为B. 武昌起义。"
     },
     {
@@ -6769,48 +6769,48 @@ const historyLocalQuestionBank = {
       "analysis": "解析：本题问的是“五四运动发生的时代条件有（ ）”。正确项为B. 新文化运动掀起的思想解放潮流；D. 俄国十月革命的影响。"
     },
     {
-      "question": "在各种反马克思主义思想流派中宣扬无政府主义的代表人物包括 C\nA. 胡适\nB. 黄凌霜\nC. 区声白\nD. 张东荪",
+      "question": "在各种反马克思主义思想流派中宣扬无政府主义的代表人物包括\nA. 胡适\nB. 黄凌霜\nC. 区声白\nD. 张东荪",
+      "answer": "正确答案：C",
+      "source": "近代史复习题库：近现代史.pdf",
+      "preserveAnswer": true,
+      "questionType": "单选题",
+      "correctAnswer": "C",
+      "analysis": "解析：本题问的是“在各种反马克思主义思想流派中宣扬无政府主义的代表人物包括 C”。正确项为B. 黄凌霜。"
+    },
+    {
+      "question": "人民解放战争取得胜利的因素有\nA. 战争的正义性\nB. 中共的正确决策\nC. 国民党的腐败\nD. 人民群众的支援",
+      "answer": "正确答案：BCD",
+      "source": "近代史复习题库：近现代史.pdf",
+      "preserveAnswer": true,
+      "questionType": "多选题",
+      "correctAnswer": "BCD",
+      "analysis": "解析：本题问的是“人民解放战争取得胜利的因素有 BCD”。正确项为A. 战争的正义性。"
+    },
+    {
+      "question": "策应刘邓大军千里跃进大别山的有\nA. 陈毅粟裕大军\nB. 陈赓谢富治大军\nC. 林彪罗荣桓大军\nD. 聂荣臻徐向前大军",
       "answer": "正确答案：B",
       "source": "近代史复习题库：近现代史.pdf",
       "preserveAnswer": true,
       "questionType": "单选题",
       "correctAnswer": "B",
-      "analysis": "解析：本题问的是“在各种反马克思主义思想流派中宣扬无政府主义的代表人物包括 C”。正确项为B. 黄凌霜。"
-    },
-    {
-      "question": "人民解放战争取得胜利的因素有 BCD\nA. 战争的正义性\nB. 中共的正确决策\nC. 国民党的腐败\nD. 人民群众的支援",
-      "answer": "正确答案：A",
-      "source": "近代史复习题库：近现代史.pdf",
-      "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
-      "analysis": "解析：本题问的是“人民解放战争取得胜利的因素有 BCD”。正确项为A. 战争的正义性。"
-    },
-    {
-      "question": "策应刘邓大军千里跃进大别山的有 B\nA. 陈毅粟裕大军\nB. 陈赓谢富治大军\nC. 林彪罗荣桓大军\nD. 聂荣臻徐向前大军",
-      "answer": "正确答案：A",
-      "source": "近代史复习题库：近现代史.pdf",
-      "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
       "analysis": "解析：本题问的是“策应刘邓大军千里跃进大别山的有 B”。正确项为A. 陈毅粟裕大军。"
     },
     {
-      "question": "中华人民共和国的成立，标志 BC\nA. 新民主主义革命取得基本胜利\nB. 半殖民地半封建社会结束\nC. 新民主主义社会建立\nD. 社会主义社会建立",
-      "answer": "正确答案：A",
+      "question": "中华人民共和国的成立，标志\nA. 新民主主义革命取得基本胜利\nB. 半殖民地半封建社会结束\nC. 新民主主义社会建立\nD. 社会主义社会建立",
+      "answer": "正确答案：BC",
       "source": "近代史复习题库：近现代史.pdf",
       "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
+      "questionType": "多选题",
+      "correctAnswer": "BC",
       "analysis": "解析：本题问的是“中华人民共和国的成立，标志 BC”。正确项为A. 新民主主义革命取得基本胜利。"
     },
     {
-      "question": "以毛泽东为主要代表的中国共产党人提出新中国的外交方针是 BC\nA. 另起炉灶\nB. 打扫干净屋子再请客\nC. 一边倒\nD. 不当头",
-      "answer": "正确答案：A",
+      "question": "以毛泽东为主要代表的中国共产党人提出新中国的外交方针是\nA. 另起炉灶\nB. 打扫干净屋子再请客\nC. 一边倒\nD. 不当头",
+      "answer": "正确答案：BC",
       "source": "近代史复习题库：近现代史.pdf",
       "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
+      "questionType": "多选题",
+      "correctAnswer": "BC",
       "analysis": "解析：本题问的是“以毛泽东为主要代表的中国共产党人提出新中国的外交方针是 BC”。正确项为A. 另起炉灶。"
     },
     {
@@ -6832,12 +6832,12 @@ const historyLocalQuestionBank = {
       "analysis": "解析：本题问的是“在我国社会主义基本制度确立阶段，引导亿万农民走向社会主义的几种过渡性经济组”。正确项为A. 农业互助组。"
     },
     {
-      "question": "在中国进行社会主义改造的目的是 BD\nA. 消灭资本家\nB. 确立社会主义生产关系\nC. 健全社会主义上层建筑\nD. 继续解放和发展生产力",
-      "answer": "正确答案：A",
+      "question": "在中国进行社会主义改造的目的是\nA. 消灭资本家\nB. 确立社会主义生产关系\nC. 健全社会主义上层建筑\nD. 继续解放和发展生产力",
+      "answer": "正确答案：BD",
       "source": "近代史复习题库：近现代史.pdf",
       "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
+      "questionType": "多选题",
+      "correctAnswer": "BD",
       "analysis": "解析：本题问的是“在中国进行社会主义改造的目的是 BD”。正确项为A. 消灭资本家。"
     },
     {
@@ -6859,12 +6859,12 @@ const historyLocalQuestionBank = {
       "analysis": "解析：本题问的是“20世纪初资产阶级革命团体纷纷建立，包括下列哪些？( )”。正确项为C. 光复会。"
     },
     {
-      "question": "筹划武昌起义的革命团体是 D\nA. 兴中会\nB. 华兴会\nC. 共进会\nD. 文学社",
-      "answer": "正确答案：C",
+      "question": "筹划武昌起义的革命团体是\nA. 兴中会\nB. 华兴会\nC. 共进会\nD. 文学社",
+      "answer": "正确答案：D",
       "source": "近代史复习题库：近现代史.pdf",
       "preserveAnswer": true,
       "questionType": "单选题",
-      "correctAnswer": "C",
+      "correctAnswer": "D",
       "analysis": "解析：本题问的是“筹划武昌起义的革命团体是 D”。正确项为C. 共进会。"
     },
     {
@@ -6913,12 +6913,12 @@ const historyLocalQuestionBank = {
       "analysis": "解析：本题问的是“下列属于对中共一大内容的描述不正确的有（ ）”。正确项为C. 大会确定了党的最高纲领和最低纲领。"
     },
     {
-      "question": "参加中共一大的共产国际代表有 B\nA. 马林\nB. 尼科尔斯基\nC. 鲍罗廷\nD. 李德",
-      "answer": "正确答案：A",
+      "question": "参加中共一大的共产国际代表有\nA. 马林\nB. 尼科尔斯基\nC. 鲍罗廷\nD. 李德",
+      "answer": "正确答案：B",
       "source": "近代史复习题库：近现代史.pdf",
       "preserveAnswer": true,
       "questionType": "单选题",
-      "correctAnswer": "A",
+      "correctAnswer": "B",
       "analysis": "解析：本题问的是“参加中共一大的共产国际代表有 B”。正确项为A. 马林。"
     },
     {
@@ -6931,21 +6931,21 @@ const historyLocalQuestionBank = {
       "analysis": "解析：本题问的是“下列对中共成立初期党员内容的描述正确的有（ ）”。正确项为B. 新生的中国共产党受小资产阶级思想的影响严重；C. 党员中工人阶级的人数不多。"
     },
     {
-      "question": "参加中共一大的北京代表有 B\nA. 张国焘\nB. 刘仁静\nC. 李达\nD. 李汉俊",
-      "answer": "正确答案：A",
+      "question": "参加中共一大的北京代表有\nA. 张国焘\nB. 刘仁静\nC. 李达\nD. 李汉俊",
+      "answer": "正确答案：B",
       "source": "近代史复习题库：近现代史.pdf",
       "preserveAnswer": true,
       "questionType": "单选题",
-      "correctAnswer": "A",
+      "correctAnswer": "B",
       "analysis": "解析：本题问的是“参加中共一大的北京代表有 B”。正确项为A. 张国焘。"
     },
     {
-      "question": "建国初期，国营经济建立的作用是 BCD\nA. 奠定了人民民主专政的经济基础\nB. 为国民经济的恢复准备了物质力量\nC. 为社会主义改造奠定了物质基础\nD. 有利于工矿企业的民主改革",
-      "answer": "正确答案：A",
+      "question": "建国初期，国营经济建立的作用是\nA. 奠定了人民民主专政的经济基础\nB. 为国民经济的恢复准备了物质力量\nC. 为社会主义改造奠定了物质基础\nD. 有利于工矿企业的民主改革",
+      "answer": "正确答案：BCD",
       "source": "近代史复习题库：近现代史.pdf",
       "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
+      "questionType": "多选题",
+      "correctAnswer": "BCD",
       "analysis": "解析：本题问的是“建国初期，国营经济建立的作用是 BCD”。正确项为A. 奠定了人民民主专政的经济基础。"
     },
     {
@@ -7012,12 +7012,12 @@ const historyLocalQuestionBank = {
       "analysis": "解析：本题问的是“第一次国共合作期间，国民党作为革命联盟所包括的阶级( )”。正确项为C. 城市小资产阶级；D. 民族资产阶级。"
     },
     {
-      "question": "以下对地主阶级和买办性的大资产阶级描述正确的有 BCD\nA. 1927年后形成为官僚资产阶级\nB. 它们是中国民主革命的对象\nC. 其政治代表是北洋政府，以后主要是国民党统治集团\nD. 它们是反动势力，有时称顽固势力",
-      "answer": "正确答案：A",
+      "question": "以下对地主阶级和买办性的大资产阶级描述正确的有\nA. 1927年后形成为官僚资产阶级\nB. 它们是中国民主革命的对象\nC. 其政治代表是北洋政府，以后主要是国民党统治集团\nD. 它们是反动势力，有时称顽固势力",
+      "answer": "正确答案：BCD",
       "source": "近代史复习题库：近现代史.pdf",
       "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
+      "questionType": "多选题",
+      "correctAnswer": "BCD",
       "analysis": "解析：本题问的是“以下对地主阶级和买办性的大资产阶级描述正确的有 BCD”。正确项为A. 1927年后形成为官僚资产阶级。"
     },
     {
@@ -7066,12 +7066,12 @@ const historyLocalQuestionBank = {
       "analysis": "解析：本题问的是“1924年初召开的中国国民党“一大”( ）。”。正确项为B. 同意共产党员以个人身份加入国民党，实行党内合作；C. 标志着革命统一战线的正式建立；D. 国民大革命运动的开始。"
     },
     {
-      "question": "中国从新民主主义向社会主义过渡的条件主要是 BCD\nA. 近代中国资本主义经济及现代工业初步发展\nB. 社会主义国营经济的壮大\nC. 有利的国际因素\nD. 人民民主专政的国家政权",
-      "answer": "正确答案：A",
+      "question": "中国从新民主主义向社会主义过渡的条件主要是\nA. 近代中国资本主义经济及现代工业初步发展\nB. 社会主义国营经济的壮大\nC. 有利的国际因素\nD. 人民民主专政的国家政权",
+      "answer": "正确答案：BCD",
       "source": "近代史复习题库：近现代史.pdf",
       "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
+      "questionType": "多选题",
+      "correctAnswer": "BCD",
       "analysis": "解析：本题问的是“中国从新民主主义向社会主义过渡的条件主要是 BCD”。正确项为A. 近代中国资本主义经济及现代工业初步发展。"
     },
     {
@@ -9838,12 +9838,12 @@ const historyLocalQuestionBank = {
       "analysis": "解析：本题问的是“抗日战争时期，中共在反对国民党顽固派的斗争中，争取中间派和实行“三三制”政权的理论根据是()”。正确项为D. 将开明绅士及一般地主与大地主阶级加以区别。"
     },
     {
-      "question": "在 20 世纪 30 年代后期和 40 年代前期，为了将丰富的中国革命实际经验马克思主义化，以便更好地指导抗日战争和中国革命，毛泽东撰写了（ ）等一批重要的理论著作。 BC\nA. 《<共产党人>发刊词》\nB. 《中国革命和中国共产党》\nC. 《新民主主义论》\nD. 《论联合政府》",
-      "answer": "正确答案：A",
+      "question": "在 20 世纪 30 年代后期和 40 年代前期，为了将丰富的中国革命实际经验马克思主义化，以便更好地指导抗日战争和中国革命，毛泽东撰写了（ ）等一批重要的理论著作。\nA. 《<共产党人>发刊词》\nB. 《中国革命和中国共产党》\nC. 《新民主主义论》\nD. 《论联合政府》",
+      "answer": "正确答案：BC",
       "source": "近代史复习题库：近现代史练习题2.docx",
       "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
+      "questionType": "多选题",
+      "correctAnswer": "BC",
       "analysis": "解析：本题问的是“在 20 世纪 30 年代后期和 40 年代前期，为了将丰富的中国革命实际经验马克思主义化，以便更好地指导抗日战争和中国革命，毛泽东撰写了（ ）等一批重要的理论著作。 BC”。正确项为A. 《<共产党人>发刊词》。"
     },
     {
@@ -9937,12 +9937,12 @@ const historyLocalQuestionBank = {
       "analysis": "解析：本题问的是“土地革命战争时期，中国的红色政权能够存在与发展的条件有（ ）。”。正确项为B. 第一次国内革命战争的影响，全国革命形势的继续向前发展；C. 相当力量的正式红军的存在；D. 共产党组织的坚强有力和政策的正确。"
     },
     {
-      "question": "在1927年大革命失败以后，国民党的性质发生转变，它代表 （）的利益。 C\nA. 地主阶级\nB. 工人、农民\nC. 买办性的大资产阶级\nD. 民族资产阶级",
-      "answer": "正确答案：A",
+      "question": "在1927年大革命失败以后，国民党的性质发生转变，它代表 （）的利益。\nA. 地主阶级\nB. 工人、农民\nC. 买办性的大资产阶级\nD. 民族资产阶级",
+      "answer": "正确答案：C",
       "source": "近代史复习题库：近现代史练习题2.docx",
       "preserveAnswer": true,
       "questionType": "单选题",
-      "correctAnswer": "A",
+      "correctAnswer": "C",
       "analysis": "解析：本题问的是“在1927年大革命失败以后，国民党的性质发生转变，它代表 （）的利益。 C”。正确项为A. 地主阶级。"
     },
     {
@@ -9964,12 +9964,12 @@ const historyLocalQuestionBank = {
       "analysis": "解析：本题问的是“1943年1月，美英分别与中国签订新约，废除在华领事裁判权；11月，蒋介石与罗斯福、丘吉尔举行开罗会议。上述史实说明( )。”。正确项为D. 中华民族的抗战大大提高了中国的国际地位。"
     },
     {
-      "question": "毛泽东阐明的中国共产党在新民主主义革命阶段的基本纲领，包括（ ）几个方面。 BC\nA. 政治上\nB. 经济上\nC. 文化上\nD. 教育上",
-      "answer": "正确答案：A",
+      "question": "毛泽东阐明的中国共产党在新民主主义革命阶段的基本纲领，包括（ ）几个方面。\nA. 政治上\nB. 经济上\nC. 文化上\nD. 教育上",
+      "answer": "正确答案：BC",
       "source": "近代史复习题库：近现代史练习题2.docx",
       "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
+      "questionType": "多选题",
+      "correctAnswer": "BC",
       "analysis": "解析：本题问的是“毛泽东阐明的中国共产党在新民主主义革命阶段的基本纲领，包括（ ）几个方面。 BC”。正确项为A. 政治上。"
     },
     {
@@ -10018,57 +10018,57 @@ const historyLocalQuestionBank = {
       "analysis": "解析：本题问的是“北洋军阀政府从政治上、经济上和文化思想上对辛亥革命进行了全面的反攻倒算，资产阶级革命派在中国建立资产阶级共和国的梦想破灭了，主要表现在 （ ）”。正确项为B. 在经济上，北洋政府竭力维护帝国主义、地主阶级和买办资产阶级的利益；C. 在文化思想方面，尊孔复古思潮猖獗一时；D. 军阀们为了实行专制统治，不惜投靠帝国主义。"
     },
     {
-      "question": "抗战胜利后，美国支持蒋介石政府是为了 BCD\nA. 稳定亚洲战线\nB. 遏制苏联\nC. 维护在中国的利益\nD. 建立亲美政府",
-      "answer": "正确答案：A",
+      "question": "抗战胜利后，美国支持蒋介石政府是为了\nA. 稳定亚洲战线\nB. 遏制苏联\nC. 维护在中国的利益\nD. 建立亲美政府",
+      "answer": "正确答案：BCD",
       "source": "近代史复习题库：近现代史练习题2.docx",
       "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
+      "questionType": "多选题",
+      "correctAnswer": "BCD",
       "analysis": "解析：本题问的是“抗战胜利后，美国支持蒋介石政府是为了 BCD”。正确项为A. 稳定亚洲战线。"
     },
     {
-      "question": "抗战胜利后，蒋介石之所以邀请毛泽东赴重庆和平谈判，最主要是因为 B\nA. 全国人民强烈要求和平\nB. 完成反共军事部署需要时间\nC. 苏联美国都希望中国和平建国\nD. 国民党内主和派影响",
-      "answer": "正确答案：A",
+      "question": "抗战胜利后，蒋介石之所以邀请毛泽东赴重庆和平谈判，最主要是因为\nA. 全国人民强烈要求和平\nB. 完成反共军事部署需要时间\nC. 苏联美国都希望中国和平建国\nD. 国民党内主和派影响",
+      "answer": "正确答案：B",
       "source": "近代史复习题库：近现代史练习题2.docx",
       "preserveAnswer": true,
       "questionType": "单选题",
-      "correctAnswer": "A",
+      "correctAnswer": "B",
       "analysis": "解析：本题问的是“抗战胜利后，蒋介石之所以邀请毛泽东赴重庆和平谈判，最主要是因为 B”。正确项为A. 全国人民强烈要求和平。"
     },
     {
-      "question": "下列名单中被1949年中国人民政治协商会议第一届全体会议选举为中央人民政府副主席的有 BC\nA. 宋庆龄\nB. 李济深\nC. 张澜\nD. 黄炎培",
-      "answer": "正确答案：A",
+      "question": "下列名单中被1949年中国人民政治协商会议第一届全体会议选举为中央人民政府副主席的有\nA. 宋庆龄\nB. 李济深\nC. 张澜\nD. 黄炎培",
+      "answer": "正确答案：BC",
       "source": "近代史复习题库：近现代史练习题2.docx",
       "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
+      "questionType": "多选题",
+      "correctAnswer": "BC",
       "analysis": "解析：本题问的是“下列名单中被1949年中国人民政治协商会议第一届全体会议选举为中央人民政府副主席的有 BC”。正确项为A. 宋庆龄。"
     },
     {
-      "question": "1947年7月至9月，中国共产党在河北省平山县召开全国土地会议，制定和通过了《中国土地法大纲》，明确规定 BC\nA. 废除封建性及半封建性的土地制度\nB. 实现耕者有其田的制度\nC. 乡村中一切地主的土地及公田，由乡村农会接收\nD. 平均地权",
-      "answer": "正确答案：A",
+      "question": "1947年7月至9月，中国共产党在河北省平山县召开全国土地会议，制定和通过了《中国土地法大纲》，明确规定\nA. 废除封建性及半封建性的土地制度\nB. 实现耕者有其田的制度\nC. 乡村中一切地主的土地及公田，由乡村农会接收\nD. 平均地权",
+      "answer": "正确答案：BC",
       "source": "近代史复习题库：近现代史练习题2.docx",
       "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
+      "questionType": "多选题",
+      "correctAnswer": "BC",
       "analysis": "解析：本题问的是“1947年7月至9月，中国共产党在河北省平山县召开全国土地会议，制定和通过了《中国土地法大纲》，明确规定 BC”。正确项为A. 废除封建性及半封建性的土地制度。"
     },
     {
-      "question": ".1949年3月中共中央离开西柏坡迁往北平。毛泽东说：“今天是进京赶考的日子，我们决不当李自成，我们都希望考个好成绩。”这句话的意思是 D\nA. 避免农民战争中的流寇主义\nB. 克服农民阶级的私有观念\nC. 防止产生骄傲麻痹思想\nD. 防止干部中出现享乐腐化作风",
-      "answer": "正确答案：C",
+      "question": ".1949年3月中共中央离开西柏坡迁往北平。毛泽东说：“今天是进京赶考的日子，我们决不当李自成，我们都希望考个好成绩。”这句话的意思是\nA. 避免农民战争中的流寇主义\nB. 克服农民阶级的私有观念\nC. 防止产生骄傲麻痹思想\nD. 防止干部中出现享乐腐化作风",
+      "answer": "正确答案：D",
       "source": "近代史复习题库：近现代史练习题2.docx",
       "preserveAnswer": true,
       "questionType": "单选题",
-      "correctAnswer": "C",
+      "correctAnswer": "D",
       "analysis": "解析：本题问的是“.1949年3月中共中央离开西柏坡迁往北平。毛泽东说：“今天是进京赶考的日子，我们决不当李自成，我们都希望考个好成绩。”这句话的意思是 D”。正确项为C. 防止产生骄傲麻痹思想。"
     },
     {
-      "question": "建国初期，我国社会主义国营经济建立的最主要途径和手段是 B\nA. 没收帝国主义在华企业\nB. 没收官僚资本\nC. 没收民族资产阶级的财产\nD. 没收地主阶级的土地和财产",
-      "answer": "正确答案：A",
+      "question": "建国初期，我国社会主义国营经济建立的最主要途径和手段是\nA. 没收帝国主义在华企业\nB. 没收官僚资本\nC. 没收民族资产阶级的财产\nD. 没收地主阶级的土地和财产",
+      "answer": "正确答案：B",
       "source": "近代史复习题库：近现代史练习题2.docx",
       "preserveAnswer": true,
       "questionType": "单选题",
-      "correctAnswer": "A",
+      "correctAnswer": "B",
       "analysis": "解析：本题问的是“建国初期，我国社会主义国营经济建立的最主要途径和手段是 B”。正确项为A. 没收帝国主义在华企业。"
     },
     {
@@ -10099,30 +10099,30 @@ const historyLocalQuestionBank = {
       "analysis": "解析：本题问的是“关于新文化运动,下列说法正确的是( )。”。正确项为B. 给封建专制主义和封建礼教以前所未有的冲击；C. 为西方的社会科学、自然科学的传入敞开了大门；D. 为马克思列宁主义的引进与传播创造了有利条件。"
     },
     {
-      "question": "1952年开展的“三反”运动是 CD\nA. 反行贿\nB. 反贪污\nC. 反浪费\nD. 反官僚主义",
-      "answer": "正确答案：B",
+      "question": "1952年开展的“三反”运动是\nA. 反行贿\nB. 反贪污\nC. 反浪费\nD. 反官僚主义",
+      "answer": "正确答案：CD",
       "source": "近代史复习题库：近现代史练习题2.docx",
       "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "B",
+      "questionType": "多选题",
+      "correctAnswer": "CD",
       "analysis": "解析：本题问的是“1952年开展的“三反”运动是 CD”。正确项为B. 反贪污。"
     },
     {
-      "question": "“当年曾分田翻身当家作主人，今岁又分田勤劳致富奔小康”。与这幅农家春联中的两次“分田”直接相关的是 D\nA. 土地改革\nB. 人民公社化运动\nC. 农业合作化运动\nD. 家庭联产承包责任制",
-      "answer": "正确答案：A",
+      "question": "“当年曾分田翻身当家作主人，今岁又分田勤劳致富奔小康”。与这幅农家春联中的两次“分田”直接相关的是\nA. 土地改革\nB. 人民公社化运动\nC. 农业合作化运动\nD. 家庭联产承包责任制",
+      "answer": "正确答案：D",
       "source": "近代史复习题库：近现代史练习题2.docx",
       "preserveAnswer": true,
       "questionType": "单选题",
-      "correctAnswer": "A",
+      "correctAnswer": "D",
       "analysis": "解析：本题问的是““当年曾分田翻身当家作主人，今岁又分田勤劳致富奔小康”。与这幅农家春联中的两次“分田”直接相关的是 D”。正确项为A. 土地改革。"
     },
     {
-      "question": "在我国社会主义基本制度确立阶段，引导亿万农民走向社会主义的几种过渡性经济组织形式有 BC\nA. 农业互助组\nB. 初级农业生产合作社\nC. 高级农业生产合作社\nD. 人民公社",
-      "answer": "正确答案：A",
+      "question": "在我国社会主义基本制度确立阶段，引导亿万农民走向社会主义的几种过渡性经济组织形式有\nA. 农业互助组\nB. 初级农业生产合作社\nC. 高级农业生产合作社\nD. 人民公社",
+      "answer": "正确答案：BC",
       "source": "近代史复习题库：近现代史练习题2.docx",
       "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
+      "questionType": "多选题",
+      "correctAnswer": "BC",
       "analysis": "解析：本题问的是“在我国社会主义基本制度确立阶段，引导亿万农民走向社会主义的几种过渡性经济组织形式有 BC”。正确项为A. 农业互助组。"
     },
     {
@@ -10387,12 +10387,12 @@ const historyLocalQuestionBank = {
       "analysis": "解析：本题问的是“1957年4月中共中央下发《关于整风运动的指示》，提出这次整风运动的内容是( ) 。”。正确项为C. 反对宗派主义；D. 反对主观主义。"
     },
     {
-      "question": "在探索中国社会主义民主建设方面，毛泽东提出，要把“造成一个又有集中又有民主，（），生动活泼，那样一种政治局面”作为努力的目标。 BCD\nA. 又有纪律\nB. 又有自由\nC. 又有统一意志\nD. 又有个人心情舒畅",
-      "answer": "正确答案：A",
+      "question": "在探索中国社会主义民主建设方面，毛泽东提出，要把“造成一个又有集中又有民主，（），生动活泼，那样一种政治局面”作为努力的目标。\nA. 又有纪律\nB. 又有自由\nC. 又有统一意志\nD. 又有个人心情舒畅",
+      "answer": "正确答案：BCD",
       "source": "近代史复习题库：近现代史练习题2.docx",
       "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
+      "questionType": "多选题",
+      "correctAnswer": "BCD",
       "analysis": "解析：本题问的是“在探索中国社会主义民主建设方面，毛泽东提出，要把“造成一个又有集中又有民主，（），生动活泼，那样一种政治局面”作为努力的目标。 BCD”。正确项为A. 又有纪律。"
     },
     {
@@ -10459,21 +10459,21 @@ const historyLocalQuestionBank = {
       "analysis": "解析：本题问的是“1994年，中央提出了“抓住机遇、深化改革、扩大开放、促进发展、保持稳定”的基本方针。江泽民提出改革、发展、稳定的关系是（ ） 。”。正确项为B. 改革是动力；C. 发展是目标；D. 三者互相促进。"
     },
     {
-      "question": "1994年9月，中央十四届四中全会通过了《关于加强党的建设几个重大问题的决定》，推进党的建设新的伟大工程，提出解决（ ）两大历史性课题 。 D\nA. 党要管党\nB. 从严治党\nC. 提高党的领导水平和执政水平\nD. 提高拒腐防变和抵御风险能力",
-      "answer": "正确答案：C",
+      "question": "1994年9月，中央十四届四中全会通过了《关于加强党的建设几个重大问题的决定》，推进党的建设新的伟大工程，提出解决（ ）两大历史性课题 。\nA. 党要管党\nB. 从严治党\nC. 提高党的领导水平和执政水平\nD. 提高拒腐防变和抵御风险能力",
+      "answer": "正确答案：D",
       "source": "近代史复习题库：近现代史练习题2.docx",
       "preserveAnswer": true,
       "questionType": "单选题",
-      "correctAnswer": "C",
+      "correctAnswer": "D",
       "analysis": "解析：本题问的是“1994年9月，中央十四届四中全会通过了《关于加强党的建设几个重大问题的决定》，推进党的建设新的伟大工程，提出解决（ ）两大历史性课题 。 D”。正确项为C. 提高党的领导水平和执政水平。"
     },
     {
-      "question": "1998年10月召开的中共中央十五届三中全会，通过了《关于农业和农村工作若干重大问题的决定》，进一步推动解决（ ）问题。 CD\nA. 农民工\nB. 农业\nC. 农民\nD. 农村",
-      "answer": "正确答案：B",
+      "question": "1998年10月召开的中共中央十五届三中全会，通过了《关于农业和农村工作若干重大问题的决定》，进一步推动解决（ ）问题。\nA. 农民工\nB. 农业\nC. 农民\nD. 农村",
+      "answer": "正确答案：CD",
       "source": "近代史复习题库：近现代史练习题2.docx",
       "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "B",
+      "questionType": "多选题",
+      "correctAnswer": "CD",
       "analysis": "解析：本题问的是“1998年10月召开的中共中央十五届三中全会，通过了《关于农业和农村工作若干重大问题的决定》，进一步推动解决（ ）问题。 CD”。正确项为B. 农业。"
     },
     {
@@ -14167,12 +14167,12 @@ const historyLocalQuestionBank = {
       "analysis": "解析：本题问的是““一二?九”运动与“五四”运动比较，共同点是（ ）。”。正确项为C. 以青年学生为先锋；D. 始于北京后扩大到全国。"
     },
     {
-      "question": "下列运动中是学生首先发起的有 BD\nA. 一二一运动\nB. 五二0运动\nC. 二?二八\"起义\nD. 一二三0运动",
-      "answer": "正确答案：A",
+      "question": "下列运动中是学生首先发起的有\nA. 一二一运动\nB. 五二0运动\nC. 二?二八\"起义\nD. 一二三0运动",
+      "answer": "正确答案：BD",
       "source": "近代史复习题库：LibreOffice转换：题库.txt",
       "preserveAnswer": true,
-      "questionType": "单选题",
-      "correctAnswer": "A",
+      "questionType": "多选题",
+      "correctAnswer": "BD",
       "analysis": "解析：本题问的是“下列运动中是学生首先发起的有 BD”。正确项为A. 一二一运动。"
     },
     {

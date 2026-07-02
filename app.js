@@ -550,14 +550,15 @@ function expandQuestionBanks() {
       history: typeof historyLocalQuestionBank !== "undefined" ? historyLocalQuestionBank : null,
       morality: typeof moralityLocalQuestionBank !== "undefined" ? moralityLocalQuestionBank : null,
       mao: typeof maoXiLocalQuestionBank !== "undefined" ? maoXiLocalQuestionBank.mao : null,
-      xi: typeof maoXiLocalQuestionBank !== "undefined" ? maoXiLocalQuestionBank.xi : null
+      xi: typeof maoXiLocalQuestionBank !== "undefined" ? maoXiLocalQuestionBank.xi : null,
+      marx: typeof marxLocalQuestionBank !== "undefined" ? marxLocalQuestionBank : null
     };
     const localBank = localBanks[course.id] || { choices: [], essays: [] };
     const generatedChoices = makeChoices(supplement.facts, course.short);
     const generatedEssays = makeEssays(supplement.essayTopics, supplement.facts, course.short);
     course.choices = uniqueByQuestion(course.choices.concat(localBank.choices || [], generatedChoices));
     course.essays = uniqueByQuestion(course.essays.concat(localBank.essays || [], generatedEssays));
-    if (!["history", "morality", "mao", "xi"].includes(course.id)) {
+    if (!["history", "morality", "mao", "xi", "marx"].includes(course.id)) {
       course.choices = course.choices.slice(0, 200);
       course.essays = course.essays.slice(0, 60);
     }
@@ -2049,12 +2050,15 @@ function relatedEssayFactsForItem(item) {
 }
 
 function choiceStem(question) {
-  return question.split(/\n\s*A[.．、]/)[0].replace(/\s+/g, " ").trim();
+  const firstOption = question.search(/(?:^|\n|\s)A(?:[.．、]\s*|\s+|(?=[\u4e00-\u9fff]))/);
+  return (firstOption >= 0 ? question.slice(0, firstOption) : question).replace(/\s+/g, " ").trim();
 }
 
 function parseChoiceOptions(question) {
   const result = {};
-  const matches = [...question.matchAll(/\n\s*([A-D])[.．、]\s*/g)];
+  const allMatches = [...question.matchAll(/(?:^|\n|\s)([A-D])(?:[.．、]\s*|\s+|(?=[\u4e00-\u9fff]))/g)];
+  const firstOption = allMatches.findIndex((match) => match[1] === "A");
+  const matches = firstOption >= 0 ? allMatches.slice(firstOption) : [];
   matches.forEach((match, index) => {
     const start = match.index + match[0].length;
     const end = index + 1 < matches.length ? matches[index + 1].index : question.length;

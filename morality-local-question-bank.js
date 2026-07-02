@@ -433,7 +433,7 @@ const moralityLocalQuestionBank = {
       "preserveAnswer": true
     },
     {
-      "question": "学会宽容，善于原谅他人 A\nA. 一种美德\nB. 是非不分\nC. 软弱不欺\nD. 缺乏原则",
+      "question": "学会宽容，善于原谅他人\nA. 一种美德\nB. 是非不分\nC. 软弱不欺\nD. 缺乏原则",
       "questionType": "单选题",
       "correctAnswer": "A",
       "answer": "正确答案：A",
@@ -442,7 +442,7 @@ const moralityLocalQuestionBank = {
       "preserveAnswer": true
     },
     {
-      "question": "人的本质属性是 B\nA. 自然属性\nB. 社会属性\nC. 地缘属性\nD. 业缘属性",
+      "question": "人的本质属性是\nA. 自然属性\nB. 社会属性\nC. 地缘属性\nD. 业缘属性",
       "questionType": "单选题",
       "correctAnswer": "B",
       "answer": "正确答案：B",
@@ -451,7 +451,7 @@ const moralityLocalQuestionBank = {
       "preserveAnswer": true
     },
     {
-      "question": "下列不属于剥削阶级人生观的是 C\nA. 拜金主义\nB. 享乐主义\nC. 现实主义\nD. 个人主义",
+      "question": "下列不属于剥削阶级人生观的是\nA. 拜金主义\nB. 享乐主义\nC. 现实主义\nD. 个人主义",
       "questionType": "单选题",
       "correctAnswer": "C",
       "answer": "正确答案：C",
@@ -460,7 +460,7 @@ const moralityLocalQuestionBank = {
       "preserveAnswer": true
     },
     {
-      "question": "人才素质的灵魂是 A\nA. 德\nB. 智\nC. 体\nD. 美",
+      "question": "人才素质的灵魂是\nA. 德\nB. 智\nC. 体\nD. 美",
       "questionType": "单选题",
       "correctAnswer": "A",
       "answer": "正确答案：A",
@@ -469,7 +469,7 @@ const moralityLocalQuestionBank = {
       "preserveAnswer": true
     },
     {
-      "question": "社会主义大学的培养目标是 C\nA. 培养德智体等方面发展的人才\nB. 培养德智体等方面发展的社会主义建设者\nC. 培养德智体等方面发展的社会主义建设者和接班人\nD. 培养德智体等方面发展的国家接班人",
+      "question": "社会主义大学的培养目标是\nA. 培养德智体等方面发展的人才\nB. 培养德智体等方面发展的社会主义建设者\nC. 培养德智体等方面发展的社会主义建设者和接班人\nD. 培养德智体等方面发展的国家接班人",
       "questionType": "单选题",
       "correctAnswer": "C",
       "answer": "正确答案：C",
@@ -478,7 +478,7 @@ const moralityLocalQuestionBank = {
       "preserveAnswer": true
     },
     {
-      "question": "现代人才综合素质的灵魂是 A\nA. 人才的思想道德素质\nB. 人才的文化素质\nC. 人才的心理素质\nD. 人才的身体素质",
+      "question": "现代人才综合素质的灵魂是\nA. 人才的思想道德素质\nB. 人才的文化素质\nC. 人才的心理素质\nD. 人才的身体素质",
       "questionType": "单选题",
       "correctAnswer": "A",
       "answer": "正确答案：A",
@@ -487,7 +487,7 @@ const moralityLocalQuestionBank = {
       "preserveAnswer": true
     },
     {
-      "question": "确立科学信念的根本途径是 C\nA. 设计理想\nB. 理论学习\nC. 社会实践\nD. 人际交往",
+      "question": "确立科学信念的根本途径是\nA. 设计理想\nB. 理论学习\nC. 社会实践\nD. 人际交往",
       "questionType": "单选题",
       "correctAnswer": "C",
       "answer": "正确答案：C",
@@ -496,7 +496,7 @@ const moralityLocalQuestionBank = {
       "preserveAnswer": true
     },
     {
-      "question": "国家安全一般是指 D\nA. 一个国家不受外部的威胁、破坏而保持稳定有序的状态\nB. 一个国家不受内部的威胁、破坏而保持稳定有序的状态\nC. 一个国家不受大国的威胁、破坏而保持稳定有序的状 态\nD. 一个国家不受内部和外部的威胁、破坏而保持稳定有序的状态",
+      "question": "国家安全一般是指\nA. 一个国家不受外部的威胁、破坏而保持稳定有序的状态\nB. 一个国家不受内部的威胁、破坏而保持稳定有序的状态\nC. 一个国家不受大国的威胁、破坏而保持稳定有序的状 态\nD. 一个国家不受内部和外部的威胁、破坏而保持稳定有序的状态",
       "questionType": "单选题",
       "correctAnswer": "D",
       "answer": "正确答案：D",
@@ -505,7 +505,7 @@ const moralityLocalQuestionBank = {
       "preserveAnswer": true
     },
     {
-      "question": "我国现行宪法是 A\nA. 1954 年颁布的《中华人民共和国宪法》\nB. 1975 年颁布的《中华人民共和国宪法》\nC. 1982 年颁布的《中华人民共和国宪法》\nD. 1993 年颁布的《中华人民共和国宪法》",
+      "question": "我国现行宪法是\nA. 1954 年颁布的《中华人民共和国宪法》\nB. 1975 年颁布的《中华人民共和国宪法》\nC. 1982 年颁布的《中华人民共和国宪法》\nD. 1993 年颁布的《中华人民共和国宪法》",
       "questionType": "单选题",
       "correctAnswer": "A",
       "answer": "正确答案：A",
@@ -514,7 +514,7 @@ const moralityLocalQuestionBank = {
       "preserveAnswer": true
     },
     {
-      "question": "新时期爱国主义的主题是 C\nA. 尊重知识，尊重人才\nB. 追求崇高的共产主义理想\nC. 建设有中国特色的社会主义\nD. 热爱祖国的大好河山和悠久历史",
+      "question": "新时期爱国主义的主题是\nA. 尊重知识，尊重人才\nB. 追求崇高的共产主义理想\nC. 建设有中国特色的社会主义\nD. 热爱祖国的大好河山和悠久历史",
       "questionType": "单选题",
       "correctAnswer": "C",
       "answer": "正确答案：C",
