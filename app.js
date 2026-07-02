@@ -516,6 +516,18 @@ function commonSources(keyword) {
       url: "https://www.xuexi.cn/"
     },
     {
+      type: "权威公开文本",
+      title: "新华网：党的二十大报告",
+      note: "用于补充中国式现代化、六个必须坚持、高质量发展等章节知识点。",
+      url: "https://www.news.cn/politics/cpc20/2022-10/25/c_1129079429.htm"
+    },
+    {
+      type: "权威教材信息",
+      title: "新华网：《习近平新时代中国特色社会主义思想概论》教材出版发行",
+      note: "用于核对《习近平新时代中国特色社会主义思想概论》的教材性质、出版信息和章节构成。",
+      url: "https://www.news.cn/politics/leaders/2023-08/28/c_1129828773.htm"
+    },
+    {
       type: "官方检索入口",
       title: `教育部站内检索：${keyword}`,
       note: "用于核对课程、教材和教学文件的官方表述。",
@@ -1323,10 +1335,12 @@ function buildHistoryPdfChapterDetail(course, chapter, index) {
   const meaningItems = detail.points
     .filter((item) => /!!|意义|影响|标志|推动|奠定|开辟|促进|提高|确立|基础|转折|胜利|结束/.test(item))
     .slice(0, 10);
+  const onlineItems = onlineKnowledgeForChapter(course.id, chapter[0]);
   const examSections = [
     timelineItems.length ? { title: "时间线与关键事件", items: timelineItems } : null,
     conceptItems.length ? { title: "核心概念、人物与制度", items: conceptItems } : null,
     meaningItems.length ? { title: "意义、作用、影响", items: meaningItems } : null,
+    onlineItems.length ? { title: "联网补充知识点", items: onlineItems } : null,
     { title: "易混点和失分点", items: detail.advice.concat([
       "先判断材料属于哪个历史阶段，再判断主体力量和事件性质。",
       "评价历史事件要同时写积极作用和历史局限，不能只肯定或只否定。"
@@ -1501,6 +1515,7 @@ function buildMoralityPdfChapterDetail(course, chapter, index) {
     `按“**题型转换**”整理：选择题看定义、关系、层次和关键词；大题看!!意义作用、现实要求和大学生怎么做!!。`,
     `按“**易混概念**”整理：把相近概念成组记忆，例如人生目的/人生态度/人生价值，道德/法律，权利/义务，法治/德治。`
   ]);
+  const onlineItems = onlineKnowledgeForChapter(course.id, chapter[0]);
   return {
     paragraphs,
     sentences,
@@ -1514,14 +1529,16 @@ function buildMoralityPdfChapterDetail(course, chapter, index) {
     examSections: [
       { title: "重点概念", items: detail.keywords.map((word) => `**${word}**：结合本章定义、关系和考试问法记忆。`) },
       { title: "重点段落和句子", items: detail.points },
+      { title: "联网补充知识点", items: onlineItems },
       { title: "考试提醒和建议", items: detail.advice }
     ],
     combined: paragraphs.concat(detail.points),
     groupedSections: [
       { title: "PDF复习主线", items: detail.points.slice(0, 4) },
       { title: "答题得分点", items: detail.points.slice(4, 8) },
+      { title: "联网补充知识点", items: onlineItems },
       { title: "考试提醒", items: detail.advice }
-    ],
+    ].filter((section) => section.items.length),
     advice: detail.advice,
     map: {
       root: chapter[0],
@@ -1594,7 +1611,39 @@ function buildCombinedChapterContent(paragraphs, sentences, content) {
 }
 
 function buildExamAdvice(courseId, facts) {
-  const common = [
+  const commonByCourse = {
+    history: [
+      "先背关键词，再背完整判断句；答题时不要只写名词，要把概念、背景、内容、意义连成完整句子。",
+      "选择题重点看限定词，尤其是时间、主体、性质、目标、历史地位、作用影响这些容易被改错的地方。",
+      "大题按“是什么—为什么—有什么意义或作用—怎样联系现实”组织，分点写比整段堆叠更容易拿分。",
+      "材料题先划出材料中的时间、人物、事件、政策或制度，再对应本章关键词，不要脱离材料空泛作答。"
+    ],
+    morality: [
+      "先背关键词，再背完整判断句；答题时不要只写名词，要把概念、关系、规范要求和大学生实践连成完整句子。",
+      "选择题重点看定义、层次、规范对象和实践要求，尤其是人生观三要素、核心价值观三个层面、道德规范和法治思维。",
+      "大题按“概念是什么—为什么重要—具体要求是什么—大学生怎样做”组织，结尾要落到个人成长和社会责任。",
+      "材料题先判断材料体现的是理想信念、价值观、道德规范还是法治素养，再选对应教材术语作答。"
+    ],
+    mao: [
+      "先背关键词，再背完整判断句；答题时要写清理论成果、时代背景、主要内容和历史地位。",
+      "选择题重点看理论成果归属，尤其是毛泽东思想、新民主主义革命理论、社会主义改造、邓小平理论、“三个代表”和科学发展观。",
+      "大题按“理论形成条件—核心内容—解决的问题—历史贡献”组织，不能把不同理论成果混在一起。",
+      "材料题先判断材料属于革命、改造、建设、改革开放还是党的建设，再对应到具体理论。"
+    ],
+    xi: [
+      "先背关键词，再背完整判断句；答题时要把理论主题、战略布局、制度安排和实践要求连起来。",
+      "选择题重点看总目标、总布局、战略布局、发展理念、根本保证和本质要求这些容易混淆的限定词。",
+      "大题按“理论依据—核心内容—制度优势—实践要求—现实意义”组织，尽量使用教材规范表述。",
+      "材料题先判断材料对应党的领导、人民立场、中国式现代化、高质量发展、法治、文化、民生、生态、安全、外交或从严治党。"
+    ],
+    marx: [
+      "先背关键词，再背完整判断句；答题时要把原理内容、辩证关系、方法论要求连成完整句子。",
+      "选择题重点看概念边界，尤其是唯物论、辩证法、认识论、唯物史观、政治经济学和科学社会主义的归属。",
+      "大题按“原理是什么—关系怎样—方法论要求—结合材料分析”组织，不要只写定义。",
+      "材料题先判断材料考的是物质意识、矛盾规律、实践认识、社会基本矛盾、商品价值还是资本主义规律。"
+    ]
+  };
+  const common = commonByCourse[courseId] || [
     "先背关键词，再背完整判断句；答题时不要只写名词，要把概念、背景、内容、意义连成完整句子。",
     "选择题重点看限定词，尤其是时间、主体、性质、目标、历史地位、作用影响这些容易被改错的地方。",
     "大题按“是什么—为什么—有什么意义或作用—怎样联系现实”组织，分点写比整段堆叠更容易拿分。",
@@ -1625,35 +1674,134 @@ function buildExamAdvice(courseId, facts) {
   return (courseAdvice[courseId] || []).concat(common, facts.slice(0, 4).map((fact) => `本章涉及“**${fact[0]}**”时，要把“${fact[1]}”和!!${fact[2]}!!一起写出。`));
 }
 
+function onlineKnowledgeForChapter(courseId, title) {
+  const shared = {
+    history: [
+      ["历史阶段定位", "先判断材料处在旧民主主义革命、新民主主义革命、社会主义革命和建设、改革开放或新时代哪个阶段，再写主体力量和历史任务。"],
+      ["事件评价格式", "评价历史事件要同时写背景、经过、性质、结果、积极意义和历史局限，避免只背一个结论。"],
+      ["近代史主线", "近代中国人民的斗争主线是争取民族独立、人民解放和实现国家富强、人民幸福，两大历史任务前后相互联系。"]
+    ],
+    morality: [
+      ["价值规范落点", "思修章节要把个人成长、社会责任、国家需要和法治要求连起来，不能只写个人感受。"],
+      ["大学生实践", "凡问“怎么做”，答案要落到坚定理想信念、锤炼道德品格、提升法治素养、投身社会实践。"],
+      ["德法关系", "思想道德为法律提供价值基础，法律为思想道德提供制度保障，二者共同维护社会秩序。"]
+    ],
+    mao: [
+      ["理论成果定位", "先判断题目属于毛泽东思想、新民主主义革命理论、社会主义改造理论、邓小平理论、“三个代表”重要思想还是科学发展观。"],
+      ["时代问题", "每个理论成果都要写清它回答的时代课题、形成条件、主要内容和历史地位。"],
+      ["两个结合", "复习马克思主义中国化时代化时，要把马克思主义基本原理同中国具体实际、同中华优秀传统文化相结合。"]
+    ],
+    xi: [
+      ["教材体系", "《习近平新时代中国特色社会主义思想概论》由导论、17章主体内容和结语构成，复习时按新时代主题、中国式现代化、党的领导、总体布局和战略布局串联。"],
+      ["世界观方法论", "六个必须坚持可作为大题方法论框架：人民至上、自信自立、守正创新、问题导向、系统观念、胸怀天下。"],
+      ["战略布局", "五位一体是总体布局，四个全面是战略布局；二者不要混用。"]
+    ],
+    marx: [
+      ["原理答题结构", "马原大题先写原理内容，再写辩证关系，最后写方法论要求和现实分析。"],
+      ["章节边界", "哲学、认识论、唯物史观、政治经济学、科学社会主义的概念要各归其章，不能跨章乱套。"],
+      ["方法论意识", "看到“关系”“作用”“规律”题，要主动写两方面关系、条件和方法论，不能只写名词解释。"]
+    ]
+  };
+  const targeted = {
+    xi: [
+      [/现代化/, ["中国式现代化", "五个中国特色是人口规模巨大、全体人民共同富裕、物质文明和精神文明相协调、人与自然和谐共生、走和平发展道路。"]],
+      [/党的全面领导|全面领导/, ["党的领导", "党的领导是中国特色社会主义最本质特征，是中国特色社会主义制度的最大优势。"]],
+      [/高质量发展/, ["高质量发展", "高质量发展是全面建设社会主义现代化国家的首要任务，必须完整准确全面贯彻新发展理念。"]],
+      [/全过程人民民主/, ["全过程人民民主", "全过程人民民主贯通民主选举、民主协商、民主决策、民主管理、民主监督。"]],
+      [/依法治国/, ["全面依法治国", "总目标是建设中国特色社会主义法治体系、建设社会主义法治国家。"]],
+      [/国家安全/, ["总体国家安全观", "以人民安全为宗旨、政治安全为根本，统筹发展和安全。"]],
+      [/全面从严治党|自我革命/, ["自我革命", "全面从严治党是新时代党的自我革命伟大实践，要把党的政治建设摆在首位。"]]
+    ],
+    marx: [
+      [/物质性|世界/, ["世界物质统一性", "世界统一于物质，意识是物质世界长期发展的产物和人脑对客观存在的反映。"]],
+      [/实践与认识|认识/, ["实践和认识", "实践是认识的来源、动力、目的和检验真理的唯一标准。"]],
+      [/人类社会/, ["社会基本矛盾", "生产力和生产关系、经济基础和上层建筑的矛盾构成社会基本矛盾。"]],
+      [/资本主义的本质/, ["剩余价值", "剩余价值理论揭示资本主义生产方式的剥削秘密。"]],
+      [/资本主义的发展/, ["资本主义趋势", "资本主义基本矛盾决定其发展具有历史限度，社会主义代替资本主义是历史趋势。"]],
+      [/社会主义的发展/, ["科学社会主义", "社会主义从空想到科学、从理论到现实、从一国实践到多国发展。"]],
+      [/共产主义/, ["共产主义理想", "共产主义实现是历史必然性和长期实践过程的统一。"]]
+    ],
+    mao: [
+      [/毛泽东思想/, ["活的灵魂", "实事求是、群众路线、独立自主贯穿毛泽东思想各组成部分。"]],
+      [/新民主主义/, ["新民主主义总路线", "无产阶级领导的、人民大众的、反对帝国主义、封建主义和官僚资本主义的革命。"]],
+      [/社会主义改造/, ["一化三改", "过渡时期总路线强调社会主义工业化和对农业、手工业、资本主义工商业的社会主义改造并举。"]],
+      [/初步探索/, ["建设道路探索", "《论十大关系》和正确处理人民内部矛盾等内容体现党对适合中国情况的社会主义建设道路的探索。"]],
+      [/邓小平/, ["首要基本理论问题", "邓小平理论围绕什么是社会主义、怎样建设社会主义展开。"]],
+      [/三个代表/, ["党的建设主题", "“三个代表”重要思想回答建设什么样的党、怎样建设党的问题。"]],
+      [/科学发展观/, ["科学内涵", "科学发展观第一要义是发展，核心立场是以人为本，基本要求是全面协调可持续，根本方法是统筹兼顾。"]]
+    ],
+    morality: [
+      [/人生/, ["人生价值", "人生价值评价要看是否符合社会发展客观规律、是否促进历史进步和人民利益。"]],
+      [/理想|信念/, ["理想信念", "理想信念昭示奋斗目标、提供前进动力、提高精神境界。"]],
+      [/中国精神|爱国/, ["中国精神", "中国精神是民族精神和时代精神的统一，爱国主义是民族精神核心，改革创新是时代精神核心。"]],
+      [/核心价值观|价值/, ["核心价值观", "国家、社会、个人三个层面分别是富强民主文明和谐，自由平等公正法治，爱国敬业诚信友善。"]],
+      [/道德/, ["道德规范", "社会公德、职业道德、家庭美德、个人品德要分别对应公共生活、职业生活、家庭生活和个人修养。"]],
+      [/法治|法律/, ["法治思维", "法治思维包括法律至上、权力制约、公平正义、权利保障、正当程序。"]]
+    ],
+    history: [
+      [/反对外国侵略/, ["侵略方式", "资本-帝国主义侵略主要包括军事侵略、政治控制、经济掠夺和文化渗透。"]],
+      [/早期探索/, ["探索比较", "太平天国、洋务运动、戊戌维新分别体现农民阶级、地主阶级洋务派和资产阶级维新派的探索。"]],
+      [/辛亥/, ["辛亥革命评价", "辛亥革命结束君主专制制度，但没有改变半殖民地半封建社会性质。"]],
+      [/共产党成立|新局面/, ["建党意义", "中国共产党成立使中国革命有了坚强领导核心和科学指导思想。"]],
+      [/新道路/, ["革命道路", "农村包围城市、武装夺取政权道路是马克思主义基本原理同中国革命具体实际相结合的成果。"]],
+      [/抗日/, ["中流砥柱", "中国共产党在全民族抗战中发挥中流砥柱作用。"]],
+      [/新中国/, ["新中国成立", "中华人民共和国成立实现民族独立和人民解放，开辟中国历史新纪元。"]]
+    ]
+  };
+  const items = [...(shared[courseId] || [])];
+  for (const [pattern, item] of targeted[courseId] || []) {
+    if (pattern.test(title)) items.push(item);
+  }
+  return items.map(([name, body]) => `**${name}**：${body}`);
+}
+
 function buildExamSections(course, chapter, related, index) {
   const facts = related.length ? related : supplements[course.id].facts.slice(0, 10);
-  const timeline = chapterTimeline(course.id, chapter[0], facts, index);
-  return [
-    {
-      title: "时间、地点、事件",
-      items: timeline
-    },
-    {
-      title: "概念、人物、制度",
-      items: facts.slice(0, 8).map((fact) => `**${fact[0]}**：对应“${fact[1]}”。`)
-    },
-    {
-      title: "意义、作用、影响",
-      items: facts.slice(0, 8).map((fact) => `!!${fact[2]}!!。答意义类题时，先写直接作用，再写历史地位或现实价值，最后回到本课程主线。`)
-    },
-    {
-      title: "选择题易考判断句",
-      items: facts.slice(0, 10).map((fact) => `出现“**${fact[0]}**”时，优先判断它是否对应“${fact[1]}”；若选项把阶段、主体、性质、目标写错，通常就是干扰项。`)
-    },
-    {
-      title: "大题可直接展开的句子",
-      items: facts.slice(0, 8).map((fact) => `围绕“**${fact[0]}**”作答时，可写：它的核心内容是“${fact[1]}”，其重要性体现在!!${fact[2]}!!，因此要从背景、内容、意义三个层次展开。`)
-    },
-    {
-      title: "易混点和失分点",
-      items: buildConfusionPoints(course.id, facts)
-    }
-  ];
+  const onlineItems = onlineKnowledgeForChapter(course.id, chapter[0]);
+  const courseSections = {
+    history: [
+      { title: "时间线与关键事件", items: chapterTimeline(course.id, chapter[0], facts, index) },
+      { title: "核心概念、人物与制度", items: facts.slice(0, 8).map((fact) => `**${fact[0]}**：对应“${fact[1]}”。`) },
+      { title: "意义、作用、影响", items: facts.slice(0, 8).map((fact) => `!!${fact[2]}!!。答意义类题时，先写直接作用，再写历史地位或现实价值，最后回到本课程主线。`) },
+      { title: "联网补充知识点", items: onlineItems },
+      { title: "选择题易考判断句", items: facts.slice(0, 10).map((fact) => `出现“**${fact[0]}**”时，优先判断它是否对应“${fact[1]}”；若选项把阶段、主体、性质、目标写错，通常就是干扰项。`) },
+      { title: "大题可直接展开的句子", items: facts.slice(0, 8).map((fact) => `围绕“**${fact[0]}**”作答时，可写：它的核心内容是“${fact[1]}”，其重要性体现在!!${fact[2]}!!，因此要从背景、内容、意义三个层次展开。`) },
+      { title: "易混点和失分点", items: buildConfusionPoints(course.id, facts) }
+    ],
+    morality: [
+      { title: "价值概念与规范要求", items: facts.slice(0, 8).map((fact) => `**${fact[0]}**：核心内容是“${fact[1]}”。`) },
+      { title: "意义、作用、影响", items: facts.slice(0, 8).map((fact) => `!!${fact[2]}!!。答题时要把个人成长、社会责任和时代要求连起来。`) },
+      { title: "大学生实践要求", items: facts.slice(0, 8).map((fact) => `围绕“**${fact[0]}**”作答时，要写清“知、情、意、行”或“认知、认同、践行”的落实路径。`) },
+      { title: "联网补充知识点", items: onlineItems },
+      { title: "选择题易考判断句", items: facts.slice(0, 10).map((fact) => `出现“**${fact[0]}**”时，重点看选项是否把定义、层次、规范对象或实践要求写错。`) },
+      { title: "易混点和失分点", items: buildConfusionPoints(course.id, facts) }
+    ],
+    mao: [
+      { title: "理论成果与时代问题", items: facts.slice(0, 8).map((fact) => `**${fact[0]}**：对应“${fact[1]}”，要说明它回答的时代问题。`) },
+      { title: "历史条件、主要内容与地位", items: facts.slice(0, 8).map((fact) => `围绕“**${fact[0]}**”，按形成条件、主要内容、历史地位三步整理；重点写!!${fact[2]}!!。`) },
+      { title: "路线、纲领和制度安排", items: facts.filter((fact) => /路线|纲领|制度|改造|法宝|本质|基本/.test(fact.join(""))).slice(0, 8).map((fact) => `**${fact[0]}**：${fact[1]}；答题时补上“${fact[2]}”。`) },
+      { title: "联网补充知识点", items: onlineItems },
+      { title: "选择题易考判断句", items: facts.slice(0, 10).map((fact) => `看到“**${fact[0]}**”，先判断它属于哪个理论成果，再判断选项中的时代背景、主体和历史地位是否匹配。`) },
+      { title: "易混点和失分点", items: buildConfusionPoints(course.id, facts) }
+    ],
+    xi: [
+      { title: "理论主题与战略布局", items: facts.slice(0, 8).map((fact) => `**${fact[0]}**：核心内容是“${fact[1]}”，要放入新时代坚持和发展中国特色社会主义的总主题中理解。`) },
+      { title: "制度安排与治理要求", items: facts.filter((fact) => /制度|布局|体系|治理|法治|安全|民主|领导|共同富裕|现代化/.test(fact.join(""))).slice(0, 10).map((fact) => `**${fact[0]}**：${fact[1]}；重点说明!!${fact[2]}!!。`) },
+      { title: "意义、作用、影响", items: facts.slice(0, 8).map((fact) => `!!${fact[2]}!!。答题时要联系强国建设、民族复兴、人民立场和国家治理。`) },
+      { title: "联网补充知识点", items: onlineItems },
+      { title: "选择题易考判断句", items: facts.slice(0, 10).map((fact) => `出现“**${fact[0]}**”时，重点辨析它属于总目标、总布局、战略布局、发展理念还是制度安排。`) },
+      { title: "易混点和失分点", items: buildConfusionPoints(course.id, facts) }
+    ],
+    marx: [
+      { title: "基本原理与概念界定", items: facts.slice(0, 8).map((fact) => `**${fact[0]}**：核心内容是“${fact[1]}”。`) },
+      { title: "辩证关系与规律", items: facts.filter((fact) => /关系|规律|矛盾|实践|认识|生产|价值|资本|社会主义|共产主义/.test(fact.join(""))).slice(0, 10).map((fact) => `**${fact[0]}**：${fact[1]}；关键作用是!!${fact[2]}!!。`) },
+      { title: "方法论与现实运用", items: facts.slice(0, 8).map((fact) => `围绕“**${fact[0]}**”，先写原理，再写方法论：用“${fact[1]}”分析材料，并说明!!${fact[2]}!!。`) },
+      { title: "联网补充知识点", items: onlineItems },
+      { title: "选择题易考判断句", items: facts.slice(0, 10).map((fact) => `看到“**${fact[0]}**”，先判断它属于唯物论、辩证法、认识论、唯物史观还是政治经济学。`) },
+      { title: "易混点和失分点", items: buildConfusionPoints(course.id, facts) }
+    ]
+  };
+  return (courseSections[course.id] || courseSections.marx).filter((section) => section.items.length);
 }
 
 function chapterTimeline(courseId, title, facts, index) {
@@ -1680,11 +1828,7 @@ function chapterTimeline(courseId, title, facts, index) {
     ];
     return rotateItems(historyEvents, index).slice(0, 10).map((item) => `**${item.split("，")[0]}**，${item.split("，").slice(1).join("，")}`);
   }
-  const generic = facts.slice(0, 10).map((fact, factIndex) => {
-    const labels = ["教材位置", "理论背景", "核心事件", "制度安排", "现实要求", "答题场景"];
-    return `**${labels[factIndex % labels.length]}**：围绕“${fact[0]}”展开，核心内容是“${fact[1]}”，重点说明!!${fact[2]}!!。`;
-  });
-  return generic;
+  return facts.slice(0, 10).map((fact) => `**${fact[0]}**：${fact[1]}；重点说明!!${fact[2]}!!。`);
 }
 
 function rotateItems(items, index) {
