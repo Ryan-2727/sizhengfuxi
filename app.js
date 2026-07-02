@@ -546,14 +546,17 @@ function expandQuestionBanks() {
   for (const course of courses) {
     const supplement = supplements[course.id];
     if (!supplement) continue;
-    const localBank = course.id === "history" && typeof historyLocalQuestionBank !== "undefined"
-      ? historyLocalQuestionBank
-      : { choices: [], essays: [] };
+    const localBanks = {
+      history: typeof historyLocalQuestionBank !== "undefined" ? historyLocalQuestionBank : null,
+      mao: typeof maoXiLocalQuestionBank !== "undefined" ? maoXiLocalQuestionBank.mao : null,
+      xi: typeof maoXiLocalQuestionBank !== "undefined" ? maoXiLocalQuestionBank.xi : null
+    };
+    const localBank = localBanks[course.id] || { choices: [], essays: [] };
     const generatedChoices = makeChoices(supplement.facts, course.short);
     const generatedEssays = makeEssays(supplement.essayTopics, supplement.facts, course.short);
     course.choices = uniqueByQuestion(course.choices.concat(localBank.choices || [], generatedChoices));
     course.essays = uniqueByQuestion(course.essays.concat(localBank.essays || [], generatedEssays));
-    if (course.id !== "history") {
+    if (!["history", "mao", "xi"].includes(course.id)) {
       course.choices = course.choices.slice(0, 200);
       course.essays = course.essays.slice(0, 60);
     }
