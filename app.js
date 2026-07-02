@@ -548,6 +548,7 @@ function expandQuestionBanks() {
     if (!supplement) continue;
     const localBanks = {
       history: typeof historyLocalQuestionBank !== "undefined" ? historyLocalQuestionBank : null,
+      morality: typeof moralityLocalQuestionBank !== "undefined" ? moralityLocalQuestionBank : null,
       mao: typeof maoXiLocalQuestionBank !== "undefined" ? maoXiLocalQuestionBank.mao : null,
       xi: typeof maoXiLocalQuestionBank !== "undefined" ? maoXiLocalQuestionBank.xi : null
     };
@@ -556,7 +557,7 @@ function expandQuestionBanks() {
     const generatedEssays = makeEssays(supplement.essayTopics, supplement.facts, course.short);
     course.choices = uniqueByQuestion(course.choices.concat(localBank.choices || [], generatedChoices));
     course.essays = uniqueByQuestion(course.essays.concat(localBank.essays || [], generatedEssays));
-    if (!["history", "mao", "xi"].includes(course.id)) {
+    if (!["history", "morality", "mao", "xi"].includes(course.id)) {
       course.choices = course.choices.slice(0, 200);
       course.essays = course.essays.slice(0, 60);
     }
