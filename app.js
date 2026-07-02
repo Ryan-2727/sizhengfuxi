@@ -946,7 +946,7 @@ function renderQuestions(course) {
     button.addEventListener("click", () => {
       const card = button.closest(".question-card");
       card.classList.toggle("open");
-      button.textContent = card.classList.contains("open") ? "收起答案" : "显示答案";
+      button.textContent = card.classList.contains("open") ? "收起答案解析" : "显示答案解析";
     });
   });
 }
@@ -1943,7 +1943,7 @@ function renderQuestion(item) {
     <div class="question-card">
       <div class="question-head">
         <span class="type-pill">${item.type} ${item.index}</span>
-        <button class="answer-btn" type="button" data-answer>显示答案</button>
+        <button class="answer-btn" type="button" data-answer>显示答案解析</button>
       </div>
       <div class="question-text">${escapeHtml(item.question)}</div>
       <div class="answer">${renderAnswerContent(item)}</div>
@@ -1974,18 +1974,33 @@ function renderAnswerContent(item) {
 
 function showRandom() {
   const pool = (state.courseId ? [getCourse()] : courses).flatMap((course) => [
-    ...course.choices.map((item) => ({ ...item, course: course.short, type: "选择题" })),
-    ...course.essays.map((item) => ({ ...item, course: course.short, type: "大题" }))
+    ...course.choices.map((item) => ({ ...item, course: course.short, courseName: course.name, accent: course.accent, type: "选择题" })),
+    ...course.essays.map((item) => ({ ...item, course: course.short, courseName: course.name, accent: course.accent, type: "大题" }))
   ]);
   const matches = pool.filter((item) => !state.query || `${item.course}${item.question}${item.answer}`.includes(state.query));
   const item = matches[Math.floor(Math.random() * matches.length)];
   if (!item) return;
+  els.dialog.style.setProperty("--accent", item.accent);
   els.dialogBody.innerHTML = `
-    <p class="type-pill">${item.course} · ${item.type}</p>
-    <h2>随机练习</h2>
-    <p class="question-text">${escapeHtml(item.question)}</p>
-    <div class="answer" style="display:block">${renderAnswerContent(item)}</div>
+    <div class="random-quiz-head">
+      <span class="type-pill">${escapeHtml(item.course)} · ${escapeHtml(item.type)}</span>
+      <h2>随机练习</h2>
+      <p>${escapeHtml(item.courseName)}</p>
+    </div>
+    <div class="question-card random-question-card">
+      <div class="question-head">
+        <span class="type-pill">${escapeHtml(item.type)}</span>
+        <button class="answer-btn" type="button" data-answer>显示答案解析</button>
+      </div>
+      <div class="question-text">${escapeHtml(item.question)}</div>
+      <div class="answer">${renderAnswerContent(item)}</div>
+    </div>
   `;
+  els.dialogBody.querySelector("[data-answer]").addEventListener("click", (event) => {
+    const card = event.currentTarget.closest(".question-card");
+    card.classList.toggle("open");
+    event.currentTarget.textContent = card.classList.contains("open") ? "收起答案解析" : "显示答案解析";
+  });
   els.dialog.showModal();
 }
 

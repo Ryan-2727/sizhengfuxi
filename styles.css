@@ -796,6 +796,29 @@ input {
   display: block;
 }
 
+.random-quiz-head {
+  margin-bottom: 14px;
+  padding: 0 38px 14px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent), #ffffff 64%);
+}
+
+.random-quiz-head h2 {
+  margin: 10px 0 4px;
+  color: color-mix(in srgb, var(--accent), #000 30%);
+}
+
+.random-quiz-head p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.random-question-card {
+  border-color: color-mix(in srgb, var(--accent), #ffffff 48%);
+  border-left: 6px solid var(--accent);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent), #ffffff 92%), #fff 58%);
+}
+
 .source-item a {
   color: color-mix(in srgb, var(--accent), #000 25%);
   font-weight: 700;
@@ -808,6 +831,7 @@ dialog {
   border-radius: 8px;
   padding: 24px;
   box-shadow: 0 24px 70px rgba(15, 23, 42, .24);
+  border-top: 6px solid var(--accent);
 }
 
 dialog::backdrop {
