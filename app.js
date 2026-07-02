@@ -1983,6 +1983,10 @@ function renderAnswerContent(item) {
 }
 
 function showRandom() {
+  renderRandomQuestion(true);
+}
+
+function renderRandomQuestion(openDialog = false) {
   const pool = (state.courseId ? [getCourse()] : courses).flatMap((course) => [
     ...course.choices.map((item) => ({ ...item, course: course.short, courseName: course.name, accent: course.accent, type: "选择题" })),
     ...course.essays.map((item) => ({ ...item, course: course.short, courseName: course.name, accent: course.accent, type: "大题" }))
@@ -1993,9 +1997,12 @@ function showRandom() {
   els.dialog.style.setProperty("--accent", item.accent);
   els.dialogBody.innerHTML = `
     <div class="random-quiz-head">
-      <span class="type-pill">${escapeHtml(item.course)} · ${escapeHtml(item.type)}</span>
-      <h2>随机练习</h2>
-      <p>${escapeHtml(item.courseName)}</p>
+      <div>
+        <span class="type-pill">${escapeHtml(item.course)} · ${escapeHtml(item.type)}</span>
+        <h2>随机练习</h2>
+        <p>${escapeHtml(item.courseName)}</p>
+      </div>
+      <button class="next-random-btn" type="button" data-next-random>下一题</button>
     </div>
     <div class="question-card random-question-card">
       <div class="question-head">
@@ -2011,7 +2018,10 @@ function showRandom() {
     card.classList.toggle("open");
     event.currentTarget.textContent = card.classList.contains("open") ? "收起答案解析" : "显示答案解析";
   });
-  els.dialog.showModal();
+  els.dialogBody.querySelector("[data-next-random]").addEventListener("click", () => {
+    renderRandomQuestion(false);
+  });
+  if (openDialog) els.dialog.showModal();
 }
 
 function getCourse() {
