@@ -833,6 +833,61 @@ input {
   background: color-mix(in srgb, var(--accent), #ffffff 72%);
 }
 
+.random-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.random-course-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.random-course-btn {
+  min-height: 92px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent), #ffffff 44%);
+  border-left: 5px solid var(--accent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent), #ffffff 92%);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.random-course-btn span,
+.random-course-btn strong,
+.random-course-btn small {
+  display: block;
+}
+
+.random-course-btn span {
+  width: fit-content;
+  margin-bottom: 8px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.random-course-btn strong {
+  margin-bottom: 8px;
+  line-height: 1.35;
+}
+
+.random-course-btn small {
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.random-course-btn:hover {
+  background: color-mix(in srgb, var(--accent), #ffffff 86%);
+}
+
 .random-question-card {
   border-color: color-mix(in srgb, var(--accent), #ffffff 48%);
   border-left: 6px solid var(--accent);
@@ -881,6 +936,19 @@ dialog::backdrop {
   .random-quiz-head {
     flex-wrap: wrap;
     padding-right: 38px;
+  }
+
+  .random-actions,
+  .random-course-grid {
+    width: 100%;
+  }
+
+  .random-actions {
+    justify-content: flex-start;
+  }
+
+  .random-course-grid {
+    grid-template-columns: 1fr;
   }
 
   .topbar,

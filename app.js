@@ -783,6 +783,7 @@ function uniqueByQuestion(items) {
 
 const state = {
   courseId: null,
+  randomCourseId: null,
   type: "all",
   query: ""
 };
@@ -1986,11 +1987,42 @@ function renderAnswerContent(item) {
 }
 
 function showRandom() {
-  renderRandomQuestion(true);
+  renderRandomCoursePicker();
+  els.dialog.showModal();
 }
 
-function renderRandomQuestion(openDialog = false) {
-  const pool = (state.courseId ? [getCourse()] : courses).flatMap((course) => [
+function renderRandomCoursePicker() {
+  els.dialog.style.setProperty("--accent", "#0f172a");
+  els.dialogBody.innerHTML = `
+    <div class="random-quiz-head">
+      <div>
+        <span class="type-pill">随机练习</span>
+        <h2>选择课程</h2>
+        <p>先选一门课，再从这门课的题库里随机抽题。</p>
+      </div>
+    </div>
+    <div class="random-course-grid">
+      ${courses.map((course) => `
+        <button class="random-course-btn" style="--accent:${course.accent}" type="button" data-random-course="${course.id}">
+          <span>${escapeHtml(course.short)}</span>
+          <strong>${escapeHtml(course.name)}</strong>
+          <small>${course.choices.length} 道选择题 · ${course.essays.length} 道大题</small>
+        </button>
+      `).join("")}
+    </div>
+  `;
+  els.dialogBody.querySelectorAll("[data-random-course]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.randomCourseId = button.dataset.randomCourse;
+      renderRandomQuestion();
+    });
+  });
+}
+
+function renderRandomQuestion() {
+  const selectedCourse = courses.find((course) => course.id === state.randomCourseId) || getCourse() || courses[0];
+  state.randomCourseId = selectedCourse.id;
+  const pool = [selectedCourse].flatMap((course) => [
     ...course.choices.map((item) => ({ ...item, course: course.short, courseName: course.name, accent: course.accent, type: "选择题" })),
     ...course.essays.map((item) => ({ ...item, course: course.short, courseName: course.name, accent: course.accent, type: "大题" }))
   ]);
@@ -2005,7 +2037,10 @@ function renderRandomQuestion(openDialog = false) {
         <h2>随机练习</h2>
         <p>${escapeHtml(item.courseName)}</p>
       </div>
-      <button class="next-random-btn" type="button" data-next-random>下一题</button>
+      <div class="random-actions">
+        <button class="next-random-btn" type="button" data-change-random-course>换课程</button>
+        <button class="next-random-btn" type="button" data-next-random>下一题</button>
+      </div>
     </div>
     <div class="question-card random-question-card">
       <div class="question-head">
@@ -2022,9 +2057,11 @@ function renderRandomQuestion(openDialog = false) {
     event.currentTarget.textContent = card.classList.contains("open") ? "收起答案解析" : "显示答案解析";
   });
   els.dialogBody.querySelector("[data-next-random]").addEventListener("click", () => {
-    renderRandomQuestion(false);
+    renderRandomQuestion();
   });
-  if (openDialog) els.dialog.showModal();
+  els.dialogBody.querySelector("[data-change-random-course]").addEventListener("click", () => {
+    renderRandomCoursePicker();
+  });
 }
 
 function getCourse() {
