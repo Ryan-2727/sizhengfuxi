@@ -36,7 +36,7 @@ const courses = [
       q("简述中国共产党成立的历史意义。", "中国革命有了坚强领导核心，有了马克思主义科学指导，中国人民有了新的革命道路和奋斗目标，是开天辟地的大事变。", "复习题整理"),
       q("概括抗日战争胜利的原因。", "中国共产党发挥中流砥柱作用，抗日民族统一战线凝聚全民族力量，正面战场和敌后战场相互配合，国际反法西斯力量也提供了重要支持。", "复习题整理")
     ],
-    sources: localSources(["中国近现代史纲要2021版.pdf", "课堂重点.docx", "复习题库\\题库.doc", "复习题库\\近代史练习题c(后附答案).docx"]).concat(commonSources("中国近现代史纲要"))
+    sources: officialTextbookSources("history").concat(localSources(["中国近现代史纲要2021版.pdf", "课堂重点.docx", "复习题库\\题库.doc", "复习题库\\近代史练习题c(后附答案).docx"]), commonSources("中国近现代史纲要"))
   },
   {
     id: "morality",
@@ -69,7 +69,7 @@ const courses = [
       q("大学生应如何提升法治素养？", "学习法律知识，尊重法律权威，增强规则意识、程序意识和权利义务意识，依法行使权利、履行义务，并在公共生活中运用法治思维解决问题。", "本地笔记整理"),
       q("怎样在日常生活中锤炼道德品格？", "从小事做起，遵守社会公德、职业道德、家庭美德和个人品德要求，坚持知行合一，在公共生活、网络生活和志愿服务中养成良好品格。", "本地笔记整理")
     ],
-    sources: localSources(["《思想道德修养与法律基础》（新版教材）笔记和课后习题详解.pdf", "【考试精简版】《思想道德修养与法律基础》.pdf", "思修思维导图（24页）.pdf"]).concat(commonSources("思想道德与法治"))
+    sources: officialTextbookSources("morality").concat(localSources(["《思想道德修养与法律基础》（新版教材）笔记和课后习题详解.pdf", "【考试精简版】《思想道德修养与法律基础》.pdf", "思修思维导图（24页）.pdf"]), commonSources("思想道德与法治"))
   },
   {
     id: "mao",
@@ -102,7 +102,7 @@ const courses = [
       q("社会主义改造基本完成有什么历史意义？", "标志社会主义基本制度在中国确立，实现了中国历史上最深刻最伟大的社会变革，为当代中国发展进步奠定了制度基础。", "本地题库整理"),
       q("怎样理解邓小平理论的历史地位？", "邓小平理论科学回答了什么是社会主义、怎样建设社会主义，开辟了中国特色社会主义道路，是中国特色社会主义理论体系的开篇之作。", "本地题库整理")
     ],
-    sources: localSources(["第一章 毛泽东思想及其历史地位 .docx", "第二章  新民主主义革命理论.docx", "2018毛概选择题(3).docx", "2018版毛概思考题答案(3).docx", "精选2019年《毛概》期末考试题库1000题（答案）(2).pdf"]).concat(commonSources("毛泽东思想和中国特色社会主义理论体系概论"))
+    sources: officialTextbookSources("mao").concat(localSources(["第一章 毛泽东思想及其历史地位 .docx", "第二章  新民主主义革命理论.docx", "2018毛概选择题(3).docx", "2018版毛概思考题答案(3).docx", "精选2019年《毛概》期末考试题库1000题（答案）(2).pdf"]), commonSources("毛泽东思想和中国特色社会主义理论体系概论"))
   },
   {
     id: "xi",
@@ -147,7 +147,7 @@ const courses = [
       q("为什么必须坚持党的全面领导？", "党的领导是中国特色社会主义最本质的特征和最大优势，是党和国家的根本所在、命脉所在，是全国各族人民利益所系、命运所系。", "整理题"),
       q("简述“五位一体”总体布局。", "“五位一体”总体布局包括经济建设、政治建设、文化建设、社会建设、生态文明建设，要求统筹推进、协调发展。", "本地章节整理")
     ],
-    sources: localSources(["第八章  习近平新时代中国特色社会主义思想及其历史地位.docx", "第九章  坚持和发展中国特色社会主义的总任务.docx", "第十章  “五位一体”总体布局.docx"]).concat(commonSources("习近平新时代中国特色社会主义思想概论"))
+    sources: officialTextbookSources("xi").concat(localSources(["第八章  习近平新时代中国特色社会主义思想及其历史地位.docx", "第九章  坚持和发展中国特色社会主义的总任务.docx", "第十章  “五位一体”总体布局.docx"]), commonSources("习近平新时代中国特色社会主义思想概论"))
   },
   {
     id: "marx",
@@ -181,7 +181,7 @@ const courses = [
       q("简述社会基本矛盾及其作用。", "生产力和生产关系、经济基础和上层建筑的矛盾构成社会基本矛盾，推动社会形态更替和社会发展，是理解历史发展的基本线索。", "本地主观题整理"),
       q("如何理解人民群众是历史的创造者？", "人民群众是社会物质财富和精神财富的创造者，是社会变革的决定力量。坚持群众史观要求尊重人民主体地位，坚持群众路线。", "本地主观题整理")
     ],
-    sources: localSources(["客观题（2022）老师亲自公布\\习题1：唯物论与辩证法.docx", "客观题（2022）老师亲自公布\\习题2：认识论.doc", "2022.11.17-主观题题库.doc", "主观题复习资料《马克思主义基本原理概论》.doc"]).concat(commonSources("马克思主义基本原理"))
+    sources: officialTextbookSources("marx").concat(localSources(["客观题（2022）老师亲自公布\\习题1：唯物论与辩证法.docx", "客观题（2022）老师亲自公布\\习题2：认识论.doc", "2022.11.17-主观题题库.doc", "主观题复习资料《马克思主义基本原理概论》.doc"]), commonSources("马克思主义基本原理"))
   }
 ];
 
@@ -461,6 +461,43 @@ function localSources(names) {
     note: "来自 F:\\思政 文件夹，作为本网页题目和章节整理的重要依据。",
     url: ""
   }));
+}
+
+function officialTextbookSources(courseId) {
+  const map = {
+    history: {
+      title: "《中国近现代史纲要》官方教材原版核对入口",
+      keyword: "中国近现代史纲要 2023年版 高等教育出版社",
+      note: "用于核对原版教材出版信息。未发现出版社公开授权的原版 PDF 下载页，因此不下载或收录非官方扫描 PDF。"
+    },
+    morality: {
+      title: "《思想道德与法治》官方教材原版核对入口",
+      keyword: "思想道德与法治 2023年版 高等教育出版社",
+      note: "用于核对原版教材出版信息。未发现出版社公开授权的原版 PDF 下载页，因此不下载或收录非官方扫描 PDF。"
+    },
+    mao: {
+      title: "《毛泽东思想和中国特色社会主义理论体系概论》官方教材原版核对入口",
+      keyword: "毛泽东思想和中国特色社会主义理论体系概论 2023年版 高等教育出版社",
+      note: "用于核对原版教材出版信息。未发现出版社公开授权的原版 PDF 下载页，因此不下载或收录非官方扫描 PDF。"
+    },
+    xi: {
+      title: "《习近平新时代中国特色社会主义思想概论》官方教材原版核对入口",
+      keyword: "习近平新时代中国特色社会主义思想概论 高等教育出版社 人民出版社",
+      note: "用于核对原版教材出版信息。未发现出版社公开授权的原版 PDF 下载页，因此不下载或收录非官方扫描 PDF。"
+    },
+    marx: {
+      title: "《马克思主义基本原理》官方教材原版核对入口",
+      keyword: "马克思主义基本原理 2023年版 高等教育出版社",
+      note: "用于核对原版教材出版信息。未发现出版社公开授权的原版 PDF 下载页，因此不下载或收录非官方扫描 PDF。"
+    }
+  };
+  const item = map[courseId];
+  return [{
+    type: "官方教材入口",
+    title: item.title,
+    note: item.note,
+    url: `https://www.hep.com.cn/search?keywords=${encodeURIComponent(item.keyword)}`
+  }];
 }
 
 function commonSources(keyword) {
@@ -837,12 +874,12 @@ function renderCourse() {
       `).join("")}
     </div>
     <div class="textbook-pdfs">
-      <h2>教材 PDF 版本</h2>
+      <h2>教材原版入口 / PDF 状态</h2>
       ${textbookPdfVersions(course).map((item) => `
         <div class="source-item">
           <h3>${item.title}</h3>
           <p>${item.note}</p>
-          <p>${escapeHtml(item.path)}</p>
+          <p>${item.url ? `<a href="${item.url}" target="_blank" rel="noreferrer">${item.url}</a>` : escapeHtml(item.path)}</p>
         </div>
       `).join("")}
     </div>
@@ -1069,44 +1106,13 @@ function chapterPriority(courseId, title, index) {
 }
 
 function textbookPdfVersions(course) {
-  const map = {
-    history: [
-      {
-        title: "中国近现代史纲要2021版.pdf",
-        note: "本地已有教材 PDF，可用于核对近代史章节原文；若课堂采用 2023 年版，以课堂教材为准。",
-        path: "F:\\思政\\近代史\\中国近现代史纲要2021版.pdf"
-      }
-    ],
-    morality: [
-      {
-        title: "思想道德修养与法律基础相关 PDF",
-        note: "本地为思修旧版/相关复习资料 PDF；现课程名为《思想道德与法治》，需按课堂教材核对。",
-        path: "F:\\思政\\思修\\《思想道德修养与法律基础》（新版教材）笔记和课后习题详解.pdf"
-      }
-    ],
-    mao: [
-      {
-        title: "毛概题库与复习 PDF",
-        note: "本地为毛概题库/复习资料 PDF，不等同最新版教材正文 PDF，可辅助核对题目。",
-        path: "F:\\思政\\大二上 毛思想与习中特（老师亲自发布）\\毛概题库2018最新版(3).pdf"
-      }
-    ],
-    xi: [
-      {
-        title: "习近平新时代中国特色社会主义思想概论教材版本",
-        note: "本地未发现独立教材 PDF；网页按 2023 年版教材目录整理，需用课堂 PDF 或纸质教材核对原文。",
-        path: "未在 F:\\思政 中找到独立教材 PDF"
-      }
-    ],
-    marx: [
-      {
-        title: "马克思主义基本原理习题 PDF",
-        note: "本地为马原习题/主观题资料，不等同最新版教材正文 PDF，可辅助核对考点。",
-        path: "F:\\思政\\大二下 马原\\熊Π整理的习题分享_第一章_世界的物质性及其发展规律.pdf"
-      }
-    ]
-  };
-  return map[course.id] || [];
+  const source = officialTextbookSources(course.id)[0];
+  return [{
+    title: source.title,
+    note: `${source.note} 如学校图书馆、任课教师或出版社平台提供合法电子教材，请以该入口获取；网页不收录未授权扫描版。`,
+    url: source.url,
+    path: ""
+  }];
 }
 
 function buildCombinedChapterContent(paragraphs, sentences, content) {
