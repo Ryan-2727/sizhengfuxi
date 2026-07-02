@@ -546,10 +546,17 @@ function expandQuestionBanks() {
   for (const course of courses) {
     const supplement = supplements[course.id];
     if (!supplement) continue;
+    const localBank = course.id === "history" && typeof historyLocalQuestionBank !== "undefined"
+      ? historyLocalQuestionBank
+      : { choices: [], essays: [] };
     const generatedChoices = makeChoices(supplement.facts, course.short);
     const generatedEssays = makeEssays(supplement.essayTopics, supplement.facts, course.short);
-    course.choices = uniqueByQuestion(course.choices.concat(generatedChoices)).slice(0, 200);
-    course.essays = uniqueByQuestion(course.essays.concat(generatedEssays)).slice(0, 60);
+    course.choices = uniqueByQuestion(course.choices.concat(localBank.choices || [], generatedChoices));
+    course.essays = uniqueByQuestion(course.essays.concat(localBank.essays || [], generatedEssays));
+    if (course.id !== "history") {
+      course.choices = course.choices.slice(0, 200);
+      course.essays = course.essays.slice(0, 60);
+    }
     while (course.choices.length < 200) {
       const fact = supplement.facts[course.choices.length % supplement.facts.length];
       course.choices.push(makeFallbackChoice(fact, course.choices.length + 1, course.short));
@@ -564,11 +571,14 @@ function expandQuestionBanks() {
     }
     course.choices = course.choices.map((item, index) => ({
       ...item,
-      answer: buildDetailedChoiceAnswer(course, item, index)
+      answer: item.preserveAnswer ? item.answer : buildDetailedChoiceAnswer(course, item, index)
     }));
     course.essays = course.essays.map((item, index) => ({
       ...item,
-      ...buildDetailedEssayAnswer(course, item, index)
+      ...(item.preserveAnswer ? {
+        answer: item.answer,
+        analysis: item.analysis || "答题角度：先判断题目所属历史阶段，再按背景、主要内容、历史意义、局限或启示分层组织。得分提醒：近代史大题要写准时间、主体、性质和关键词。"
+      } : buildDetailedEssayAnswer(course, item, index))
     }));
   }
 }
