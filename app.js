@@ -787,7 +787,13 @@ els.search.addEventListener("input", (event) => {
   else renderHome();
 });
 
-renderHome();
+initRoute();
+
+function initRoute() {
+  const id = location.hash.replace("#", "");
+  if (courses.some((course) => course.id === id)) showCourse(id, false);
+  else renderHome();
+}
 
 function renderHome() {
   state.courseId = null;
@@ -816,16 +822,25 @@ function renderHome() {
 function showHome() {
   state.type = "all";
   renderHome();
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  if (location.hash) history.pushState("", document.title, location.pathname + location.search);
+  window.scrollTo({ top: 0, behavior: "auto" });
 }
 
-function showCourse(id) {
+function showCourse(id, updateHash = true) {
   state.courseId = id;
   state.type = "all";
   els.homeView.hidden = true;
   els.courseView.hidden = false;
   renderCourse();
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  if (updateHash) history.pushState("", document.title, `${location.pathname}${location.search}#${id}`);
+  jumpToCourseTop();
+}
+
+function jumpToCourseTop() {
+  window.scrollTo({ top: 0, behavior: "auto" });
+  if (els.courseHero.scrollIntoView) {
+    els.courseHero.scrollIntoView({ block: "start", behavior: "auto" });
+  }
 }
 
 function renderCourse() {
