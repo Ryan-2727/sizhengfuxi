@@ -580,7 +580,7 @@ function expandQuestionBanks() {
       ...item,
       ...(item.preserveAnswer ? {
         answer: item.answer,
-        analysis: item.analysis || "答题角度：先判断题目所属历史阶段，再按背景、主要内容、历史意义、局限或启示分层组织。得分提醒：近代史大题要写准时间、主体、性质和关键词。"
+        analysis: item.analysis || "解析：答案区保留本题可直接背诵的要点。"
       } : buildDetailedEssayAnswer(course, item, index))
     }));
   }
@@ -588,42 +588,16 @@ function expandQuestionBanks() {
 
 function buildDetailedChoiceAnswer(course, item, index) {
   const base = item.answer.replace(/\s+/g, " ").trim();
-  const facts = supplements[course.id]?.facts || [];
-  const related = pickEssayFacts(item.question, facts, index);
-  const fact = related[0] || facts[index % facts.length];
   const letter = (base.match(/[A-D]/) || [""])[0];
-  const prefix = letter ? `${letter}。` : base;
-  return [
-    `${prefix}本题考查“${fact[0]}”这一知识点，核心对应是“${fact[1]}”。`,
-    `教材和复习资料中通常把它放在本课程主线下理解，关键在于把握“${fact[2]}”。`,
-    `做选择题时要先找题干中的限定词，再排除与概念范围、历史阶段或理论层次不一致的选项。`,
-    `如果遇到相近说法，优先选择与教材规范表述最一致、能够完整覆盖题干要求的选项。`
-  ].join("\n");
+  if (!letter) return base;
+  return `正确答案：${letter}`;
 }
 
 function buildDetailedEssayAnswer(course, item, index) {
   const base = item.answer.replace(/\s+/g, " ").trim();
-  const facts = supplements[course.id]?.facts || [];
-  const related = pickEssayFacts(item.question, facts, index);
-  const subject = essaySubjectName(course.id);
-  const answerPoints = related.slice(0, 6).map((fact, pointIndex) => directEssayPoint(fact, pointIndex));
-  const analysisPoints = related.slice(0, 4).map((fact, pointIndex) => {
-    const heads = ["概念定位", "理论依据", "展开角度", "得分落点"];
-    return `${pointIndex + 1}. ${heads[pointIndex]}：本题可联系“${fact[0]}”，其核心表述是“${fact[1]}”，展开时要补充“${fact[2]}”。`;
-  });
-  const method = essayMethod(course.id);
   return {
-    answer: [
-      `答：${base}`,
-      `\n\n${answerPoints.join("\n")}`,
-      `\n\n${standardEssayConclusion(course.id)}`
-    ].join(""),
-    analysis: [
-      `解析：这道题属于${subject}中的综合性问答题。答案区已经给出可直接写在卷面上的表述；复习时再按“是什么、为什么、意义或要求”理解其层次。`,
-      `\n答题角度：\n${analysisPoints.join("\n")}`,
-      `\n补充展开：${method}`,
-      `\n得分提醒：阅卷时通常看是否有规范概念、是否有层次、是否能结合教材主线说明意义。答案应尽量使用教材中的规范概念和完整判断句，解析部分用于帮助理解为什么这样组织答案。`
-    ].join("")
+    answer: `答：${base}`,
+    analysis: "解析：答案区保留本题可直接背诵的要点。"
   };
 }
 
@@ -737,8 +711,8 @@ function makeEssays(topics, facts, courseShort) {
       source: `${courseShort} 联网公开题库与教材框架补充`
     });
     essays.push({
-      question: `材料分析题：结合“${fact[0]}”，说明其理论含义和考试答题角度。`,
-      answer: `作答时先解释“${fact[0]}”与“${fact[1]}”的关系，再围绕“${fact[2]}”展开。材料题还要结合材料关键词，说明这一知识点如何解释材料中的现象、问题或历史结论。`,
+      question: `结合“${fact[0]}”，说明其理论含义。`,
+      answer: `${fact[0]}的核心含义是“${fact[1]}”。其重要性体现在：${fact[2]}。`,
       source: `${courseShort} 联网公开题库与教材框架补充`
     });
   }
@@ -2012,13 +1986,34 @@ function choiceCorrectAnswer(item) {
 
 function choiceAnalysis(item) {
   if (item.analysis) return item.analysis;
+  const letters = choiceAnswerLetters(item);
+  const opts = parseChoiceOptions(item.question);
+  const picked = letters.split("").filter((letter) => opts[letter]).map((letter) => `${letter}. ${opts[letter]}`);
+  if (picked.length) {
+    return `解析：本题问的是“${choiceStem(item.question)}”。正确项为${picked.join("；")}。`;
+  }
   const answer = item.answer || "";
   const withoutAnswer = answer
     .replace(/^\s*正确答案[:：]\s*[A-D]{1,4}[。.，,\s]*/i, "")
     .replace(/^\s*[A-D]{1,4}[。.，,\s]*/i, "")
     .replace(/\?{5,}/g, "")
     .trim();
-  return withoutAnswer || "解析：本题需要根据教材中的规范表述逐项判断，重点核对题干限定词、知识点所属章节、选项表述范围和正确项之间的逻辑关系。";
+  return withoutAnswer || "解析：按题干要求选择对应项。";
+}
+
+function choiceStem(question) {
+  return question.split(/\n\s*A[.．、]/)[0].replace(/\s+/g, " ").trim();
+}
+
+function parseChoiceOptions(question) {
+  const result = {};
+  const matches = [...question.matchAll(/\n\s*([A-D])[.．、]\s*/g)];
+  matches.forEach((match, index) => {
+    const start = match.index + match[0].length;
+    const end = index + 1 < matches.length ? matches[index + 1].index : question.length;
+    result[match[1]] = question.slice(start, end).replace(/\s+/g, " ").trim();
+  });
+  return result;
 }
 
 function showRandom() {
