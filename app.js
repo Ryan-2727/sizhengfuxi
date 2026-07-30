@@ -542,213 +542,300 @@ function commonSources(keyword) {
   ];
 }
 
+function isXiCourseItem(item) {
+  const source = item.source || "";
+  const question = choiceStem(item.question || "");
+  if (/第(?:八|九|十)章/.test(source)) return true;
+  return /习近平|新时代中国特色社会主义|中国特色社会主义新时代|中国特色社会主义最本质的特征|新时代我国社会主要矛盾|坚持党的全面领导|中国梦|中华民族伟大复兴|中国式现代化|五位一体|四个全面|新发展理念|高质量发展|全过程人民民主|总体国家安全观|人类命运共同体|全面从严治党|强军思想|新型国际关系|美丽中国|全面深化改革的总目标/.test(question);
+}
+
+function splitMaoXiQuestionBanks() {
+  const bank = typeof maoXiLocalQuestionBank !== "undefined"
+    ? maoXiLocalQuestionBank
+    : { mao: { choices: [], essays: [] }, xi: { choices: [], essays: [] } };
+  const combinedChoices = [...(bank.mao?.choices || []), ...(bank.xi?.choices || [])];
+  const combinedEssays = [...(bank.mao?.essays || []), ...(bank.xi?.essays || [])];
+  return {
+    mao: {
+      choices: combinedChoices.filter((item) => !isXiCourseItem(item)),
+      essays: combinedEssays.filter((item) => !isXiCourseItem(item))
+    },
+    xi: {
+      choices: combinedChoices.filter(isXiCourseItem),
+      essays: combinedEssays.filter(isXiCourseItem)
+    }
+  };
+}
+
+function getMarxTeacherAnswerKeys() {
+  return {
+  "习题1：唯物论与辩证法.docx": {
+    answers: [
+      ..."CACADACCABDBDCBACDCDDCBCCCB CBC".replace(/\s/g, ""),
+      ..."BD AD BD AD BC AD BD BD BD ABCD BCD AB ABCD ABCD BD BD ABC ABCD ACD AB".split(/\s+/),
+      ..."ABD ABCD ABD ACD ACD ABC ABCD BCD ABCD BD ABD ABCD ABCD BCD AC ABCD BCD ACD ACD CD".split(/\s+/)
+    ],
+    sourceIndexes: [
+      ...Array.from({ length: 18 }, (_, index) => index),
+      ...Array.from({ length: 11 }, (_, index) => index + 19),
+      ...Array.from({ length: 40 }, (_, index) => index + 30)
+    ]
+  },
+  "习题2：认识论.doc": {
+    answers: [
+      ..."BADDAADACDDCACCDCADBCBBCCBDBD",
+      ..."ACD CD ACD ABCD ABCD BCD BCD ABCD ABD ABD ABCD ABCD ABC ACD BD ABCD BCD ACD ABCD BCD ABD".split(/\s+/)
+    ],
+    sourceIndexes: [
+      ...Array.from({ length: 10 }, (_, index) => index),
+      ...Array.from({ length: 18 }, (_, index) => index + 11),
+      ...Array.from({ length: 21 }, (_, index) => index + 29)
+    ]
+  },
+  "习题3：历史唯物主义.docx": {
+    answers: [
+      ..."DBDABADDCADBADCDC ADBDADDDDCBC".replace(/\s/g, ""),
+      ..."ABCD ABC CD ABC ABC ABC ABCD ABCD BCD BCD ABCD ABC BC ABC CD AD ACD BC BD ABCD AB BCD ABCD".split(/\s+/)
+    ],
+    sourceIndexes: [
+      ...Array.from({ length: 18 }, (_, index) => index),
+      ...Array.from({ length: 10 }, (_, index) => index + 19),
+      ...Array.from({ length: 23 }, (_, index) => index + 29)
+    ]
+  },
+  "习题4：马克思主义政治经济学.doc": {
+    answers: [
+      ..."BBACCDCDCBDDBCDBDDBBCABABACCDC",
+      ..."AC ABD AC BCD BCD ACD AB".split(/\s+/)
+    ],
+    sourceIndexes: [
+      ...Array.from({ length: 26 }, (_, index) => index),
+      28,
+      29,
+      ...Array.from({ length: 7 }, (_, index) => index + 30)
+    ]
+  }
+  };
+}
+
+function applyTeacherAnswerKeys(items) {
+  const answerKeys = getMarxTeacherAnswerKeys();
+  const sourceOffsets = new Map();
+  return items.map((item) => {
+    const sourceKey = Object.keys(answerKeys)
+      .find((key) => (item.source || "").includes(key));
+    if (!sourceKey) return item;
+    const itemIndex = sourceOffsets.get(sourceKey) || 0;
+    sourceOffsets.set(sourceKey, itemIndex + 1);
+    const key = answerKeys[sourceKey];
+    const answerIndex = key.sourceIndexes[itemIndex];
+    const letters = key.answers[answerIndex];
+    if (!letters) return item;
+    const options = parseChoiceOptions(item.question || "");
+    const picked = letters.split("")
+      .filter((letter) => options[letter])
+      .map((letter) => `${letter}. ${options[letter]}`);
+    return {
+      ...item,
+      correctAnswer: letters,
+      answer: `正确答案：${letters}`,
+      questionType: letters.length > 1 ? "多选题" : "单选题",
+      answerKeyVerified: true,
+      analysis: [
+        `解析：本题考查“${shortMemoryKey(choiceStem(item.question || ""))}”。`,
+        picked.length ? `正确项为${picked.join("；")}。` : "",
+        "作答时先确定题干所问的概念、关系或条件，再逐项核对是否与该限定一致；记忆时将题干关键词与正确项的规范表述绑定。"
+      ].filter(Boolean).join("")
+    };
+  });
+}
+
 function expandQuestionBanks() {
-  const minimumQuestionCount = 1000;
-  const minimumEssayCount = 200;
+  const maoXiBanks = splitMaoXiQuestionBanks();
   for (const course of courses) {
-    const supplement = supplements[course.id];
-    if (!supplement) continue;
     const localBanks = {
       history: typeof historyLocalQuestionBank !== "undefined" ? historyLocalQuestionBank : null,
       morality: typeof moralityLocalQuestionBank !== "undefined" ? moralityLocalQuestionBank : null,
-      mao: typeof maoXiLocalQuestionBank !== "undefined" ? maoXiLocalQuestionBank.mao : null,
-      xi: typeof maoXiLocalQuestionBank !== "undefined" ? maoXiLocalQuestionBank.xi : null,
+      mao: maoXiBanks.mao,
+      xi: maoXiBanks.xi,
       marx: typeof marxLocalQuestionBank !== "undefined" ? marxLocalQuestionBank : null
     };
     const localBank = localBanks[course.id] || { choices: [], essays: [] };
-    const generatedChoices = makeChoices(supplement.facts, course.short);
-    const generatedEssays = makeEssays(supplement.essayTopics, supplement.facts, course.short);
-    course.choices = uniqueByQuestion(course.choices.concat(localBank.choices || [], generatedChoices));
-    course.essays = uniqueByQuestion(course.essays.concat(localBank.essays || [], generatedEssays));
-    if (!["history", "morality", "mao", "xi", "marx"].includes(course.id)) {
-      course.choices = course.choices.slice(0, 200);
-      course.essays = course.essays.slice(0, 60);
-    }
-    while (course.choices.length < minimumQuestionCount) {
-      const fact = supplement.facts[course.choices.length % supplement.facts.length];
-      course.choices.push(makeFallbackChoice(fact, course.choices.length + 1, course.short));
-    }
-    while (course.essays.length < minimumEssayCount) {
-      const fact = supplement.facts[course.essays.length % supplement.facts.length];
-      course.essays.push({
-        question: `结合课程内容，简述“${fact[0]}”的含义和复习要点。`,
-        answer: `${fact[0]}的核心对应是“${fact[1]}”。复习时应说明其基本含义，并结合“${fact[2]}”展开分析。`,
-        source: `${course.short} 联网公开题库与教材框架补充`
-      });
-    }
-    ensureUniqueQuestions(course.choices);
-    ensureUniqueQuestions(course.essays);
-    course.choices = course.choices.map((item, index) => ({
+    const combinedChoices = course.choices.concat(localBank.choices || []);
+    const rawChoices = course.id === "marx"
+      ? applyTeacherAnswerKeys(combinedChoices)
+      : combinedChoices;
+    markChoiceAnswerConflicts(rawChoices);
+    const choiceCandidates = uniqueChoicesByContent(rawChoices)
+      .map((item) => normalizeChoiceItem({ ...item, courseId: course.id }));
+    const essayCandidates = uniqueByQuestion(course.essays.concat(localBank.essays || []))
+      .map((item) => normalizeEssayItem({ ...item, courseId: course.id }));
+    const choiceAudit = partitionAuditedItems(choiceCandidates, auditChoiceItem);
+    const essayAudit = partitionAuditedItems(essayCandidates, auditEssayItem);
+
+    course.choices = choiceAudit.accepted;
+    course.essays = essayAudit.accepted;
+    course.reviewQueue = {
+      choices: choiceAudit.rejected,
+      essays: essayAudit.rejected
+    };
+  }
+}
+
+function normalizeChoiceItem(item) {
+  const letters = choiceAnswerLetters(item);
+  const options = parseChoiceOptions(item.question || "");
+  const picked = letters.split("").filter((letter) => options[letter]).map((letter) => `${letter}. ${options[letter]}`);
+  const originalAnswer = (item.answer || "").replace(/\s+/g, " ").trim();
+  const originalExplanation = originalAnswer
+    .replace(/^\s*正确答案[:：]\s*[A-D]{1,4}[。.，,\s]*/i, "")
+    .replace(/^\s*[A-D]{1,4}[。.，,\s]*/i, "")
+    .trim();
+  const analysis = cleanAnalysisText(item.analysis || originalExplanation) || [
+    `本题考查“${shortMemoryKey(choiceStem(item.question || ""))}”。`,
+    picked.length ? `正确项是${picked.join("；")}，与题干限定直接对应。` : "",
+    `记忆时把题干关键词和答案“${letters}”对应的规范表述连在一起。`
+  ].filter(Boolean).join("");
+
+  return {
+    ...item,
+    correctAnswer: letters,
+    questionType: letters.length > 1 ? "多选题" : "单选题",
+    answer: letters ? `正确答案：${letters}` : originalAnswer,
+    analysis
+  };
+}
+
+function normalizeEssayItem(item) {
+  const answer = (item.answer || "").replace(/\?{5,}/g, "").trim();
+  return {
+    ...item,
+    answer,
+    analysis: cleanAnalysisText(item.analysis) || buildEssayAnalysis(item.question || "", answer)
+  };
+}
+
+function cleanAnalysisText(value = "") {
+  return value
+    .replace(/^\s*解析[:：]\s*/, "")
+    .replace(/答案区保留本题可直接背诵的要点。?/g, "")
+    .replace(/\?{5,}/g, "")
+    .replace(/本题来自[^。\n]*[。\n]?/g, "")
+    .replace(/复习题库《[^》]+》[。\n]?/g, "")
+    .trim();
+}
+
+function buildEssayAnalysis(question, answer) {
+  const points = answer
+    .replace(/^答[:：]\s*/, "")
+    .split(/(?:\n|；|。|①|②|③|④|⑤|⑥)/)
+    .map((part) => part.trim())
+    .filter((part) => part.length >= 8)
+    .slice(0, 6);
+  const scorePoints = points.map((point, index) => `${index + 1}. ${point}。`).join("\n");
+  return [
+    `解题：先确定题干考查“${shortMemoryKey(question)}”，答案必须直接回应设问。`,
+    scorePoints ? `得分点：\n${scorePoints}` : "",
+    `记忆：先背结论句，再按关键词逐点展开；每个得分点至少写出一条完整判断。`
+  ].filter(Boolean).join("\n");
+}
+
+function partitionAuditedItems(items, audit) {
+  return items.reduce((result, item) => {
+    const reasons = audit(item);
+    if (reasons.length) result.rejected.push({ ...item, auditReasons: reasons });
+    else result.accepted.push({
       ...item,
-      answer: item.preserveAnswer ? item.answer : buildDetailedChoiceAnswer(course, item, index)
-    }));
-    course.essays = course.essays.map((item, index) => ({
-      ...item,
-      ...(item.preserveAnswer ? {
-        answer: item.answer,
-        analysis: item.analysis || "解析：答案区保留本题可直接背诵的要点。"
-      } : buildDetailedEssayAnswer(course, item, index))
-    }));
-  }
-}
-
-function buildDetailedChoiceAnswer(course, item, index) {
-  const base = item.answer.replace(/\s+/g, " ").trim();
-  const letter = (base.match(/[A-D]/) || [""])[0];
-  if (!letter) return base;
-  return `正确答案：${letter}`;
-}
-
-function buildDetailedEssayAnswer(course, item, index) {
-  const base = item.answer.replace(/\s+/g, " ").trim();
-  return {
-    answer: `答：${base}`,
-    analysis: "解析：答案区保留本题可直接背诵的要点。"
-  };
-}
-
-function directEssayPoint(fact, index) {
-  const labels = ["第一", "第二", "第三", "第四", "第五", "第六"];
-  const starts = [
-    `${labels[index]}，${fact[0]}的核心内容是${fact[1]}。`,
-    `${labels[index]}，${fact[0]}体现了${fact[1]}这一基本判断。`,
-    `${labels[index]}，${fact[0]}在本章中的重要性集中体现为${fact[1]}。`,
-    `${labels[index]}，理解${fact[0]}必须把握${fact[1]}。`,
-    `${labels[index]}，${fact[0]}与${fact[1]}密切相关。`,
-    `${labels[index]}，${fact[0]}说明了${fact[1]}这一要求。`
-  ];
-  return `${starts[index] || starts[0]}${fact[2]}。`;
-}
-
-function standardEssayConclusion(courseId) {
-  const conclusions = {
-    history: "总之，该问题体现了中国近现代历史发展的基本线索，说明中国人民在争取民族独立、人民解放和实现国家富强、人民富裕过程中不断探索并最终走向正确道路。",
-    morality: "总之，大学生应把正确价值追求、道德修养和法治素养统一起来，把个人成长融入国家发展和民族复兴的实践之中，在学习生活、公共生活和社会实践中体现责任担当。",
-    mao: "总之，该理论成果是马克思主义中国化时代化的重要组成部分，体现了中国共产党把马克思主义基本原理同中国具体实际相结合的理论创造。",
-    xi: "总之，该问题体现了新时代坚持和发展中国特色社会主义的基本要求，必须坚持党的领导、人民立场和中国式现代化方向，服务中华民族伟大复兴。",
-    marx: "总之，该原理体现了马克思主义的基本立场、观点和方法，要求我们用联系、发展、全面和实践的观点分析问题、解决问题，把原理内容、辩证关系和方法论要求统一起来。"
-  };
-  return conclusions[courseId] || "总之，应把该知识点放回教材体系中理解，准确写出概念、依据和意义。";
-}
-
-function pickEssayFacts(question, facts, index) {
-  const normalized = question.replace(/\s/g, "");
-  const hits = facts.filter((fact) => normalized.includes(fact[0]) || normalized.includes(fact[1].slice(0, 6)));
-  const start = (index * 3) % Math.max(facts.length, 1);
-  const spread = facts.slice(start, start + 8).concat(facts.slice(0, Math.max(0, start + 8 - facts.length)));
-  return uniqueFactList(hits.concat(spread)).slice(0, 6);
-}
-
-function essaySubjectName(courseId) {
-  return {
-    history: "中国近现代史纲要",
-    morality: "思想道德与法治",
-    mao: "毛泽东思想和中国特色社会主义理论体系概论",
-    xi: "习近平新时代中国特色社会主义思想概论",
-    marx: "马克思主义基本原理"
-  }[courseId];
-}
-
-function essayMethod(courseId) {
-  const methods = {
-    history: "近代史大题要写清历史背景、主要事件、阶级或政党作用、历史意义和局限。涉及评价类题目时，既要肯定积极作用，也要指出时代条件和阶级局限；涉及原因类题目时，要从社会性质、主要矛盾、群众基础、领导力量和国际环境等角度分析。",
-    morality: "思修与法治大题要把个人成长同国家发展、道德要求同法治要求结合起来。回答时应先界定概念，再写价值意义，最后落到大学生怎么做，例如坚定理想信念、锤炼道德品格、增强法治意识、在学习和实践中知行合一。",
-    mao: "毛概大题要抓住马克思主义中国化时代化这一主线。回答时应说明理论形成的历史条件、核心内容、解决的基本问题和历史地位。涉及毛泽东思想、邓小平理论、三个代表、科学发展观时，要分别写清主题、主要内容和理论贡献。",
-    xi: "习思想大题要围绕新时代坚持和发展中国特色社会主义展开。回答时应突出党的领导、人民立场、中国式现代化、五位一体、四个全面、新发展理念和高质量发展等关键词，并说明这些内容如何服务民族复兴主题。",
-    marx: "马原大题要体现原理和方法论统一。回答时先写原理内容，再写辩证关系，最后写方法论要求。涉及哲学、认识论、历史观、政治经济学时，要避免只背定义，应说明原理怎样解释现实问题。"
-  };
-  return methods[courseId];
-}
-
-function makeChoices(facts, courseShort) {
-  const questions = [];
-  for (let i = 0; i < facts.length; i += 1) {
-    const fact = facts[i];
-    const wrong = makeWrongOptions(facts, i);
-    questions.push({
-      question: `下列关于“${fact[0]}”的表述，正确的是（ ）。\nA. ${fact[1]}\nB. ${wrong[0]}\nC. ${wrong[1]}\nD. ${wrong[2]}`,
-      answer: `A。${fact[2]}。`,
-      source: `${courseShort} 联网公开题库与教材框架补充`
+      auditStatus: item.answerKeyVerified ? "answer-key-verified" : "source-backed"
     });
-    questions.push({
-      question: `“${fact[0]}”最准确对应的是（ ）。\nA. ${wrong[1]}\nB. ${fact[1]}\nC. ${wrong[2]}\nD. ${wrong[0]}`,
-      answer: `B。${fact[0]}对应“${fact[1]}”。`,
-      source: `${courseShort} 联网公开题库与教材框架补充`
-    });
-    questions.push({
-      question: `复习“${fact[0]}”时，应重点把握（ ）。\nA. ${wrong[2]}\nB. ${wrong[0]}\nC. ${fact[2]}\nD. ${wrong[1]}`,
-      answer: `C。${fact[2]}是该知识点的关键说明。`,
-      source: `${courseShort} 联网公开题库与教材框架补充`
-    });
-    questions.push({
-      question: `下列选项中，与“${fact[0]}”直接相关的是（ ）。\nA. ${wrong[0]}\nB. ${wrong[1]}\nC. ${wrong[2]}\nD. ${fact[1]}`,
-      answer: `D。${fact[0]}的直接对应内容是“${fact[1]}”。`,
-      source: `${courseShort} 联网公开题库与教材框架补充`
-    });
-    questions.push({
-      question: `关于“${fact[0]}”的复习判断，最符合教材表述的是（ ）。\nA. ${wrong[0]}\nB. ${fact[2]}\nC. ${wrong[1]}\nD. ${wrong[2]}`,
-      answer: `B。${fact[2]}是围绕“${fact[0]}”展开的关键判断。`,
-      source: `${courseShort} 联网公开题库与教材框架补充`
-    });
-    questions.push({
-      question: `如果题干出现“${fact[0]}”，优先联想到的核心内容是（ ）。\nA. ${wrong[2]}\nB. ${wrong[1]}\nC. ${fact[1]}\nD. ${wrong[0]}`,
-      answer: `C。${fact[0]}的核心内容是“${fact[1]}”。`,
-      source: `${courseShort} 联网公开题库与教材框架补充`
-    });
-    questions.push({
-      question: `下列哪一项最能说明“${fact[0]}”的考试要点？（ ）\nA. ${fact[2]}\nB. ${wrong[2]}\nC. ${wrong[0]}\nD. ${wrong[1]}`,
-      answer: `A。${fact[2]}概括了该知识点在考试中的主要落点。`,
-      source: `${courseShort} 联网公开题库与教材框架补充`
-    });
-  }
-  return questions;
+    return result;
+  }, { accepted: [], rejected: [] });
 }
 
-function makeEssays(topics, facts, courseShort) {
-  const essays = topics.map((item) => ({
-    question: item[0],
-    answer: item[1],
-    source: `${courseShort} 联网公开题库与教材框架补充`
-  }));
-  for (const fact of facts) {
-    essays.push({
-      question: `辨析或简答：如何理解“${fact[0]}”？`,
-      answer: `应从三个层次回答：第一，指出其核心含义是“${fact[1]}”；第二，说明其课程语境和理论依据；第三，结合“${fact[2]}”说明其现实或历史意义。`,
-      source: `${courseShort} 联网公开题库与教材框架补充`
-    });
-    essays.push({
-      question: `结合“${fact[0]}”，说明其理论含义。`,
-      answer: `${fact[0]}的核心含义是“${fact[1]}”。其重要性体现在：${fact[2]}。`,
-      source: `${courseShort} 联网公开题库与教材框架补充`
-    });
-  }
-  return essays;
-}
-
-function makeWrongOptions(facts, index) {
-  const options = [];
-  let cursor = index + 1;
-  while (options.length < 3) {
-    const candidate = facts[cursor % facts.length][1];
-    if (!options.includes(candidate) && candidate !== facts[index][1]) {
-      options.push(candidate);
+function markChoiceAnswerConflicts(items) {
+  const exact = new Map();
+  const reordered = new Map();
+  for (const item of items) {
+    const question = item.question || "";
+    const exactKey = question.replace(/\s+/g, "");
+    const options = parseChoiceOptions(question);
+    const letters = choiceAnswerLetters(item);
+    const correctTexts = letters.split("")
+      .map((letter) => options[letter])
+      .filter(Boolean)
+      .map((text) => text.replace(/\s+/g, ""))
+      .sort()
+      .join("|");
+    const optionSet = Object.values(options).map((text) => text.replace(/\s+/g, "")).sort().join("|");
+    const reorderedKey = `${normalizeQuestionStem(choiceStem(question))}|${optionSet}`;
+    for (const [map, key, answer] of [[exact, exactKey, letters], [reordered, reorderedKey, correctTexts]]) {
+      if (!key || !answer) continue;
+      const previous = map.get(key);
+      if (previous && previous.answer !== answer) {
+        previous.item.auditConflict = true;
+        item.auditConflict = true;
+      } else if (!previous) {
+        map.set(key, { answer, item });
+      }
     }
-    cursor += 1;
   }
-  return options;
 }
 
-function makeFallbackChoice(fact, index, courseShort) {
-  const answerLetter = ["A", "B", "C", "D"][index % 4];
-  const options = ["容易混淆的无关概念", "与本题知识点不符的说法", "片面化的表述", fact[1]];
-  const rotated = options.slice(index % 4).concat(options.slice(0, index % 4));
-  const correctIndex = rotated.indexOf(fact[1]);
-  const letters = ["A", "B", "C", "D"];
-  return {
-    question: `关于“${fact[0]}”，下列说法正确的是（ ）。\nA. ${rotated[0]}\nB. ${rotated[1]}\nC. ${rotated[2]}\nD. ${rotated[3]}`,
-    answer: `${letters[correctIndex]}。${fact[0]}的核心表述是“${fact[1]}”，${fact[2]}。`,
-    source: `${courseShort} 联网公开题库与教材框架补充`
-  };
+function auditChoiceItem(item) {
+  const reasons = [];
+  const question = item.question || "";
+  const options = parseChoiceOptions(question);
+  const optionLetters = Object.keys(options);
+  const answerLetters = choiceAnswerLetters(item).split("");
+  const correctOptionText = answerLetters.map((letter) => options[letter] || "").join(" ");
+  if (question.replace(/\s+/g, "").length < 8) reasons.push("题干过短");
+  if (optionLetters.length < 2 || !options.A) reasons.push("选项不完整");
+  if (/(?:^|\n|\s)[E-F](?:[.．、]\s*|\s+|(?=[\u4e00-\u9fff]))/.test(question)) reasons.push("存在未纳入答案解析的E/F选项");
+  if (item.auditConflict) reasons.push("同题在不同资料中的答案冲突");
+  if (!answerLetters.length) reasons.push("缺少可识别答案");
+  if (answerLetters.some((letter) => !options[letter])) reasons.push("答案指向不存在的选项");
+  if (!(item.source || "").trim()) reasons.push("缺少来源");
+  if ((item.analysis || "").trim().length < 10) reasons.push("解析过短");
+  if (/强化变式编号|联网公开题库与教材框架补充/.test(`${question}${item.source || ""}`)) reasons.push("程序生成变式");
+  if (item.courseId === "morality" && /《?(婚姻法|合同法|继承法|民法通则|治安管理处罚条例)》?|劳动教养/.test(question)) {
+    reasons.push("引用已失效或名称过时的法律依据");
+  }
+  if (item.courseId === "marx" && /马原本地题库：习题[1-4]/.test(item.source || "") && !item.answerKeyVerified) {
+    reasons.push("教师题库答案未按原始答案表校准");
+  }
+  if (item.courseId === "mao" && isXiCourseItem(item)) reasons.push("课程分组不匹配");
+  if (item.courseId === "xi" && !isXiCourseItem(item)) reasons.push("课程分组不匹配");
+  if (item.courseId === "xi" && /目前.{0,12}全面建成小康社会|从现在到[二〇○0-9]{4}年|全面建成小康社会决胜阶段|“四个全面”战略布局包括/.test(question)) {
+    reasons.push("时点或战略表述已不适用于现行教材");
+  }
+  if (item.courseId === "xi" && /四个全面/.test(question) && /全面建成小康社会/.test(question) && !/党的(十八|十九)大|十八届|十九届/.test(question)) {
+    reasons.push("四个全面战略布局采用旧时点表述");
+  }
+  if (item.courseId === "xi" && /八个明确/.test(correctOptionText) && !/十九大/.test(question)) reasons.push("理论概括已按现行教材更新");
+  if (item.courseId === "xi" && /全面建成小康社会/.test(correctOptionText) && !/党的(十七|十八|十九)大|十八届|十九届|从2020|二〇二〇/.test(question)) {
+    reasons.push("时点或战略表述已不适用于现行教材");
+  }
+  if (/[（(]\s*[）)]\s*[。.]*\s*[A-D]{1,4}\s*\n\s*A[.．、]/.test(question)) reasons.push("题干泄漏答案");
+  if (/\?{5,}|�/.test(`${question}${item.answer || ""}${item.analysis || ""}`)) reasons.push("存在乱码或噪声");
+  return reasons;
+}
+
+function auditEssayItem(item) {
+  const reasons = [];
+  const question = (item.question || "").trim();
+  const answer = (item.answer || "").trim();
+  if (question.replace(/\s+/g, "").length < 6) reasons.push("题干过短");
+  if (answer.length < 20) reasons.push("答案过短");
+  if (!(item.source || "").trim()) reasons.push("缺少来源");
+  if ((item.analysis || "").trim().length < 20) reasons.push("解析过短");
+  if (/强化变式编号|联网公开题库与教材框架补充/.test(`${question}${item.source || ""}`)) reasons.push("程序生成变式");
+  if (item.courseId === "mao" && isXiCourseItem(item)) reasons.push("课程分组不匹配");
+  if (item.courseId === "xi" && !isXiCourseItem(item)) reasons.push("课程分组不匹配");
+  if (item.courseId === "xi" && /八个明确/.test(answer) && !/十九大/.test(question)) reasons.push("理论概括已按现行教材更新");
+  if (/应从.{0,12}(方面|层次)回答|答题角度|这类题/.test(answer)) reasons.push("答案是方法提示而非直接答案");
+  if (/\.{8,}\s*\d|…{4,}\s*\d|第[一二三四五六七八九十]+章\s+\.{4,}/.test(`${question}\n${answer}`)) reasons.push("疑似目录或页码内容");
+  if (/\?{5,}|�/.test(`${question}${answer}${item.analysis || ""}`)) reasons.push("存在乱码或噪声");
+  return reasons;
 }
 
 function uniqueByQuestion(items) {
@@ -761,18 +848,28 @@ function uniqueByQuestion(items) {
   });
 }
 
-function ensureUniqueQuestions(items) {
-  const seen = new Map();
-  for (const item of items) {
-    const original = item.question || "";
-    const key = original.replace(/\s+/g, "");
-    const count = seen.get(key) || 0;
-    seen.set(key, count + 1);
-    if (count > 0) {
-      item.question = `${original}\n强化变式编号：${count + 1}`;
-    }
-  }
+function uniqueChoicesByContent(items) {
+  const seen = new Set();
+  return items.filter((item) => {
+    const options = parseChoiceOptions(item.question || "");
+    const optionSet = Object.values(options).map((text) => text.replace(/\s+/g, "")).sort().join("|");
+    const key = `${normalizeQuestionStem(choiceStem(item.question || ""))}|${optionSet}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
+
+function normalizeQuestionStem(value) {
+  return value
+    .replace(/[（(]\s*[）)]/g, "")
+    .replace(/[，,。；;：:？?!！“”"'《》、]/g, "")
+    .replace(/\s+/g, "");
+}
+
+const STUDY_STORAGE_KEY = "sizheng-study-progress-v1";
+const studyProgress = loadStudyProgress();
+const questionLookup = new Map();
 
 const state = {
   courseId: null,
@@ -780,6 +877,50 @@ const state = {
   type: "all",
   query: ""
 };
+
+function loadStudyProgress() {
+  const empty = { favorites: {}, wrong: {}, mastery: {}, attempts: {} };
+  if (typeof localStorage === "undefined") return empty;
+  try {
+    const saved = JSON.parse(localStorage.getItem(STUDY_STORAGE_KEY) || "null");
+    return {
+      favorites: saved?.favorites || {},
+      wrong: saved?.wrong || {},
+      mastery: saved?.mastery || {},
+      attempts: saved?.attempts || {}
+    };
+  } catch {
+    return empty;
+  }
+}
+
+function saveStudyProgress() {
+  if (typeof localStorage === "undefined") return;
+  try {
+    localStorage.setItem(STUDY_STORAGE_KEY, JSON.stringify(studyProgress));
+  } catch {
+    // Storage may be unavailable in private browsing; studying still works for this page load.
+  }
+}
+
+function stableQuestionId(item) {
+  const normalized = `${item.courseId}|${item.type}|${item.question || ""}`
+    .replace(/\s+/g, "")
+    .replace(/强化变式编号[:：]\d+/g, "");
+  let hash = 2166136261;
+  for (let index = 0; index < normalized.length; index += 1) {
+    hash ^= normalized.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `${item.courseId}-${item.type === "大题" ? "essay" : "choice"}-${(hash >>> 0).toString(36)}`;
+}
+
+function registerQuestion(item) {
+  const questionId = stableQuestionId(item);
+  const registered = { ...item, questionId };
+  questionLookup.set(questionId, registered);
+  return registered;
+}
 
 const els = {
   homeView: document.querySelector("#homeView"),
@@ -856,10 +997,19 @@ function showCourse(id, updateHash = true) {
 }
 
 function jumpToCourseTop() {
-  window.scrollTo({ top: 0, behavior: "auto" });
-  if (els.courseHero.scrollIntoView) {
-    els.courseHero.scrollIntoView({ block: "start", behavior: "auto" });
+  const scrollToHero = () => {
+    const topbar = document.querySelector(".topbar");
+    const offset = (topbar?.offsetHeight || 0) + 16;
+    const top = Math.max(0, els.courseHero.getBoundingClientRect().top + window.scrollY - offset);
+    const previousBehavior = document.documentElement.style.scrollBehavior;
+    document.documentElement.style.scrollBehavior = "auto";
+    window.scrollTo({ top, behavior: "auto" });
+    document.documentElement.style.scrollBehavior = previousBehavior;
+  };
+  if (window.requestAnimationFrame) {
+    window.requestAnimationFrame(scrollToHero);
   }
+  else scrollToHero();
 }
 
 function renderCourse() {
@@ -922,11 +1072,11 @@ function renderCourse() {
 
 function renderQuestions(course) {
   const all = [
-    ...course.choices.map((item, index) => ({ ...item, courseId: course.id, type: "选择题", index: index + 1 })),
-    ...course.essays.map((item, index) => ({ ...item, courseId: course.id, type: "大题", index: index + 1 }))
+    ...course.choices.map((item, index) => registerQuestion({ ...item, courseId: course.id, type: "选择题", index: index + 1 })),
+    ...course.essays.map((item, index) => registerQuestion({ ...item, courseId: course.id, type: "大题", index: index + 1 }))
   ];
   const filtered = all.filter((item) => {
-    const typeOk = state.type === "all" || item.type === state.type;
+    const typeOk = questionMatchesFilter(item, state.type);
     const queryOk = !state.query || `${item.question}${item.answer}${item.analysis || ""}${item.source}`.includes(state.query);
     return typeOk && queryOk;
   });
@@ -937,6 +1087,9 @@ function renderQuestions(course) {
         ${filterButton("all", "全部")}
         ${filterButton("选择题", "选择题")}
         ${filterButton("大题", "大题")}
+        ${filterButton("wrong", "错题本")}
+        ${filterButton("favorites", "收藏")}
+        ${filterButton("review", "需复习")}
       </div>
     </div>
     <div class="question-list">
@@ -949,12 +1102,42 @@ function renderQuestions(course) {
       renderCourse();
     });
   });
-  document.querySelectorAll("[data-answer]").forEach((button) => {
+  bindQuestionInteractions(els.questions);
+}
+
+function questionMatchesFilter(item, filter) {
+  if (filter === "all") return true;
+  if (filter === "选择题" || filter === "大题") return item.type === filter;
+  if (filter === "wrong") return Boolean(studyProgress.wrong[item.questionId]);
+  if (filter === "favorites") return Boolean(studyProgress.favorites[item.questionId]);
+  if (filter === "review") return studyProgress.mastery[item.questionId] === "review";
+  return true;
+}
+
+function bindQuestionInteractions(root) {
+  root.querySelectorAll("[data-answer]").forEach((button) => {
     button.addEventListener("click", () => {
       const card = button.closest(".question-card");
       card.classList.toggle("open");
+      card.classList.remove("reciting");
+      card.querySelectorAll(".essay-answer-step").forEach((step) => step.classList.add("revealed"));
       button.textContent = card.classList.contains("open") ? "收起答案解析" : "显示答案解析";
     });
+  });
+  root.querySelectorAll("[data-favorite]").forEach((button) => {
+    button.addEventListener("click", () => toggleFavorite(button));
+  });
+  root.querySelectorAll("[data-choice-option]").forEach((button) => {
+    button.addEventListener("click", () => toggleChoiceOption(button));
+  });
+  root.querySelectorAll("[data-submit-choice]").forEach((button) => {
+    button.addEventListener("click", () => submitChoiceAnswer(button));
+  });
+  root.querySelectorAll("[data-recite]").forEach((button) => {
+    button.addEventListener("click", () => revealNextEssayStep(button));
+  });
+  root.querySelectorAll("[data-mastery]").forEach((button) => {
+    button.addEventListener("click", () => setEssayMastery(button));
   });
 }
 
@@ -1961,14 +2144,68 @@ function filterButton(value, label) {
 }
 
 function renderQuestion(item) {
+  const favorite = Boolean(studyProgress.favorites[item.questionId]);
+  const attempt = studyProgress.attempts[item.questionId];
+  const mastery = studyProgress.mastery[item.questionId];
+  const status = item.type === "大题"
+    ? (mastery === "mastered" ? "已掌握" : mastery === "review" ? "需复习" : "")
+    : (attempt?.correct ? "上次答对" : attempt ? "上次答错" : "");
   return `
-    <div class="question-card">
+    <div class="question-card ${item.random ? "random-question-card" : ""} ${attempt?.correct ? "answered-correct" : attempt ? "answered-wrong" : ""}" data-question-id="${item.questionId}">
       <div class="question-head">
-        <span class="type-pill">${questionTypeLabel(item)} ${item.index}</span>
-        <button class="answer-btn" type="button" data-answer>显示答案解析</button>
+        <div class="question-meta">
+          <span class="type-pill">${questionTypeLabel(item)}${item.index ? ` ${item.index}` : ""}</span>
+          ${status ? `<span class="study-status">${status}</span>` : ""}
+        </div>
+        <button class="question-icon-btn ${favorite ? "active" : ""}" type="button" data-favorite title="${favorite ? "取消收藏" : "收藏本题"}" aria-label="${favorite ? "取消收藏" : "收藏本题"}" aria-pressed="${favorite}">
+          ${favorite ? "&#9733;" : "&#9734;"}
+        </button>
       </div>
-      <div class="question-text">${escapeHtml(item.question)}</div>
+      ${renderQuestionPrompt(item)}
+      ${item.type === "大题" ? renderEssayControls(item) : renderChoiceControls(item)}
       <div class="answer">${renderAnswerContent(item)}</div>
+    </div>
+  `;
+}
+
+function renderQuestionPrompt(item) {
+  if (item.type === "大题") return `<div class="question-text">${escapeHtml(item.question)}</div>`;
+  const options = parseChoiceOptions(item.question);
+  if (!Object.keys(options).length) return `<div class="question-text">${escapeHtml(item.question)}</div>`;
+  return `
+    <div class="question-text">${escapeHtml(choiceStem(item.question))}</div>
+    <div class="choice-options" role="group" aria-label="${questionTypeLabel(item)}选项">
+      ${Object.entries(options).map(([letter, text]) => `
+        <button class="choice-option" type="button" data-choice-option="${letter}" aria-pressed="false">
+          <strong>${letter}</strong><span>${escapeHtml(text)}</span>
+        </button>
+      `).join("")}
+    </div>
+  `;
+}
+
+function renderChoiceControls(item) {
+  const attempt = studyProgress.attempts[item.questionId];
+  const result = attempt ? (attempt.correct ? "回答正确" : "回答错误，已加入错题本") : "";
+  return `
+    <div class="question-actions">
+      <button class="primary-question-btn" type="button" data-submit-choice>提交答案</button>
+      <button class="answer-btn" type="button" data-answer>显示答案解析</button>
+    </div>
+    <p class="choice-result" data-choice-result aria-live="polite">${result}</p>
+  `;
+}
+
+function renderEssayControls(item) {
+  const mastery = studyProgress.mastery[item.questionId];
+  return `
+    <div class="question-actions essay-actions">
+      <button class="primary-question-btn" type="button" data-recite>逐段背诵</button>
+      <div class="mastery-control" role="group" aria-label="背诵状态">
+        <button class="${mastery === "mastered" ? "active" : ""}" type="button" data-mastery="mastered">已掌握</button>
+        <button class="${mastery === "review" ? "active" : ""}" type="button" data-mastery="review">需复习</button>
+      </div>
+      <button class="answer-btn" type="button" data-answer>显示答案解析</button>
     </div>
   `;
 }
@@ -1978,7 +2215,9 @@ function renderAnswerContent(item) {
     return `
       <div class="answer-section">
         <strong class="answer-label">答案</strong>
-        <div>${escapeHtml(essayAnswerContent(item))}</div>
+        <div class="essay-answer-steps">
+          ${essayAnswerSegments(essayAnswerContent(item)).map((segment) => `<div class="essay-answer-step">${escapeHtml(segment)}</div>`).join("")}
+        </div>
       </div>
       <div class="analysis-section">
         <strong class="answer-label">解析</strong>
@@ -1998,19 +2237,127 @@ function renderAnswerContent(item) {
   `;
 }
 
+function essayAnswerSegments(answer) {
+  const sentences = (answer.match(/[^。；！？\n]+[。；！？]?/g) || [answer])
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const segments = [];
+  for (const sentence of sentences) {
+    if (!segments.length || segments[segments.length - 1].length >= 90) segments.push(sentence);
+    else segments[segments.length - 1] += sentence;
+  }
+  return segments;
+}
+
+function toggleFavorite(button) {
+  const card = button.closest(".question-card");
+  const questionId = card.dataset.questionId;
+  const active = !studyProgress.favorites[questionId];
+  if (active) studyProgress.favorites[questionId] = true;
+  else delete studyProgress.favorites[questionId];
+  saveStudyProgress();
+  button.classList.toggle("active", active);
+  button.innerHTML = active ? "&#9733;" : "&#9734;";
+  button.title = active ? "取消收藏" : "收藏本题";
+  button.setAttribute("aria-label", button.title);
+  button.setAttribute("aria-pressed", String(active));
+}
+
+function toggleChoiceOption(button) {
+  const card = button.closest(".question-card");
+  const item = questionLookup.get(card.dataset.questionId);
+  if (!item) return;
+  if (choiceAnswerLetters(item).length === 1) {
+    card.querySelectorAll("[data-choice-option]").forEach((option) => {
+      option.classList.remove("selected", "correct-option", "wrong-option");
+      option.setAttribute("aria-pressed", "false");
+    });
+  }
+  const selected = !button.classList.contains("selected");
+  button.classList.toggle("selected", selected);
+  button.classList.remove("correct-option", "wrong-option");
+  button.setAttribute("aria-pressed", String(selected));
+  card.classList.remove("answered-correct", "answered-wrong");
+  const result = card.querySelector("[data-choice-result]");
+  if (result) result.textContent = "";
+}
+
+function submitChoiceAnswer(button) {
+  const card = button.closest(".question-card");
+  const item = questionLookup.get(card.dataset.questionId);
+  if (!item) return;
+  const selected = [...card.querySelectorAll("[data-choice-option].selected")]
+    .map((option) => option.dataset.choiceOption)
+    .sort()
+    .join("");
+  const result = card.querySelector("[data-choice-result]");
+  if (!selected) {
+    result.textContent = "请先选择答案。";
+    return;
+  }
+  const correctAnswer = choiceAnswerLetters(item).split("").sort().join("");
+  const correct = selected === correctAnswer;
+  studyProgress.attempts[item.questionId] = { selected, correct, updatedAt: Date.now() };
+  if (correct) delete studyProgress.wrong[item.questionId];
+  else studyProgress.wrong[item.questionId] = true;
+  saveStudyProgress();
+
+  card.classList.toggle("answered-correct", correct);
+  card.classList.toggle("answered-wrong", !correct);
+  card.querySelectorAll("[data-choice-option]").forEach((option) => {
+    const letter = option.dataset.choiceOption;
+    option.classList.toggle("correct-option", correctAnswer.includes(letter));
+    option.classList.toggle("wrong-option", selected.includes(letter) && !correctAnswer.includes(letter));
+  });
+  result.textContent = correct ? "回答正确。" : "回答错误，已加入错题本。";
+}
+
+function revealNextEssayStep(button) {
+  const card = button.closest(".question-card");
+  card.classList.add("open", "reciting");
+  const next = [...card.querySelectorAll(".essay-answer-step")].find((step) => !step.classList.contains("revealed"));
+  if (next) next.classList.add("revealed");
+  const remaining = [...card.querySelectorAll(".essay-answer-step")].some((step) => !step.classList.contains("revealed"));
+  button.textContent = remaining ? "显示下一段" : "已显示全部答案";
+}
+
+function setEssayMastery(button) {
+  const card = button.closest(".question-card");
+  const questionId = card.dataset.questionId;
+  const value = button.dataset.mastery;
+  studyProgress.mastery[questionId] = value;
+  if (value === "review") studyProgress.wrong[questionId] = true;
+  else delete studyProgress.wrong[questionId];
+  saveStudyProgress();
+  card.querySelectorAll("[data-mastery]").forEach((option) => {
+    option.classList.toggle("active", option.dataset.mastery === value);
+  });
+  let status = card.querySelector(".study-status");
+  if (!status) {
+    status = document.createElement("span");
+    status.className = "study-status";
+    card.querySelector(".question-meta").append(status);
+  }
+  status.textContent = value === "mastered" ? "已掌握" : "需复习";
+}
+
 function questionTypeLabel(item) {
   if (item.type === "大题") return item.type;
   return item.questionType || (choiceAnswerLetters(item).length > 1 ? "多选题" : "单选题");
 }
 
 function choiceAnswerLetters(item) {
-  if (item.correctAnswer) return item.correctAnswer;
+  if (item.correctAnswer) return normalizeAnswerLetters(item.correctAnswer);
   const answer = item.answer || "";
   const direct = answer.match(/正确答案[:：]\s*([A-D]{1,4})/i);
-  if (direct) return direct[1].toUpperCase();
+  if (direct) return normalizeAnswerLetters(direct[1]);
   const leading = answer.match(/^\s*([A-D]{1,4})[。.]/i);
-  if (leading) return leading[1].toUpperCase();
+  if (leading) return normalizeAnswerLetters(leading[1]);
   return "";
+}
+
+function normalizeAnswerLetters(value) {
+  return [...new Set(String(value).toUpperCase().match(/[A-D]/g) || [])].sort().join("");
 }
 
 function choiceCorrectAnswer(item) {
@@ -2022,23 +2369,14 @@ function choiceAnalysis(item) {
   const letters = choiceAnswerLetters(item);
   const opts = parseChoiceOptions(item.question);
   const picked = letters.split("").filter((letter) => opts[letter]).map((letter) => `${letter}. ${opts[letter]}`);
-  const wrong = Object.keys(opts).filter((letter) => !letters.includes(letter)).map((letter) => `${letter}. ${opts[letter]}`);
   const stem = choiceStem(item.question);
-  if (picked.length) {
-    return [
-      `解题思路：题干问的是“${stem}”，先抓住题干中的限定词，再到四个选项里找与限定词完全对应的表述。`,
-      `正确项：${picked.join("；")}。这些选项直接回答了题干要求，所以应选。`,
-      wrong.length ? `排除项：${wrong.join("；")}。这些选项与题干限定不一致，或属于相近但不是本题所问的概念。` : "",
-      `记忆方法：把“${shortMemoryKey(stem)}”和答案“${letters}”对应的关键词连在一起记；多选题要逐项核对，凡是同一概念的完整组成部分都要选全。`
-    ].filter(Boolean).join("\n");
-  }
-  const answer = item.answer || "";
-  const withoutAnswer = answer
-    .replace(/^\s*正确答案[:：]\s*[A-D]{1,4}[。.，,\s]*/i, "")
-    .replace(/^\s*[A-D]{1,4}[。.，,\s]*/i, "")
-    .replace(/\?{5,}/g, "")
-    .trim();
-  return withoutAnswer || "解析：按题干要求选择对应项。";
+  const explanation = cleanAnalysisText(item.analysis);
+  return [
+    `考点：本题考查“${shortMemoryKey(stem)}”。`,
+    explanation,
+    picked.length ? `答案对应：${picked.join("；")}。` : "",
+    `记忆方法：不要只记字母，把题干关键词与正确选项中的规范表述绑定记忆；多选题按选项逐项核对。`
+  ].filter(Boolean).join("\n");
 }
 
 function shortMemoryKey(text) {
@@ -2049,36 +2387,23 @@ function shortMemoryKey(text) {
 }
 
 function essayAnswerContent(item) {
-  const answer = (item.answer || "").replace(/^答[:：]\s*/, "").trim();
-  if (answer.length >= 120) return item.answer || "";
-  const points = relatedEssayFactsForItem(item).slice(0, 3);
-  if (!points.length) return item.answer || "";
-  const extra = points.map((fact, index) => `${index + 1}. ${fact[0]}：${fact[1]}。${fact[2]}。`);
-  return [`答：${answer}`, "补充得分点：", ...extra].join("\n");
+  return item.answer || "";
 }
 
 function essayAnalysisContent(item) {
+  if ((item.analysis || "").trim()) return item.analysis;
   const answer = (item.answer || "").replace(/^答[:：]\s*/, "").trim();
   const points = answer
     .split(/(?:\n|；|。|①|②|③|④|⑤|⑥)/)
     .map((part) => part.trim())
     .filter((part) => part.length >= 8)
     .slice(0, 5);
-  const scorePoints = points.length
-    ? points.map((point, index) => `${index + 1}. ${point}。`).join("\n")
-    : relatedEssayFactsForItem(item).slice(0, 4).map((fact, index) => `${index + 1}. ${fact[0]}：${fact[1]}。`).join("\n");
-  const memory = relatedEssayFactsForItem(item).slice(0, 3).map((fact) => fact[0]).join("、") || shortMemoryKey(item.question || "");
+  const scorePoints = points.map((point, index) => `${index + 1}. ${point}。`).join("\n");
   return [
-    `怎么解：先看题干关键词“${shortMemoryKey(item.question || "")}”，判断它问的是概念、意义、原因还是做法；再按“是什么—为什么—怎么做/有什么意义”的顺序组织。`,
+    `怎么解：先看题干关键词“${shortMemoryKey(item.question || "")}”，判断设问要求，再直接组织对应结论。`,
     `得分点：\n${scorePoints}`,
-    `记忆方法：抓住“${memory}”这几个词，先背结论句，再背每个结论后面的解释句；考试时每个关键词至少展开一句。`
+    `记忆方法：先背结论句，再按答案中的关键词逐点展开；考试时每个关键词至少写出一句完整判断。`
   ].join("\n");
-}
-
-function relatedEssayFactsForItem(item) {
-  const facts = supplements[item.courseId]?.facts || [];
-  if (!facts.length) return [];
-  return pickEssayFacts(`${item.question || ""}${item.answer || ""}`, facts, item.index || 0);
 }
 
 function choiceStem(question) {
@@ -2136,8 +2461,8 @@ function renderRandomQuestion() {
   const selectedCourse = courses.find((course) => course.id === state.randomCourseId) || getCourse() || courses[0];
   state.randomCourseId = selectedCourse.id;
   const pool = [selectedCourse].flatMap((course) => [
-    ...course.choices.map((item) => ({ ...item, courseId: course.id, course: course.short, courseName: course.name, accent: course.accent, type: "选择题" })),
-    ...course.essays.map((item) => ({ ...item, courseId: course.id, course: course.short, courseName: course.name, accent: course.accent, type: "大题" }))
+    ...course.choices.map((item) => registerQuestion({ ...item, courseId: course.id, course: course.short, courseName: course.name, accent: course.accent, type: "选择题", random: true })),
+    ...course.essays.map((item) => registerQuestion({ ...item, courseId: course.id, course: course.short, courseName: course.name, accent: course.accent, type: "大题", random: true }))
   ]);
   const matches = pool.filter((item) => !state.query || `${item.course}${item.question}${item.answer}`.includes(state.query));
   const item = matches[Math.floor(Math.random() * matches.length)];
@@ -2155,20 +2480,9 @@ function renderRandomQuestion() {
         <button class="next-random-btn" type="button" data-next-random>下一题</button>
       </div>
     </div>
-    <div class="question-card random-question-card">
-      <div class="question-head">
-        <span class="type-pill">${escapeHtml(questionTypeLabel(item))}</span>
-        <button class="answer-btn" type="button" data-answer>显示答案解析</button>
-      </div>
-      <div class="question-text">${escapeHtml(item.question)}</div>
-      <div class="answer">${renderAnswerContent(item)}</div>
-    </div>
+    <div class="random-question-wrap">${renderQuestion(item)}</div>
   `;
-  els.dialogBody.querySelector("[data-answer]").addEventListener("click", (event) => {
-    const card = event.currentTarget.closest(".question-card");
-    card.classList.toggle("open");
-    event.currentTarget.textContent = card.classList.contains("open") ? "收起答案解析" : "显示答案解析";
-  });
+  bindQuestionInteractions(els.dialogBody);
   els.dialogBody.querySelector("[data-next-random]").addEventListener("click", () => {
     renderRandomQuestion();
   });

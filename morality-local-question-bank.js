@@ -3,9 +3,9 @@ const moralityLocalQuestionBank = {
     {
       "question": "人才素质的基础是（ ）\nA. 德\nB. 智\nC. 体\nD. 美",
       "questionType": "单选题",
-      "correctAnswer": "B",
-      "answer": "正确答案：B",
-      "analysis": "解析：本题问的是“人才素质的基础是（ ）”。正确项为B. 智。",
+      "correctAnswer": "C",
+      "answer": "正确答案：C",
+      "analysis": "解析：德是人才素质的灵魂，智是人才素质的基本内容，体是人才素质的基础，美是人才素质的综合体现。因此本题应选C“体”，不能把“基本内容”和“基础”混淆。",
       "source": "思修题库：选择题题库1.pdf",
       "preserveAnswer": true
     },
@@ -154,11 +154,11 @@ const moralityLocalQuestionBank = {
       "preserveAnswer": true
     },
     {
-      "question": "人生价值评价的根本尺度，是看一个人的人生活动 （ ） ，是否通过实践促进了历史的进步\nA. 是否促进个人的发展\nB. 是否符合社会发展的客 观规律\nC. 是否促进生产力的发展\nD. 是否促进生产关系的改善",
+      "question": "人生价值评价的根本尺度，是看一个人的人生活动（ ），是否通过实践促进了历史的进步\nA. 是否促进个人的发展\nB. 是否符合社会发展的客观规律\nC. 是否促进生产力的发展\nD. 是否促进生产关系的改善",
       "questionType": "单选题",
       "correctAnswer": "B",
       "answer": "正确答案：B",
-      "analysis": "解析：本题问的是“人生价值评价的根本尺度，是看一个人的人生活动 （ ） ，是否通过实践促进了历史的进步”。正确项为B. 是否符合社会发展的客 观规律。",
+      "analysis": "解析：评价人生价值的根本尺度，是看一个人的实践活动是否符合社会发展的客观规律、是否促进历史进步。因此选B。生产力发展是社会进步的重要内容，但不能用它替代教材给出的完整根本尺度。",
       "source": "思修题库：选择题题库1.pdf",
       "preserveAnswer": true
     },
@@ -280,11 +280,11 @@ const moralityLocalQuestionBank = {
       "preserveAnswer": true
     },
     {
-      "question": "人生价值评价的根本尺度，是看一个人的人生活 动 ，是否通过实践促进了历史的进步（ ）\nA. 是否促进个人的发展\nB. 是否符合社会发展的客观规律\nC. 是否促进生产力的发展\nD. 是否促进生产关系的改善",
+      "question": "人生价值评价的根本尺度，是看一个人的人生活动（ ），是否通过实践促进了历史的进步\nA. 是否促进个人的发展\nB. 是否符合社会发展的客观规律\nC. 是否促进生产力的发展\nD. 是否促进生产关系的改善",
       "questionType": "单选题",
-      "correctAnswer": "C",
-      "answer": "正确答案：C",
-      "analysis": "解析：本题问的是“人生价值评价的根本尺度，是看一个人的人生活 动 ，是否通过实践促进了历史的进步（ ）”。正确项为C. 是否促进生产力的发展。",
+      "correctAnswer": "B",
+      "answer": "正确答案：B",
+      "analysis": "解析：评价人生价值的根本尺度，是看一个人的实践活动是否符合社会发展的客观规律、是否促进历史进步，因此选B。不能把促进生产力发展这一具体内容直接等同于人生价值评价的根本尺度。",
       "source": "思修题库：选择题题库1.pdf",
       "preserveAnswer": true
     },

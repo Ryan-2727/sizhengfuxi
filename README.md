@@ -21,8 +21,11 @@
 - 课程页左侧提供章节导航。
 - 每章包含关键词、重点内容、思维导图和考试提醒。
 - 每门课包含选择题题库和大题题库。
-- 题目提供答案，选择题包含解析，大题区分答案和解析。
-- 支持全局搜索和随机抽题。
+- 选择题支持单选、多选、提交判分，并在按钮操作后显示答案解析。
+- 支持错题本、收藏、大题逐段背诵和掌握状态，本地进度保存在浏览器中。
+- 随机抽题前可选择课程，并可连续切换下一道随机题。
+- 题库按“正式题库 / 待核验题库”分层，程序生成变式、错分课程、过时表述和结构异常题不会进入默认题集。
+- 支持全局搜索、题型筛选和随机抽题。
 
 ## 文件结构
 
@@ -31,6 +34,13 @@
 ├── index.html
 ├── styles.css
 ├── app.js
+├── history-local-question-bank.js
+├── morality-local-question-bank.js
+├── mao-xi-local-question-bank.js
+├── marx-local-question-bank.js
+├── question-audit-report.json
+├── scripts/
+│   └── audit-question-bank.js
 ├── assets/
 │   ├── alipay.jpg
 │   └── wechat.jpg
@@ -40,6 +50,14 @@
 ## 本地预览
 
 直接用浏览器打开 `index.html` 即可预览。这个项目不依赖后端服务，也不需要安装依赖。
+
+运行题库结构审计：
+
+```powershell
+node scripts\audit-question-bank.js --write
+```
+
+审计结果写入 `question-audit-report.json`。报告区分来源可追溯题与按教师原始答案表核验的题目，并列出待核验原因。
 
 ## 部署说明
 

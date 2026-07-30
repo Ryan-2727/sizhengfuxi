@@ -1,0 +1,145 @@
+const fs = require("fs");
+const path = require("path");
+const vm = require("vm");
+
+const root = path.resolve(__dirname, "..");
+const outputDir = root;
+const files = [
+  "history-local-question-bank.js",
+  "morality-local-question-bank.js",
+  "mao-xi-local-question-bank.js",
+  "marx-local-question-bank.js",
+  "app.js"
+];
+
+const noop = () => {};
+const fakeElement = () => ({
+  hidden: false,
+  innerHTML: "",
+  textContent: "",
+  dataset: {},
+  classList: { add: noop, remove: noop, toggle: noop, contains: () => false },
+  addEventListener: noop,
+  querySelector: () => fakeElement(),
+  querySelectorAll: () => [],
+  closest: () => fakeElement(),
+  append: noop,
+  setAttribute: noop,
+  style: { setProperty: noop },
+  showModal: noop
+});
+const sandbox = {
+  console,
+  window: { scrollTo: noop },
+  location: { hash: "", pathname: "/", search: "" },
+  history: { pushState: noop },
+  document: {
+    createElement: () => fakeElement(),
+    documentElement: { style: { setProperty: noop } },
+    querySelector: () => fakeElement(),
+    querySelectorAll: () => []
+  }
+};
+
+vm.createContext(sandbox);
+const source = files.map((file) => fs.readFileSync(path.join(outputDir, file), "utf8")).join("\n");
+vm.runInContext(`${source}
+globalThis.__auditApi = {
+  courses,
+  parseChoiceOptions,
+  choiceAnswerLetters,
+  choiceAnalysis,
+  stableQuestionId
+};`, sandbox);
+
+const { courses, parseChoiceOptions, choiceAnswerLetters, choiceAnalysis, stableQuestionId } = sandbox.__auditApi;
+const report = {
+  generatedAt: new Date().toISOString(),
+  policy: "Only source-backed questions passing structural and relevance checks are included in the formal bank.",
+  courses: [],
+  issues: []
+};
+
+for (const course of courses) {
+  const sourceCounts = {};
+  const auditStatusCounts = {};
+  const ids = new Set();
+  const reviewReasons = {};
+  const reviewSamples = [];
+  const riskSamples = [];
+  const questions = [
+    ...course.choices.map((item) => ({ ...item, courseId: course.id, type: "选择题" })),
+    ...course.essays.map((item) => ({ ...item, courseId: course.id, type: "大题" }))
+  ];
+
+  for (const item of questions) {
+    sourceCounts[item.source] = (sourceCounts[item.source] || 0) + 1;
+    auditStatusCounts[item.auditStatus] = (auditStatusCounts[item.auditStatus] || 0) + 1;
+    const id = stableQuestionId(item);
+    if (ids.has(id)) report.issues.push(`${course.id}: duplicate stable id ${id}`);
+    ids.add(id);
+
+    if (item.type === "选择题") {
+      const options = parseChoiceOptions(item.question);
+      const letters = choiceAnswerLetters(item);
+      if (Object.keys(options).length < 2) report.issues.push(`${course.id}: incomplete options: ${item.question.slice(0, 40)}`);
+      if (!letters || [...letters].some((letter) => !options[letter])) report.issues.push(`${course.id}: invalid answer: ${item.question.slice(0, 40)}`);
+      const expectedType = letters.length > 1 ? "多选题" : "单选题";
+      if (item.questionType !== expectedType) report.issues.push(`${course.id}: type mismatch: ${item.question.slice(0, 40)}`);
+      const renderedAnalysis = choiceAnalysis(item);
+      if (renderedAnalysis.length < 70) report.issues.push(`${course.id}: weak choice analysis: ${item.question.slice(0, 40)}`);
+      if (riskSamples.length < 12 && /不包括|不正确|错误的是|不是|没有|未|根本|核心|标志|首次|最早|时间是|哪一年|多少年/.test(item.question)) {
+        riskSamples.push({
+          question: item.question,
+          correctAnswer: item.correctAnswer,
+          source: item.source
+        });
+      }
+    } else {
+      if ((item.answer || "").length < 20) report.issues.push(`${course.id}: short essay answer: ${item.question.slice(0, 40)}`);
+      if ((item.analysis || "").length < 20) report.issues.push(`${course.id}: weak essay analysis: ${item.question.slice(0, 40)}`);
+      if (/应从.{0,12}(方面|层次)回答|答题角度|这类题/.test(item.answer || "")) {
+        report.issues.push(`${course.id}: essay answer contains method-only guidance: ${item.question.slice(0, 40)}`);
+      }
+    }
+
+    if (!(item.source || "").trim()) report.issues.push(`${course.id}: missing source: ${item.question.slice(0, 40)}`);
+    if (/强化变式编号|联网公开题库与教材框架补充/.test(`${item.question}${item.source || ""}`)) {
+      report.issues.push(`${course.id}: generated variant in formal bank: ${item.question.slice(0, 40)}`);
+    }
+    if (/\?{5,}|�/.test(`${item.question}${item.answer || ""}${item.analysis || ""}`)) {
+      report.issues.push(`${course.id}: encoding noise: ${item.question.slice(0, 40)}`);
+    }
+  }
+
+  for (const item of [...course.reviewQueue.choices, ...course.reviewQueue.essays]) {
+    for (const reason of item.auditReasons) reviewReasons[reason] = (reviewReasons[reason] || 0) + 1;
+    if (reviewSamples.length < 30) {
+      reviewSamples.push({
+        question: item.question,
+        source: item.source,
+        reasons: item.auditReasons
+      });
+    }
+  }
+
+  report.courses.push({
+    id: course.id,
+    formalChoices: course.choices.length,
+    formalEssays: course.essays.length,
+    reviewChoices: course.reviewQueue.choices.length,
+    reviewEssays: course.reviewQueue.essays.length,
+    reviewReasons,
+    reviewSamples,
+    riskSamples,
+    sourceCounts,
+    auditStatusCounts
+  });
+}
+
+if (process.argv.includes("--write")) {
+  fs.writeFileSync(path.join(outputDir, "question-audit-report.json"), `${JSON.stringify(report, null, 2)}\n`);
+}
+
+if (!process.argv.includes("--quiet")) console.log(JSON.stringify(report, null, 2));
+if (report.issues.length) process.exitCode = 1;
