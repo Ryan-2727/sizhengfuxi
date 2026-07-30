@@ -1,0 +1,25 @@
+name: Question bank audit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          node --check app.js
+          node --check verified-question-overrides.js
+          node --check scripts/audit-question-bank.js
+      - name: Audit formal question bank
+        run: node scripts/audit-question-bank.js --quiet

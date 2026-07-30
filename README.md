@@ -25,6 +25,7 @@
 - 支持错题本、收藏、大题逐段背诵和掌握状态，本地进度保存在浏览器中。
 - 随机抽题前可选择课程，并可连续切换下一道随机题。
 - 题库按“正式题库 / 待核验题库”分层，程序生成变式、错分课程、过时表述和结构异常题不会进入默认题集。
+- 题目显示来源核验状态：教师答案表、教材/现行法律、权威公开文本或来源可追溯。
 - 支持全局搜索、题型筛选和随机抽题。
 
 ## 文件结构
@@ -38,9 +39,12 @@
 ├── morality-local-question-bank.js
 ├── mao-xi-local-question-bank.js
 ├── marx-local-question-bank.js
+├── verified-question-overrides.js
 ├── question-audit-report.json
 ├── scripts/
 │   └── audit-question-bank.js
+├── docs/
+│   └── question-bank-quality-review-2026-07-30.md
 ├── assets/
 │   ├── alipay.jpg
 │   └── wechat.jpg
@@ -57,7 +61,9 @@
 node scripts\audit-question-bank.js --write
 ```
 
-审计结果写入 `question-audit-report.json`。报告区分来源可追溯题与按教师原始答案表核验的题目，并列出待核验原因。
+审计结果写入 `question-audit-report.json`。报告区分四类核验状态，检查选项、答案、题型、解析长度、题干拼接、来源和核对依据，并列出被排除记录。详细复查记录见 [docs/question-bank-quality-review-2026-07-30.md](docs/question-bank-quality-review-2026-07-30.md)。
+
+GitHub Actions 会在每次推送和拉取请求时运行语法检查与题库审计。
 
 ## 部署说明
 

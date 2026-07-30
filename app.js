@@ -546,7 +546,7 @@ function isXiCourseItem(item) {
   const source = item.source || "";
   const question = choiceStem(item.question || "");
   if (/第(?:八|九|十)章/.test(source)) return true;
-  return /习近平|新时代中国特色社会主义|中国特色社会主义新时代|中国特色社会主义最本质的特征|新时代我国社会主要矛盾|坚持党的全面领导|中国梦|中华民族伟大复兴|中国式现代化|五位一体|四个全面|新发展理念|高质量发展|全过程人民民主|总体国家安全观|人类命运共同体|全面从严治党|强军思想|新型国际关系|美丽中国|全面深化改革的总目标/.test(question);
+  return /习近平|新时代中国特色社会主义|新时代建设中国特色社会主义|中国特色社会主义新时代|中国特色社会主义最本质的特征|新时代我国社会主要矛盾|我国社会主要矛盾的变化|坚持党的全面领导|中国梦|中华民族伟大复兴|中国式现代化|社会主义现代化强国|全面建设社会主义现代化国家|建设现代化经济体系|五位一体|四个全面|十个明确|十四个坚持|十三个方面成就|六个必须坚持|新发展理念|高质量发展|全过程人民民主|总体国家安全观|人类命运共同体|全面从严治党|全面从严治军|四个意识|强军思想|新型国际关系|美丽中国|全面深化改革的总目标|在发展中加强和改善民生/.test(question);
 }
 
 function splitMaoXiQuestionBanks() {
@@ -641,6 +641,7 @@ function applyTeacherAnswerKeys(items) {
       answer: `正确答案：${letters}`,
       questionType: letters.length > 1 ? "多选题" : "单选题",
       answerKeyVerified: true,
+      verificationReference: item.verificationReference || "马原本地题库教师答案表",
       analysis: [
         `解析：本题考查“${shortMemoryKey(choiceStem(item.question || ""))}”。`,
         picked.length ? `正确项为${picked.join("；")}。` : "",
@@ -661,14 +662,24 @@ function expandQuestionBanks() {
       marx: typeof marxLocalQuestionBank !== "undefined" ? marxLocalQuestionBank : null
     };
     const localBank = localBanks[course.id] || { choices: [], essays: [] };
-    const combinedChoices = course.choices.concat(localBank.choices || []);
+    const additions = typeof verifiedQuestionAdditions !== "undefined"
+      ? verifiedQuestionAdditions[course.id] || { choices: [], essays: [] }
+      : { choices: [], essays: [] };
+    const combinedChoices = course.choices.concat(localBank.choices || [], additions.choices || []);
     const rawChoices = course.id === "marx"
       ? applyTeacherAnswerKeys(combinedChoices)
       : combinedChoices;
-    markChoiceAnswerConflicts(rawChoices);
-    const choiceCandidates = uniqueChoicesByContent(rawChoices)
-      .map((item) => normalizeChoiceItem({ ...item, courseId: course.id }));
-    const essayCandidates = uniqueByQuestion(course.essays.concat(localBank.essays || []))
+    const overriddenChoices = applyQuestionOverrides(rawChoices, course.id, "choice");
+    const overriddenEssays = applyQuestionOverrides(
+      course.essays.concat(localBank.essays || [], additions.essays || []),
+      course.id,
+      "essay"
+    );
+    markChoiceAnswerConflicts(overriddenChoices.accepted);
+    const choiceCandidates = uniqueChoicesByContent(
+      overriddenChoices.accepted.map((item) => normalizeChoiceItem({ ...item, courseId: course.id }))
+    );
+    const essayCandidates = uniqueByQuestion(overriddenEssays.accepted)
       .map((item) => normalizeEssayItem({ ...item, courseId: course.id }));
     const choiceAudit = partitionAuditedItems(choiceCandidates, auditChoiceItem);
     const essayAudit = partitionAuditedItems(essayCandidates, auditEssayItem);
@@ -679,17 +690,82 @@ function expandQuestionBanks() {
       choices: choiceAudit.rejected,
       essays: essayAudit.rejected
     };
+    course.excludedQuestions = [
+      ...overriddenChoices.excluded,
+      ...overriddenEssays.excluded
+    ];
   }
 }
 
+function applyQuestionOverrides(items, courseId, type) {
+  const overrides = typeof verifiedQuestionOverrides !== "undefined"
+    ? verifiedQuestionOverrides
+    : [];
+  const sourceExclusions = typeof verifiedQuestionSourceExclusions !== "undefined"
+    ? verifiedQuestionSourceExclusions
+    : [];
+  return items.reduce((result, item) => {
+    const sourceExclusion = sourceExclusions.find((entry) => (
+      entry.courseId === courseId
+      && entry.type === type
+      && (item.source || "").includes(entry.sourceIncludes)
+    ));
+    if (sourceExclusion) {
+      result.excluded.push({
+        ...item,
+        exclusionReason: sourceExclusion.exclusionReason
+      });
+      return result;
+    }
+    const stemKey = normalizeQuestionStem(
+      type === "choice" ? choiceStem(item.question || "") : item.question || ""
+    );
+    const override = overrides.find((entry) => (
+      entry.courseId === courseId
+      && entry.type === type
+      && normalizeQuestionStem(entry.stem) === stemKey
+      && (!entry.questionIncludes || (item.question || "").includes(entry.questionIncludes))
+    ));
+    if (!override) {
+      result.accepted.push(item);
+      return result;
+    }
+    const corrected = {
+      ...item,
+      ...(override.question ? { question: override.question } : {}),
+      ...(override.correctAnswer ? {
+        correctAnswer: override.correctAnswer,
+        answer: `正确答案：${override.correctAnswer}`,
+        analysis: Object.prototype.hasOwnProperty.call(override, "analysis")
+          ? override.analysis
+          : ""
+      } : {}),
+      ...(override.answer ? { answer: override.answer } : {}),
+      ...(override.analysis ? { analysis: override.analysis } : {}),
+      ...(override.verificationStatus ? { verificationStatus: override.verificationStatus } : {}),
+      verificationReference: override.verificationReference || ""
+    };
+    if (override.exclude) {
+      result.excluded.push({
+        ...corrected,
+        exclusionReason: override.exclusionReason || "无法恢复为完整可靠题目"
+      });
+    } else {
+      result.accepted.push(corrected);
+    }
+    return result;
+  }, { accepted: [], excluded: [] });
+}
+
 function normalizeChoiceItem(item) {
+  const question = cleanChoiceQuestion(item.question || "");
   const letters = choiceAnswerLetters(item);
-  const options = parseChoiceOptions(item.question || "");
+  const options = parseChoiceOptions(question);
   const picked = letters.split("").filter((letter) => options[letter]).map((letter) => `${letter}. ${options[letter]}`);
   const originalAnswer = (item.answer || "").replace(/\s+/g, " ").trim();
   const originalExplanation = originalAnswer
-    .replace(/^\s*正确答案[:：]\s*[A-D]{1,4}[。.，,\s]*/i, "")
-    .replace(/^\s*[A-D]{1,4}[。.，,\s]*/i, "")
+    .replace(/^\s*正确答案[:：]\s*[A-F]{1,6}[。.，,\s]*/i, "")
+    .replace(/^\s*[A-F]{1,6}[。.，,\s]*/i, "")
     .trim();
   const analysis = cleanAnalysisText(item.analysis || originalExplanation) || [
     `本题考查“${shortMemoryKey(choiceStem(item.question || ""))}”。`,
@@ -699,6 +775,7 @@ function normalizeChoiceItem(item) {
 
   return {
     ...item,
+    question,
     correctAnswer: letters,
     questionType: letters.length > 1 ? "多选题" : "单选题",
     answer: letters ? `正确答案：${letters}` : originalAnswer,
@@ -706,13 +783,30 @@ function normalizeChoiceItem(item) {
   };
 }
 
+function cleanChoiceQuestion(question) {
+  return question.replace(
+    /\s*正确答案[:：]\s*[？?]?\s*(?=\n\s*A(?:[.．、]\s*|\s+|(?=[\u4e00-\u9fff])))/g,
+    ""
+  );
+}
+
 function normalizeEssayItem(item) {
-  const answer = (item.answer || "").replace(/\?{5,}/g, "").trim();
+  const answer = cleanEssayAnswer(item.answer || "");
   return {
     ...item,
     answer,
     analysis: cleanAnalysisText(item.analysis) || buildEssayAnalysis(item.question || "", answer)
   };
+}
+
+function cleanEssayAnswer(value) {
+  return value
+    .replace(/\?{5,}/g, "")
+    .replace(/\n*\s*补充(?:作答|得分点)[:：][\s\S]*$/g, "")
+    .replace(/\n\s*第[一二三四五六七八九十]+章\s*$/g, "")
+    .replace(/第\s*\d+\s*页\s*共\s*\d+\s*页/g, "")
+    .replace(/(?:^|\n)\s*[课壹]\s*(?=\n|$)/g, "\n")
+    .trim();
 }
 
 function cleanAnalysisText(value = "") {
@@ -746,7 +840,8 @@ function partitionAuditedItems(items, audit) {
     if (reasons.length) result.rejected.push({ ...item, auditReasons: reasons });
     else result.accepted.push({
       ...item,
-      auditStatus: item.answerKeyVerified ? "answer-key-verified" : "source-backed"
+      auditStatus: item.verificationStatus
+        || (item.answerKeyVerified ? "teacher-key-verified" : "source-backed")
     });
     return result;
   }, { accepted: [], rejected: [] });
@@ -790,14 +885,14 @@ function auditChoiceItem(item) {
   const correctOptionText = answerLetters.map((letter) => options[letter] || "").join(" ");
   if (question.replace(/\s+/g, "").length < 8) reasons.push("题干过短");
   if (optionLetters.length < 2 || !options.A) reasons.push("选项不完整");
-  if (/(?:^|\n|\s)[E-F](?:[.．、]\s*|\s+|(?=[\u4e00-\u9fff]))/.test(question)) reasons.push("存在未纳入答案解析的E/F选项");
   if (item.auditConflict) reasons.push("同题在不同资料中的答案冲突");
   if (!answerLetters.length) reasons.push("缺少可识别答案");
   if (answerLetters.some((letter) => !options[letter])) reasons.push("答案指向不存在的选项");
   if (!(item.source || "").trim()) reasons.push("缺少来源");
   if ((item.analysis || "").trim().length < 10) reasons.push("解析过短");
+  if (/正确答案[:：]/.test(choiceStem(question))) reasons.push("题干泄漏答案提示");
   if (/强化变式编号|联网公开题库与教材框架补充/.test(`${question}${item.source || ""}`)) reasons.push("程序生成变式");
-  if (item.courseId === "morality" && /《?(婚姻法|合同法|继承法|民法通则|治安管理处罚条例)》?|劳动教养/.test(question)) {
+  if (item.courseId === "morality" && /《(?:中华人民共和国)?(?:婚姻法|合同法|继承法|民法通则|治安管理处罚条例)》|(?:我国)?民法通则规定|劳动教养/.test(question)) {
     reasons.push("引用已失效或名称过时的法律依据");
   }
   if (item.courseId === "marx" && /马原本地题库：习题[1-4]/.test(item.source || "") && !item.answerKeyVerified) {
@@ -805,7 +900,7 @@ function auditChoiceItem(item) {
   }
   if (item.courseId === "mao" && isXiCourseItem(item)) reasons.push("课程分组不匹配");
   if (item.courseId === "xi" && !isXiCourseItem(item)) reasons.push("课程分组不匹配");
-  if (item.courseId === "xi" && /目前.{0,12}全面建成小康社会|从现在到[二〇○0-9]{4}年|全面建成小康社会决胜阶段|“四个全面”战略布局包括/.test(question)) {
+  if (item.courseId === "xi" && /目前.{0,12}全面建成小康社会|从现在到[二〇○0-9]{4}年|全面建成小康社会决胜阶段/.test(question)) {
     reasons.push("时点或战略表述已不适用于现行教材");
   }
   if (item.courseId === "xi" && /四个全面/.test(question) && /全面建成小康社会/.test(question) && !/党的(十八|十九)大|十八届|十九届/.test(question)) {
@@ -815,7 +910,7 @@ function auditChoiceItem(item) {
   if (item.courseId === "xi" && /全面建成小康社会/.test(correctOptionText) && !/党的(十七|十八|十九)大|十八届|十九届|从2020|二〇二〇/.test(question)) {
     reasons.push("时点或战略表述已不适用于现行教材");
   }
-  if (/[（(]\s*[）)]\s*[。.]*\s*[A-D]{1,4}\s*\n\s*A[.．、]/.test(question)) reasons.push("题干泄漏答案");
+  if (/[（(]\s*[）)]\s*[。.]*\s*[A-F]{1,6}\s*\n\s*A[.．、]/.test(question)) reasons.push("题干泄漏答案");
   if (/\?{5,}|�/.test(`${question}${item.answer || ""}${item.analysis || ""}`)) reasons.push("存在乱码或噪声");
   return reasons;
 }
@@ -833,6 +928,7 @@ function auditEssayItem(item) {
   if (item.courseId === "xi" && !isXiCourseItem(item)) reasons.push("课程分组不匹配");
   if (item.courseId === "xi" && /八个明确/.test(answer) && !/十九大/.test(question)) reasons.push("理论概括已按现行教材更新");
   if (/应从.{0,12}(方面|层次)回答|答题角度|这类题/.test(answer)) reasons.push("答案是方法提示而非直接答案");
+  if (/补充作答|补充得分点|考试作答时|标准答案通常需要/.test(answer)) reasons.push("答案混入作答方法提示");
   if (/\.{8,}\s*\d|…{4,}\s*\d|第[一二三四五六七八九十]+章\s+\.{4,}/.test(`${question}\n${answer}`)) reasons.push("疑似目录或页码内容");
   if (/\?{5,}|�/.test(`${question}${answer}${item.analysis || ""}`)) reasons.push("存在乱码或噪声");
   return reasons;
@@ -2155,6 +2251,7 @@ function renderQuestion(item) {
       <div class="question-head">
         <div class="question-meta">
           <span class="type-pill">${questionTypeLabel(item)}${item.index ? ` ${item.index}` : ""}</span>
+          ${verificationStatusLabel(item.auditStatus) ? `<span class="verification-status">${verificationStatusLabel(item.auditStatus)}</span>` : ""}
           ${status ? `<span class="study-status">${status}</span>` : ""}
         </div>
         <button class="question-icon-btn ${favorite ? "active" : ""}" type="button" data-favorite title="${favorite ? "取消收藏" : "收藏本题"}" aria-label="${favorite ? "取消收藏" : "收藏本题"}" aria-pressed="${favorite}">
@@ -2166,6 +2263,14 @@ function renderQuestion(item) {
       <div class="answer">${renderAnswerContent(item)}</div>
     </div>
   `;
+}
+
+function verificationStatusLabel(status) {
+  return {
+    "teacher-key-verified": "教师答案核验",
+    "textbook-law-verified": "教材/现行法律核验",
+    "authoritative-source-verified": "权威资料核验"
+  }[status] || "";
 }
 
 function renderQuestionPrompt(item) {
@@ -2349,15 +2454,15 @@ function questionTypeLabel(item) {
 function choiceAnswerLetters(item) {
   if (item.correctAnswer) return normalizeAnswerLetters(item.correctAnswer);
   const answer = item.answer || "";
-  const direct = answer.match(/正确答案[:：]\s*([A-D]{1,4})/i);
+  const direct = answer.match(/正确答案[:：]\s*([A-F]{1,6})/i);
   if (direct) return normalizeAnswerLetters(direct[1]);
-  const leading = answer.match(/^\s*([A-D]{1,4})[。.]/i);
+  const leading = answer.match(/^\s*([A-F]{1,6})[。.]/i);
   if (leading) return normalizeAnswerLetters(leading[1]);
   return "";
 }
 
 function normalizeAnswerLetters(value) {
-  return [...new Set(String(value).toUpperCase().match(/[A-D]/g) || [])].sort().join("");
+  return [...new Set(String(value).toUpperCase().match(/[A-F]/g) || [])].sort().join("");
 }
 
 function choiceCorrectAnswer(item) {
@@ -2413,7 +2518,7 @@ function choiceStem(question) {
 
 function parseChoiceOptions(question) {
   const result = {};
-  const allMatches = [...question.matchAll(/(?:^|\n|\s)([A-D])(?:[.．、]\s*|\s+|(?=[\u4e00-\u9fff]))/g)];
+  const allMatches = [...question.matchAll(/(?:^|\n|\s)([A-F])(?:[.．、]\s*|\s+|(?=[\u4e00-\u9fff]))/g)];
   const firstOption = allMatches.findIndex((match) => match[1] === "A");
   const matches = firstOption >= 0 ? allMatches.slice(firstOption) : [];
   matches.forEach((match, index) => {
@@ -2421,7 +2526,9 @@ function parseChoiceOptions(question) {
     const end = index + 1 < matches.length ? matches[index + 1].index : question.length;
     result[match[1]] = question.slice(start, end).replace(/\s+/g, " ").trim();
   });
-  return result;
+  return Object.fromEntries(
+    Object.entries(result).sort(([left], [right]) => left.localeCompare(right))
+  );
 }
 
 function showRandom() {

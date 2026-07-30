@@ -788,6 +788,19 @@ input {
   white-space: nowrap;
 }
 
+.verification-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 2px 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, #d7dee8);
+  border-radius: 999px;
+  color: color-mix(in srgb, var(--accent) 82%, #172033);
+  background: color-mix(in srgb, var(--accent) 8%, #fff);
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .question-text {
   white-space: pre-wrap;
   color: var(--ink);
