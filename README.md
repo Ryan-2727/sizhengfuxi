@@ -45,9 +45,6 @@
 │   └── audit-question-bank.js
 ├── docs/
 │   └── question-bank-quality-review-2026-07-30.md
-├── assets/
-│   ├── alipay.jpg
-│   └── wechat.jpg
 └── README.md
 ```
 

@@ -152,6 +152,7 @@ input {
   display: grid;
   grid-template-columns: repeat(5, minmax(180px, 1fr));
   gap: 16px;
+  min-width: 0;
 }
 
 .course-card {
@@ -168,6 +169,7 @@ input {
   box-shadow: var(--shadow);
   cursor: pointer;
   text-align: left;
+  min-width: 0;
   transition: transform .16s ease, box-shadow .16s ease;
 }
 
@@ -215,6 +217,7 @@ input {
   padding: 10px;
   border-radius: 8px;
   background: #f8fafc;
+  min-width: 0;
 }
 
 .stat strong,
@@ -226,62 +229,7 @@ input {
   color: var(--muted);
   font-size: 12px;
   margin-top: 2px;
-}
-
-.donation-section {
-  display: grid;
-  justify-items: center;
-  gap: 14px;
-  width: min(560px, 100%);
-  margin: 4px auto 0;
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, .76);
-}
-
-.donation-section p {
-  max-width: 520px;
-  margin: 0;
-  color: #334155;
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1.7;
-  text-align: center;
-}
-
-.qr-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(140px, 190px));
-  justify-content: center;
-  gap: 14px;
-  width: 100%;
-}
-
-.qr-card {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-  padding: 10px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fff;
-}
-
-.qr-card img {
-  display: block;
-  width: 100%;
-  max-height: 230px;
-  border-radius: 6px;
-  object-fit: contain;
-  background: #fff;
-}
-
-.qr-card figcaption {
-  color: var(--muted);
-  font-size: 14px;
-  font-weight: 700;
-  text-align: center;
+  overflow-wrap: anywhere;
 }
 
 .course-view {

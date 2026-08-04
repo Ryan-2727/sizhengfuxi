@@ -4,7 +4,6 @@ const courses = [
     short: "近代史",
     name: "中国近现代史纲要",
     accent: "#2563eb",
-    localFolder: "F:\\思政\\近代史",
     summary: "以近现代中国社会主要矛盾、革命道路、国家建设和民族复兴进程为主线。",
     chapters: [
       ["上编综述 风云变幻的八十年", "把握鸦片战争后中国逐步沦为半殖民地半封建社会的历史过程，理解近代中国两大历史任务。"],
@@ -43,7 +42,6 @@ const courses = [
     short: "思修",
     name: "思想道德与法治",
     accent: "#16a34a",
-    localFolder: "F:\\思政\\思修",
     summary: "围绕理想信念、人生价值、道德规范、法治观念和时代新人培养展开。",
     chapters: [
       ["绪论 担当复兴大任 成就时代新人", "理解时代新人应具备的理想、本领和担当。"],
@@ -76,7 +74,6 @@ const courses = [
     short: "毛概",
     name: "毛泽东思想和中国特色社会主义理论体系概论",
     accent: "#991b1b",
-    localFolder: "F:\\思政\\大二上 毛思想与习中特（老师亲自发布）",
     summary: "复习毛泽东思想、中国特色社会主义理论体系及其形成条件、主要内容和历史地位。",
     chapters: [
       ["第一章 毛泽东思想及其历史地位", "掌握毛泽东思想的形成、主要内容、活的灵魂和历史地位。"],
@@ -109,7 +106,6 @@ const courses = [
     short: "习思想",
     name: "习近平新时代中国特色社会主义思想概论",
     accent: "#dc2626",
-    localFolder: "F:\\思政\\大二上 毛思想与习中特（老师亲自发布）",
     summary: "聚焦新时代坚持和发展中国特色社会主义的总目标、总任务、总体布局和战略布局。",
     chapters: [
       ["导论 马克思主义中国化时代化新的飞跃", "理解习近平新时代中国特色社会主义思想的历史地位、科学体系和世界观方法论。"],
@@ -154,7 +150,6 @@ const courses = [
     short: "马原",
     name: "马克思主义基本原理",
     accent: "#ca8a04",
-    localFolder: "F:\\思政\\大二下 马原",
     summary: "复习马克思主义哲学、政治经济学和科学社会主义的基本立场、观点、方法。",
     chapters: [
       ["导论 马克思主义是关于无产阶级和人类解放的科学", "掌握马克思主义的创立、鲜明特征、当代价值和学习方法。"],
@@ -456,9 +451,9 @@ function q(question, answer, source) {
 
 function localSources(names) {
   return names.map((name) => ({
-    type: "本地资料",
+    type: "课堂资料",
     title: name,
-    note: "来自 F:\\思政 文件夹，作为本网页题目和章节整理的重要依据。",
+    note: "内容参考课程教材、课堂资料及可追溯的公开权威资料，并持续进行题目核验。",
     url: ""
   }));
 }
@@ -1126,7 +1121,7 @@ function renderCourse() {
     </div>
     <div class="hero-note">
       <h2>复习状态</h2>
-      <p>本页包含 ${course.chapters.length} 个章节、${course.choices.length} 道选择题、${course.essays.length} 道大题。章节重点依据新版教材框架、本地资料和联网公开复习资料整理。</p>
+      <p>本页包含 ${course.chapters.length} 个章节、${course.choices.length} 道选择题、${course.essays.length} 道大题。内容参考课程教材、课堂资料及可追溯的公开权威资料，并持续进行题目核验。</p>
     </div>
   `;
   els.chapters.innerHTML = `
