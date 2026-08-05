@@ -1069,6 +1069,8 @@ function renderChapter(course, chapter, index) {
   const structuredChapter = course.knowledge?.chapters[index];
   if (structuredChapter?.sections?.length) return renderStructuredChapter(course, structuredChapter, index);
   const detail = buildChapterDetail(course, chapter, index);
+  return renderGroupedChapter(course, chapter, index, detail);
+  /* Legacy chapter markup retained below only as migration reference. */
   return `
     <section class="chapter-item rich-chapter" id="chapter-${index + 1}">
       <h3>${chapter[0]}</h3>
@@ -2295,6 +2297,46 @@ function normalizeAnswerLetters(value) {
   return [...new Set(String(value).toUpperCase().match(/[A-F]/g) || [])].sort().join("");
 }
 
+function normalizeSectionTitle(title) {
+  return String(title || "").trim().replace(/[：:]$/, "");
+}
+
+function groupSections(sections) {
+  const groups = new Map();
+  for (const section of sections) {
+    const title = normalizeSectionTitle(section.title);
+    if (!title) continue;
+    if (!groups.has(title)) groups.set(title, []);
+    for (const item of section.items || []) {
+      if (!groups.get(title).includes(item)) groups.get(title).push(item);
+    }
+  }
+  return [...groups.entries()].map(([title, items]) => ({ title, items }));
+}
+
+function stripCitationPrefix(text) {
+  return String(text).replace(/^(教材\/课程名短引用|本章标题短引用|关键词短引用)[:：]\s*/, "");
+}
+
+function renderGroupedChapter(course, chapter, index, detail) {
+  const sections = groupSections([
+    { title: "复习要点", items: detail.combined },
+    ...detail.groupedSections
+  ]);
+  const sources = [detail.citation.location, ...detail.citation.quotes.map(stripCitationPrefix)];
+  return `
+    <section class="chapter-item rich-chapter grouped-chapter" id="chapter-${index + 1}">
+      <h3>${chapter[0]}</h3>
+      <p>${chapter[1]}</p>
+      <div class="keyword-row">${detail.keywords.map((word) => `<span>${escapeHtml(word)}</span>`).join("")}</div>
+      ${sections.map((section) => `<section class="knowledge-section"><h4 class="knowledge-section__title">${escapeHtml(section.title)}</h4><ul class="knowledge-section__list">${section.items.map((item) => `<li>${formatHighlight(item)}</li>`).join("")}</ul></section>`).join("")}
+      <section class="knowledge-section chapter-map-section"><h4 class="knowledge-section__title">本章知识图谱</h4><div class="mindmap" aria-label="${chapter[0]}知识图谱"><div class="mind-root">${escapeHtml(detail.map.root)}</div><div class="mind-branches">${detail.map.branches.map((branch) => `<div class="mind-branch"><strong>${escapeHtml(branch.title)}</strong><span>${escapeHtml(branch.items.join(" · "))}</span></div>`).join("")}</div></div></section>
+      <section class="knowledge-section"><h4 class="knowledge-section__title">考试提醒</h4><ul class="knowledge-section__list">${detail.advice.map((item) => `<li>${formatHighlight(item)}</li>`).join("")}</ul></section>
+      <section class="knowledge-section content-sources"><h4 class="knowledge-section__title">内容来源</h4><ul class="knowledge-section__list">${sources.map((item) => `<li>${formatHighlight(item)}</li>`).join("")}</ul></section>
+    </section>
+  `;
+}
+
 function renderStructuredChapter(course, chapter, index) {
   const points = chapter.sections.flatMap((section) => section.points.map((item) => ({ ...item, sectionTitle: section.title })));
   return `
@@ -2310,8 +2352,18 @@ function renderStructuredChapter(course, chapter, index) {
         <strong>本章知识图谱</strong>
         <span>${points.map((item) => escapeHtml(item.title)).join(" · ")}</span>
       </div>
+      ${renderKnowledgeSources(points)}
     </section>
   `;
+}
+
+function renderKnowledgeSources(points) {
+  const sources = [];
+  for (const item of points) {
+    const value = `${item.source.book}（${item.source.edition}），${item.source.chapter}；${item.source.verification}${item.source.page ? `，第 ${item.source.page} 页` : ""}`;
+    if (!sources.includes(value)) sources.push(value);
+  }
+  return `<section class="knowledge-section content-sources"><h4 class="knowledge-section__title">内容来源</h4><ul class="knowledge-section__list">${sources.map((value) => `<li>${escapeHtml(value)}</li>`).join("")}</ul></section>`;
 }
 
 function renderKnowledgePoint(course, chapter, item) {
@@ -2328,7 +2380,6 @@ function renderKnowledgePoint(course, chapter, item) {
       ${list("常见误区", item.commonMistakes)}
       ${comparison}
       ${list("材料题答题框架", item.answerTemplate)}
-      <p class="knowledge-source">来源：${escapeHtml(item.source.book)}（${escapeHtml(item.source.edition)}），${escapeHtml(item.source.chapter)}；${escapeHtml(item.source.verification)}${item.source.page ? `，第 ${escapeHtml(item.source.page)} 页` : ""}</p>
     </article>
   `;
 }

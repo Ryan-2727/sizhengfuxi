@@ -807,12 +807,46 @@ input {
 }
 
 .knowledge-section {
-  margin-top: 18px;
+  margin-top: 20px;
+}
+
+.knowledge-section:first-child {
+  margin-top: 0;
 }
 
 .knowledge-section > h4 {
+  margin: 0 0 10px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--line);
+}
+
+.knowledge-section__list {
+  margin: 0;
+  padding-left: 22px;
+  color: #263243;
+  line-height: 1.75;
+}
+
+.knowledge-section__list li {
+  margin: 6px 0;
+}
+
+.knowledge-section__list li::marker {
+  font-weight: 600;
+}
+
+.content-sources {
+  margin-top: 24px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.content-sources .knowledge-section__list {
+  color: #64748b;
+  font-size: 13px;
 }
 
 .knowledge-card {
