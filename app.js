@@ -572,6 +572,8 @@ const els = {
 };
 
 let pendingEmail = "";
+let otpCooldownUntil = 0;
+let otpCooldownTimer = null;
 
 document.querySelector("#homeBtn").addEventListener("click", showHome);
 document.querySelector("#backBtn").addEventListener("click", showHome);
@@ -611,6 +613,23 @@ function setAuthMessage(message, state = "") {
   else delete els.authMessage.dataset.state;
 }
 
+function startOtpCooldown() {
+  otpCooldownUntil = Date.now() + 60_000;
+  const button = els.requestOtpForm.querySelector('button[type="submit"]');
+  const refresh = () => {
+    const remaining = Math.max(0, Math.ceil((otpCooldownUntil - Date.now()) / 1000));
+    button.disabled = remaining > 0;
+    button.textContent = remaining > 0 ? `请等待 ${remaining} 秒` : "发送验证码";
+    if (!remaining && otpCooldownTimer) {
+      clearInterval(otpCooldownTimer);
+      otpCooldownTimer = null;
+    }
+  };
+  refresh();
+  if (otpCooldownTimer) clearInterval(otpCooldownTimer);
+  otpCooldownTimer = setInterval(refresh, 1_000);
+}
+
 function userExamSource(title, note) {
   return { type: "用户提供真题/大纲", title, note, url: "" };
 }
@@ -642,6 +661,7 @@ function showAuth({ message = "请输入已开通会员的邮箱，获取登录�
 
 async function requestOtp(event) {
   event.preventDefault();
+  if (Date.now() < otpCooldownUntil) return;
   const supabase = window.studySupabase;
   pendingEmail = els.emailInput.value.trim().toLowerCase();
   if (!pendingEmail) return;
@@ -660,6 +680,7 @@ async function requestOtp(event) {
   }
   els.requestOtpForm.hidden = true;
   els.verifyOtpForm.hidden = false;
+  startOtpCooldown();
   setAuthMessage("验证码已发送，请查收邮箱。", "");
   els.otpInput.focus();
 }

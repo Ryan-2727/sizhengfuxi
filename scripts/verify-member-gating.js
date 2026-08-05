@@ -17,6 +17,8 @@ assert(/shouldCreateUser:\s*false/.test(app), "OTP login must disable user self-
 assert(/verifyOtp/.test(app) && /signInWithOtp/.test(app), "OTP request and verification flows are required.");
 assert(/ensureCourseQuestionBank/.test(app), "Questions must be loaded lazily from Supabase.");
 assert(/question_bank_catalog/.test(app), "The client must load the question bank catalog first.");
+assert(/function startOtpCooldown\(/.test(app), "The client must apply an OTP resend cooldown.");
+assert(/otpCooldownUntil = Date\.now\(\) \+ 60_000/.test(app), "OTP resend cooldown must be 60 seconds.");
 assert(/pageSize = 100/.test(app), "Course question loading must use 100-row pages.");
 assert(/sessionState\.memberValidated/.test(app), "Question cache access must require a validated membership.");
 assert(/from\("memberships"\)/.test(app), "Membership must be checked in the client UX.");
