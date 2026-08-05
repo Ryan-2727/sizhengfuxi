@@ -181,6 +181,26 @@ for (const course of courseKnowledge) {
   });
 }
 
+for (const course of courseKnowledge) {
+  for (const chapter of course.chapters) {
+    const primary = chapter.sections.flatMap((section) => section.points)[0];
+    const terms = primary.keywords.slice(0, 3);
+    chapter.sections.push({
+      id: `${chapter.id}-memory-outline`,
+      title: "背诵提纲",
+      points: [point(`${chapter.id}-memory`, `${chapter.title}的记忆结构`, "重点", terms, [
+        `先记主线：围绕“${terms.join("、")}”按概念或背景、主要内容、关系或影响的顺序展开。`,
+        `核心判断：${primary.keyPoints[0]}`,
+        `展开时优先使用本章关键词，并把每个关键词放回具体历史阶段、理论层次或制度语境中说明。`,
+        `材料题结尾回扣本章主题，避免只罗列术语而没有说明关键词之间的联系。`
+      ], { ...primary.source }, {
+        commonMistakes: [`不能只背“${terms[0]}”的名称，要同时说明其含义、条件或作用。`, terms[1] ? `注意区分“${terms[0]}”与“${terms[1]}”各自回答的问题。` : "注意区分概念表述与具体实践措施。"],
+        answerTemplate: ["用一句话写出本章的核心判断。", "围绕两个到三个关键词分别说明依据、内容或历史意义。", "结合材料中的事实、现象或设问要求作出回扣。"]
+      })]
+    });
+  }
+}
+
 const shortQuotations = [
   ["history", "history-intro-1", "中国近代史综述"],
   ["morality", "morality-intro-1", "我们处在中国特色社会主义新时代"],

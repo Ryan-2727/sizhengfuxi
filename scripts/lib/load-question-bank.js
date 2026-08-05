@@ -12,6 +12,7 @@ const sourceFiles = [
   "verified-question-overrides.js",
   "app-with-question-seed.js"
 ];
+const curatedSupplementPath = path.join(root, "scripts", "curated-question-supplement.js");
 
 const noop = () => {};
 const fakeElement = () => ({
@@ -45,6 +46,7 @@ function loadQuestionBank() {
   vm.createContext(sandbox);
   const source = sourceFiles
     .map((file) => fs.readFileSync(path.join(sourceDirectory, file), "utf8"))
+    .concat(fs.readFileSync(curatedSupplementPath, "utf8"))
     .join("\n");
   vm.runInContext(`${source}
 globalThis.__questionBankApi = {
