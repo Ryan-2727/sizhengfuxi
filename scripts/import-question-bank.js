@@ -1,9 +1,13 @@
 const { createClient } = require("@supabase/supabase-js");
 const { createHash } = require("crypto");
 const { loadQuestionBank } = require("./lib/load-question-bank");
+const { loadLocalEnv } = require("./lib/load-local-env");
+
+loadLocalEnv(require("path").resolve(__dirname, ".."));
 
 const dryRun = process.argv.includes("--dry-run");
 const catalogOnly = process.argv.includes("--catalog-only");
+const appendCurated = process.argv.includes("--append-curated");
 const url = process.env.SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!dryRun && (!url || !serviceRoleKey)) {
@@ -67,6 +71,84 @@ async function updateCatalog() {
   }
 }
 
+async function readCourseQuestions(courseId, questionType) {
+  const rows = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await supabase
+      .from("questions")
+      .select("course_id, question_type, question_order, payload")
+      .eq("course_id", courseId)
+      .eq("question_type", questionType)
+      .order("question_order", { ascending: true })
+      .range(from, from + 999);
+    if (error) throw error;
+    rows.push(...data);
+    if (data.length < 1000) return rows;
+  }
+}
+
+function questionKey(payload) {
+  return String(payload?.question || "").replace(/\s+/g, "").trim();
+}
+
+async function updateCatalogFromDatabase() {
+  for (const course of courses) {
+    const [choices, essays] = await Promise.all([
+      readCourseQuestions(course.id, "choice"),
+      readCourseQuestions(course.id, "essay")
+    ]);
+    const payload = [...choices, ...essays]
+      .sort((left, right) => left.question_type.localeCompare(right.question_type) || left.question_order - right.question_order)
+      .map((item) => ({ question_type: item.question_type, question_order: item.question_order, payload: item.payload }));
+    const row = {
+      course_id: course.id,
+      choice_count: choices.length,
+      essay_count: essays.length,
+      content_hash: createHash("sha256").update(stableJson(payload)).digest("hex"),
+      updated_at: new Date().toISOString()
+    };
+    const { error } = await supabase.from("question_bank_catalog").upsert(row, { onConflict: "course_id" });
+    if (error) throw error;
+  }
+}
+
+async function appendCuratedQuestions() {
+  const summary = [];
+  for (const course of courses) {
+    const additions = {
+      choice: course.choices.filter((item) => item.source === "精选补充题"),
+      essay: course.essays.filter((item) => item.source === "精选补充题")
+    };
+    let added = 0;
+    let skipped = 0;
+    for (const [questionType, items] of Object.entries(additions)) {
+      if (!items.length) continue;
+      const existing = await readCourseQuestions(course.id, questionType);
+      const existingKeys = new Set(existing.map((item) => questionKey(item.payload)));
+      let order = existing.reduce((max, item) => Math.max(max, item.question_order), 0);
+      const rowsToInsert = [];
+      for (const payload of items) {
+        if (existingKeys.has(questionKey(payload))) {
+          skipped += 1;
+          continue;
+        }
+        order += 1;
+        existingKeys.add(questionKey(payload));
+        rowsToInsert.push({ course_id: course.id, question_type: questionType, question_order: order, payload });
+      }
+      if (rowsToInsert.length) {
+        const { error } = await supabase.from("questions").insert(rowsToInsert);
+        if (error) throw error;
+        added += rowsToInsert.length;
+      }
+    }
+    summary.push({ course: course.id, added, skipped });
+  }
+  await updateCatalogFromDatabase();
+  console.table(summary);
+  console.log("Appended curated questions without replacing existing question rows.");
+}
+
 async function main() {
   if (dryRun) {
     console.table(courses.map((course) => ({
@@ -81,6 +163,10 @@ async function main() {
   if (catalogOnly) {
     await updateCatalog();
     console.log("Updated question bank catalog without changing question rows.");
+    return;
+  }
+  if (appendCurated) {
+    await appendCuratedQuestions();
     return;
   }
   const { count, error: countError } = await supabase

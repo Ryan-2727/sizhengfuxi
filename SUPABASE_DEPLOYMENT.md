@@ -49,6 +49,14 @@ The importer refuses to overwrite an existing question table. To intentionally r
 npm run import:questions -- --replace
 ```
 
+To add only the repository's curated supplement without changing or deleting existing question rows, use:
+
+```powershell
+npm run import:questions -- --append-curated
+```
+
+This mode checks question stems for duplicates, appends only missing curated questions at the end of each course and question type, then recalculates catalog counts and hashes from the database.
+
 ## 4. Member management
 
 All three scripts require `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in the local shell. Do not put the service role key in Cloudflare Pages.
