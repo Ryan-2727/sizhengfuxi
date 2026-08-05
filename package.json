@@ -9,12 +9,14 @@
     "member:add": "node scripts/admin/add-member.js",
     "member:revoke": "node scripts/admin/revoke-member.js",
     "member:extend": "node scripts/admin/extend-member.js",
-    "verify:security": "node scripts/verify-member-gating.js"
+    "verify:security": "node scripts/verify-member-gating.js",
+    "verify:lazy-cache": "node scripts/verify-lazy-question-bank.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.4"
   },
   "devDependencies": {
+    "fake-indexeddb": "^6.0.0",
     "vite": "^6.2.2"
   }
 }

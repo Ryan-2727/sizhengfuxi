@@ -761,6 +761,18 @@ input {
   gap: 12px;
 }
 
+.question-load-state {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  background: #fff;
+  color: #334155;
+}
+
+.question-load-state button {
+  margin-left: 8px;
+}
+
 .question-head {
   display: flex;
   align-items: center;

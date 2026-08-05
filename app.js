@@ -480,6 +480,9 @@ function commonSources(keyword) {
 const STUDY_STORAGE_KEY = "sizheng-study-progress-v1";
 const studyProgress = loadStudyProgress();
 const questionLookup = new Map();
+const questionBankCatalog = new Map();
+const loadedCourseIds = new Set();
+const sessionState = { memberValidated: false, userId: null };
 
 const state = {
   courseId: null,
@@ -590,6 +593,7 @@ function setAuthMessage(message, state = "") {
 
 function clearQuestionBank() {
   questionLookup.clear();
+  loadedCourseIds.clear();
   courses.forEach((course) => {
     course.choices = [];
     course.essays = [];
@@ -597,6 +601,8 @@ function clearQuestionBank() {
 }
 
 function showAuth({ message = "请输入已开通会员的邮箱，获取登录验证码。", error = false, signedIn = false } = {}) {
+  sessionState.memberValidated = false;
+  sessionState.userId = null;
   clearQuestionBank();
   state.courseId = null;
   els.appHeader.hidden = true;
@@ -652,6 +658,10 @@ async function verifyOtp(event) {
 }
 
 async function signOut() {
+  const userId = sessionState.userId;
+  sessionState.memberValidated = false;
+  sessionState.userId = null;
+  if (userId && window.questionBankCache) await window.questionBankCache.deleteUserQuestionCaches(userId);
   if (window.studySupabase) await window.studySupabase.auth.signOut();
   pendingEmail = "";
   els.emailInput.value = "";
@@ -694,6 +704,8 @@ async function startMemberSession() {
     && membership?.status === "active"
     && Date.parse(membership.expires_at) > Date.now();
   if (!isValid) {
+    sessionState.memberValidated = false;
+    sessionState.userId = null;
     showAuth({
       message: "当前账号未开通会员、已停用或已过期，无法读取题库。",
       error: true,
@@ -702,7 +714,7 @@ async function startMemberSession() {
     return;
   }
   try {
-    await loadQuestionBankFromSupabase();
+    await loadQuestionBankCatalog();
   } catch (error) {
     showAuth({
       message: "题库加载失败，请稍后重试或联系管理员。",
@@ -711,43 +723,29 @@ async function startMemberSession() {
     });
     return;
   }
+  sessionState.memberValidated = true;
+  sessionState.userId = user.id;
   els.authView.hidden = true;
   els.appHeader.hidden = false;
-  initRoute();
+  await initRoute();
 }
 
-async function loadQuestionBankFromSupabase() {
+async function loadQuestionBankCatalog() {
   clearQuestionBank();
-  const rows = [];
-  const pageSize = 1000;
-  for (let from = 0; ; from += pageSize) {
-    const { data, error } = await window.studySupabase
-      .from("questions")
-      .select("course_id, question_type, question_order, payload")
-      .order("course_id")
-      .order("question_type")
-      .order("question_order")
-      .range(from, from + pageSize - 1);
-    if (error) throw error;
-    rows.push(...data);
-    if (data.length < pageSize) break;
-  }
-  if (!rows.length) throw new Error("No member question bank rows were returned.");
-  const byCourse = new Map(courses.map((course) => [course.id, course]));
-  for (const row of rows) {
-    const course = byCourse.get(row.course_id);
-    if (!course || !row.payload) continue;
-    if (row.question_type === "choice") course.choices.push(row.payload);
-    else course.essays.push(row.payload);
-  }
-  if (courses.some((course) => !course.choices.length && !course.essays.length)) {
-    throw new Error("At least one course is missing question bank rows.");
+  questionBankCatalog.clear();
+  const { data, error } = await window.studySupabase
+    .from("question_bank_catalog")
+    .select("course_id, choice_count, essay_count, content_hash, updated_at");
+  if (error) throw error;
+  for (const row of data || []) questionBankCatalog.set(row.course_id, row);
+  if (courses.some((course) => !questionBankCatalog.has(course.id))) {
+    throw new Error("Question bank catalog is incomplete.");
   }
 }
 
-function initRoute() {
+async function initRoute() {
   const id = location.hash.replace("#", "");
-  if (courses.some((course) => course.id === id)) showCourse(id, false);
+  if (courses.some((course) => course.id === id)) await showCourse(id, false);
   else renderHome();
 }
 
@@ -765,13 +763,13 @@ function renderHome() {
         <p>${course.summary}</p>
         <div class="stats">
           <span class="stat"><strong>${textbookChapterCount(course)}</strong><span>教材章</span></span>
-          <span class="stat"><strong>${course.choices.length}</strong><span>选择题</span></span>
-          <span class="stat"><strong>${course.essays.length}</strong><span>大题</span></span>
+          <span class="stat"><strong>${questionCount(course.id, "choice")}</strong><span>选择题</span></span>
+          <span class="stat"><strong>${questionCount(course.id, "essay")}</strong><span>大题</span></span>
         </div>
       </button>
     `).join("");
   document.querySelectorAll("[data-course]").forEach((card) => {
-    card.addEventListener("click", () => showCourse(card.dataset.course));
+    card.addEventListener("click", () => { void showCourse(card.dataset.course); });
   });
 }
 
@@ -782,14 +780,93 @@ function showHome() {
   window.scrollTo({ top: 0, behavior: "auto" });
 }
 
-function showCourse(id, updateHash = true) {
+async function showCourse(id, updateHash = true) {
   state.courseId = id;
   state.type = "all";
   els.homeView.hidden = true;
   els.courseView.hidden = false;
   renderCourse();
+  renderQuestionLoading();
   if (updateHash) history.pushState("", document.title, `${location.pathname}${location.search}#${id}`);
   jumpToCourseTop();
+  try {
+    await ensureCourseQuestionBank(id);
+    if (state.courseId === id) renderQuestions(getCourse());
+  } catch (error) {
+    if (state.courseId === id) renderQuestionLoadFailure(id);
+  }
+}
+
+function questionCount(courseId, type) {
+  const entry = questionBankCatalog.get(courseId);
+  if (!entry) return 0;
+  return type === "choice" ? entry.choice_count : entry.essay_count;
+}
+
+function renderQuestionLoading() {
+  els.questions.innerHTML = '<div class="question-load-state">Loading this course question bank...</div>';
+}
+
+function renderQuestionLoadFailure(courseId) {
+  els.questions.innerHTML = `<div class="question-load-state">Question bank loading failed. <button type="button" data-retry-course="${courseId}">Retry</button></div>`;
+  els.questions.querySelector("[data-retry-course]").addEventListener("click", () => { void showCourse(courseId, false); });
+}
+
+function hydrateCourseQuestionBank(course, choices, essays) {
+  course.choices = choices;
+  course.essays = essays;
+  loadedCourseIds.add(course.id);
+}
+
+async function ensureCourseQuestionBank(courseId) {
+  if (!sessionState.memberValidated || !sessionState.userId) {
+    throw new Error("An active membership is required before reading a question bank.");
+  }
+  if (loadedCourseIds.has(courseId)) return getCourseById(courseId);
+  const course = getCourseById(courseId);
+  const catalog = questionBankCatalog.get(courseId);
+  if (!course || !catalog) throw new Error("Question bank catalog entry is unavailable.");
+
+  const cache = window.questionBankCache;
+  const cached = cache && await cache.getCourseQuestionCache({
+    userId: sessionState.userId,
+    courseId,
+    contentHash: catalog.content_hash
+  });
+  if (cached && Array.isArray(cached.choices) && Array.isArray(cached.essays)
+    && cached.choices.length === catalog.choice_count && cached.essays.length === catalog.essay_count) {
+    hydrateCourseQuestionBank(course, cached.choices, cached.essays);
+    return course;
+  }
+
+  const rows = [];
+  const pageSize = 100;
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await window.studySupabase
+      .from("questions")
+      .select("question_type, question_order, payload")
+      .eq("course_id", courseId)
+      .order("question_type")
+      .order("question_order")
+      .range(from, from + pageSize - 1);
+    if (error) throw error;
+    rows.push(...data);
+    if (data.length < pageSize) break;
+  }
+  const choices = rows.filter((row) => row.question_type === "choice").map((row) => row.payload);
+  const essays = rows.filter((row) => row.question_type === "essay").map((row) => row.payload);
+  if (choices.length !== catalog.choice_count || essays.length !== catalog.essay_count) {
+    throw new Error("Question bank response does not match its catalog version.");
+  }
+  if (cache) await cache.putCourseQuestionCache({
+    userId: sessionState.userId,
+    courseId,
+    contentHash: catalog.content_hash,
+    choices,
+    essays
+  });
+  hydrateCourseQuestionBank(course, choices, essays);
+  return course;
 }
 
 function jumpToCourseTop() {
@@ -826,7 +903,7 @@ function renderCourse() {
     </div>
     <div class="hero-note">
       <h2>复习状态</h2>
-      <p>本页包含 ${course.chapters.length} 个章节、${course.choices.length} 道选择题、${course.essays.length} 道大题。内容参考课程教材、课堂资料及可追溯的公开权威资料，并持续进行题目核验。</p>
+      <p>本页包含 ${course.chapters.length} 个章节、${questionCount(course.id, "choice")} 道选择题、${questionCount(course.id, "essay")} 道大题。内容参考课程教材、课堂资料及可追溯的公开权威资料，并持续进行题目核验。</p>
     </div>
   `;
   els.chapters.innerHTML = `
@@ -2251,15 +2328,22 @@ function renderRandomCoursePicker() {
         <button class="random-course-btn" style="--accent:${course.accent}" type="button" data-random-course="${course.id}">
           <span>${escapeHtml(course.short)}</span>
           <strong>${escapeHtml(course.name)}</strong>
-          <small>${course.choices.length} 道选择题 · ${course.essays.length} 道大题</small>
+          <small>${questionCount(course.id, "choice")} 道选择题 · ${questionCount(course.id, "essay")} 道大题</small>
         </button>
       `).join("")}
     </div>
   `;
   els.dialogBody.querySelectorAll("[data-random-course]").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
       state.randomCourseId = button.dataset.randomCourse;
-      renderRandomQuestion();
+      els.dialogBody.innerHTML = '<div class="question-load-state">Loading this course question bank...</div>';
+      try {
+        await ensureCourseQuestionBank(state.randomCourseId);
+        renderRandomQuestion();
+      } catch (error) {
+        els.dialogBody.innerHTML = '<div class="question-load-state">Question bank loading failed. <button type="button" data-retry-random>Retry</button></div>';
+        els.dialogBody.querySelector("[data-retry-random]").addEventListener("click", renderRandomCoursePicker);
+      }
     });
   });
 }
@@ -2299,7 +2383,11 @@ function renderRandomQuestion() {
 }
 
 function getCourse() {
-  return courses.find((course) => course.id === state.courseId);
+  return getCourseById(state.courseId);
+}
+
+function getCourseById(courseId) {
+  return courses.find((course) => course.id === courseId);
 }
 
 function searchable(course) {

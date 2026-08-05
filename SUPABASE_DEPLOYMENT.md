@@ -17,9 +17,11 @@ Open the Supabase SQL editor and run every file in `supabase/migrations/` in fil
 -- supabase/migrations/202608040001_member_question_access.sql
 -- Existing project patch:
 -- supabase/migrations/202608050002_grant_admin_import_access.sql
+-- Lazy course cache catalog:
+-- supabase/migrations/202608050003_question_bank_catalog.sql
 ```
 
-The migration creates `memberships` and `questions`, enables RLS on both tables, grants no browser write permissions, and permits question reads only through `public.is_active_member()`.
+The migrations create `memberships`, `questions`, and `question_bank_catalog`, enable RLS on every business table, grant no browser write permissions, and permit catalog and question reads only through `public.is_active_member()`.
 
 ## 3. Local environment and question import
 
@@ -32,6 +34,8 @@ $env:SUPABASE_URL = "https://your-project-ref.supabase.co"
 $env:SUPABASE_SERVICE_ROLE_KEY = "your-service-role-key"
 npm run import:questions
 ```
+
+The importer also updates `question_bank_catalog`. It calculates a stable SHA-256 hash for each course's ordered question payload and changes the catalog version only when that course content changes. Run the import again whenever question content is changed; the browser will re-download only courses whose catalog hash changed.
 
 The importer refuses to overwrite an existing question table. To intentionally replace it after reviewing the source data:
 
@@ -77,7 +81,8 @@ Do not configure `SUPABASE_SERVICE_ROLE_KEY` in Cloudflare Pages. Vite inserts o
 1. An unsigned browser only sees the email OTP screen.
 2. An unknown email is rejected because the client sends `shouldCreateUser: false`.
 3. A member email receives an OTP and can enter the site.
-4. An active, unexpired member can load all five question banks.
+4. An active, unexpired member sees the five course counts from `question_bank_catalog`; opening a course loads only that course's questions in 100-row pages.
 5. A missing, revoked, or expired `memberships` record cannot load any rows.
 6. In the Supabase API docs or SQL editor, test an anon `select` against `public.questions`; it must return no rows because of RLS.
 7. Run `npm run build` and `node scripts/verify-production-build.js` before every production deployment.
+8. Run `npm run verify:lazy-cache`; it verifies account isolation, version invalidation, logout cache deletion, and the lazy-loading contract.
