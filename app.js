@@ -793,7 +793,8 @@ async function showCourse(id, updateHash = true) {
     await ensureCourseQuestionBank(id);
     if (state.courseId === id) renderQuestions(getCourse());
   } catch (error) {
-    if (state.courseId === id) renderQuestionLoadFailure(id);
+    console.error("Course question bank loading failed.", error);
+    if (state.courseId === id) renderQuestionLoadFailure(id, error);
   }
 }
 
@@ -807,8 +808,9 @@ function renderQuestionLoading() {
   els.questions.innerHTML = '<div class="question-load-state">Loading this course question bank...</div>';
 }
 
-function renderQuestionLoadFailure(courseId) {
-  els.questions.innerHTML = `<div class="question-load-state">Question bank loading failed. <button type="button" data-retry-course="${courseId}">Retry</button></div>`;
+function renderQuestionLoadFailure(courseId, error) {
+  const detail = error?.message ? ` ${escapeHtml(error.message)}` : "";
+  els.questions.innerHTML = `<div class="question-load-state">Question bank loading failed.${detail} <button type="button" data-retry-course="${courseId}">Retry</button></div>`;
   els.questions.querySelector("[data-retry-course]").addEventListener("click", () => { void showCourse(courseId, false); });
 }
 
@@ -2341,7 +2343,9 @@ function renderRandomCoursePicker() {
         await ensureCourseQuestionBank(state.randomCourseId);
         renderRandomQuestion();
       } catch (error) {
-        els.dialogBody.innerHTML = '<div class="question-load-state">Question bank loading failed. <button type="button" data-retry-random>Retry</button></div>';
+        console.error("Random course question bank loading failed.", error);
+        const detail = error?.message ? ` ${escapeHtml(error.message)}` : "";
+        els.dialogBody.innerHTML = `<div class="question-load-state">Question bank loading failed.${detail} <button type="button" data-retry-random>Retry</button></div>`;
         els.dialogBody.querySelector("[data-retry-random]").addEventListener("click", renderRandomCoursePicker);
       }
     });
