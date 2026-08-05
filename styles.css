@@ -891,9 +891,26 @@ input {
   line-height: 1.72;
 }
 
-.knowledge-block li + li {
-  margin-top: 5px;
-}
+  .knowledge-block li + li {
+    margin-top: 5px;
+  }
+
+  .knowledge-quotation {
+    margin: 14px 0 0;
+    padding: 10px 12px;
+    border-left: 3px solid var(--line);
+    background: #f8fafc;
+    color: #334155;
+    line-height: 1.7;
+  }
+
+  .knowledge-quotation cite {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    font-style: normal;
+    color: #64748b;
+  }
 
 .knowledge-source {
   margin-top: 14px !important;

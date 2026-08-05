@@ -2371,6 +2371,7 @@ function renderKnowledgePoint(course, chapter, item) {
   const mastered = studyProgress.mastery[progressId] === "mastered";
   const list = (label, values) => values?.length ? `<div class="knowledge-block"><strong>${label}</strong><ul>${values.map((value) => `<li>${escapeHtml(value)}</li>`).join("")}</ul></div>` : "";
   const comparison = item.distinctions?.length ? `<div class="knowledge-block comparison-block"><strong>对比</strong><ul>${item.distinctions.map((value) => `<li><b>${escapeHtml(value.left)}</b>：${escapeHtml(value.right)}</li>`).join("")}</ul></div>` : "";
+  const quotation = item.quotation ? `<blockquote class="knowledge-quotation">“${escapeHtml(item.quotation.text)}”<cite>${escapeHtml(item.source.book)}（${escapeHtml(item.source.edition)}），${escapeHtml(item.source.chapter)}，第 ${escapeHtml(item.quotation.sourcePage)} 页</cite></blockquote>` : "";
   return `
     <article class="knowledge-card knowledge-${item.importance}">
       <div class="knowledge-card-head"><div><span class="importance-tag importance-${item.importance}">${escapeHtml(item.importance)}</span><h5>${escapeHtml(item.title)}</h5></div><button type="button" class="knowledge-mastered ${mastered ? "active" : ""}" data-knowledge-mastered="${progressId}">${mastered ? "已掌握" : "标记已掌握"}</button></div>
@@ -2380,6 +2381,7 @@ function renderKnowledgePoint(course, chapter, item) {
       ${list("常见误区", item.commonMistakes)}
       ${comparison}
       ${list("材料题答题框架", item.answerTemplate)}
+      ${quotation}
     </article>
   `;
 }

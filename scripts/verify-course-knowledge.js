@@ -29,6 +29,8 @@ async function main() {
           assert(item.keyPoints.length >= 3 && item.keyPoints.length <= 7, `${item.id} needs 3-7 key points.`);
           assert(item.keywords.length > 0, `${item.id} needs a keyword.`);
           assert(item.source?.book && item.source?.chapter && item.source?.verification, `${item.id} needs source metadata.`);
+          assert(item.source?.page, `${item.id} needs a verified textbook page.`);
+          if (item.quotation) assert(item.quotation.text.length <= 30 && item.quotation.sourcePage, `${item.id} has an invalid short quotation.`);
           assert(!item.keyPoints.some((text) => /此处待补充/.test(text)), `${item.id} contains a visible placeholder.`);
           if (item.source.verification === "待人工核验") pendingVerification += 1;
           points += 1;
@@ -36,7 +38,7 @@ async function main() {
       }
     }
   }
-  assert(completeChapters >= 5, "Each course needs at least one complete chapter.");
+  assert.equal(completeChapters, chapterIds.size, "Every course chapter needs structured review content.");
   console.log(JSON.stringify({ courses: courseKnowledge.length, completeChapters, points, pendingVerification }));
 }
 
