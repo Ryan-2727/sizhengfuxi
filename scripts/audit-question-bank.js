@@ -1,59 +1,10 @@
 const fs = require("fs");
 const path = require("path");
-const vm = require("vm");
+const { loadQuestionBank, sourceDirectory } = require("./lib/load-question-bank");
 
 const root = path.resolve(__dirname, "..");
 const outputDir = root;
-const files = [
-  "history-local-question-bank.js",
-  "morality-local-question-bank.js",
-  "mao-xi-local-question-bank.js",
-  "marx-local-question-bank.js",
-  "verified-question-overrides.js",
-  "app.js"
-];
-
-const noop = () => {};
-const fakeElement = () => ({
-  hidden: false,
-  innerHTML: "",
-  textContent: "",
-  dataset: {},
-  classList: { add: noop, remove: noop, toggle: noop, contains: () => false },
-  addEventListener: noop,
-  querySelector: () => fakeElement(),
-  querySelectorAll: () => [],
-  closest: () => fakeElement(),
-  append: noop,
-  setAttribute: noop,
-  style: { setProperty: noop },
-  showModal: noop
-});
-const sandbox = {
-  console,
-  window: { scrollTo: noop },
-  location: { hash: "", pathname: "/", search: "" },
-  history: { pushState: noop },
-  document: {
-    createElement: () => fakeElement(),
-    documentElement: { style: { setProperty: noop } },
-    querySelector: () => fakeElement(),
-    querySelectorAll: () => []
-  }
-};
-
-vm.createContext(sandbox);
-const source = files.map((file) => fs.readFileSync(path.join(outputDir, file), "utf8")).join("\n");
-vm.runInContext(`${source}
-globalThis.__auditApi = {
-  courses,
-  parseChoiceOptions,
-  choiceAnswerLetters,
-  choiceAnalysis,
-  stableQuestionId
-};`, sandbox);
-
-const { courses, parseChoiceOptions, choiceAnswerLetters, choiceAnalysis, stableQuestionId } = sandbox.__auditApi;
+const { courses, parseChoiceOptions, choiceAnswerLetters, choiceAnalysis, stableQuestionId } = loadQuestionBank();
 const validAuditStatuses = new Set([
   "teacher-key-verified",
   "textbook-law-verified",
@@ -162,7 +113,7 @@ for (const course of courses) {
 }
 
 if (process.argv.includes("--write")) {
-  fs.writeFileSync(path.join(outputDir, "question-audit-report.json"), `${JSON.stringify(report, null, 2)}\n`);
+  fs.writeFileSync(path.join(sourceDirectory, "question-audit-report.json"), `${JSON.stringify(report, null, 2)}\n`);
 }
 
 if (!process.argv.includes("--quiet")) console.log(JSON.stringify(report, null, 2));

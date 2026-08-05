@@ -27,6 +27,88 @@ body {
   color: var(--ink);
 }
 
+.auth-view {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+}
+
+.auth-card {
+  width: min(100%, 440px);
+  padding: 32px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.auth-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 52px;
+  height: 44px;
+  border-radius: 8px;
+  background: var(--ink);
+  color: #fff;
+  font-weight: 800;
+}
+
+.auth-card h1 {
+  margin: 20px 0 10px;
+  font-size: 28px;
+}
+
+.auth-card > p {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.auth-form {
+  display: grid;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.auth-form label {
+  font-weight: 700;
+}
+
+.auth-form input,
+.auth-form button,
+.secondary-btn {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 12px;
+  font: inherit;
+}
+
+.auth-form button {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: #fff;
+  cursor: pointer;
+}
+
+.secondary-btn {
+  margin-top: 10px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.auth-message {
+  min-height: 24px;
+  margin-top: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.auth-message[data-state="error"] {
+  color: #b91c1c;
+}
+
 button,
 input {
   font: inherit;

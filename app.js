@@ -21,20 +21,8 @@ const courses = [
       ["第十章 中国特色社会主义进入新时代", "理解新时代的历史方位、主要矛盾变化和中华民族伟大复兴进程。"]
     ],
     keypoints: ["近代中国社会性质：半殖民地半封建社会", "两大历史任务：民族独立、人民解放；国家富强、人民富裕", "五四运动是新民主主义革命的开端", "中国共产党成立是开天辟地的大事变", "抗日战争胜利是近代以来中国抗击外敌入侵的第一次完全胜利", "新中国成立标志中国人民从此站起来了"],
-    choices: [
-      q("鸦片战争前中国封建社会的主要矛盾是（ ）。\nA. 地主阶级和农民阶级的矛盾\nB. 帝国主义和中华民族的矛盾\nC. 资产阶级和工人阶级的矛盾\nD. 封建主义和资本主义的矛盾", "A。鸦片战争前中国仍是封建社会，主要矛盾是地主阶级和农民阶级的矛盾。", "本地题库抽取"),
-      q("近代中国社会的性质是（ ）。\nA. 封建社会\nB. 半殖民地半封建社会\nC. 资本主义社会\nD. 社会主义社会", "B。鸦片战争后，中国逐步沦为半殖民地半封建社会。", "整理题"),
-      q("中国旧民主主义革命向新民主主义革命转变的标志是（ ）。\nA. 辛亥革命\nB. 新文化运动\nC. 五四运动\nD. 北伐战争", "C。五四运动促进马克思主义传播和工人阶级登上政治舞台。", "整理题"),
-      q("中国共产党第一次全国代表大会召开的时间是（ ）。\nA. 1919年\nB. 1921年\nC. 1927年\nD. 1949年", "B。中共一大于1921年召开。", "整理题"),
-      q("抗日战争时期，中国共产党领导的主要战场是（ ）。\nA. 正面战场\nB. 敌后战场\nC. 海上战场\nD. 外交战场", "B。共产党开辟并坚持敌后抗日根据地。", "整理题"),
-      q("新中国成立的时间是（ ）。\nA. 1945年8月15日\nB. 1949年10月1日\nC. 1956年年底\nD. 1978年12月", "B。中华人民共和国于1949年10月1日成立。", "整理题")
-    ],
-    essays: [
-      q("简述近代中国的两大历史任务。", "一是争取民族独立、人民解放；二是实现国家富强、人民富裕。前者为后者扫清障碍，后者是前者的根本目的和必然要求。", "课堂重点整理"),
-      q("为什么说五四运动是中国新民主主义革命的开端？", "五四运动中工人阶级以独立政治力量登上历史舞台，马克思主义进一步传播，先进知识分子与工农群众相结合，为中国共产党成立作了思想和干部准备。", "复习题整理"),
-      q("简述中国共产党成立的历史意义。", "中国革命有了坚强领导核心，有了马克思主义科学指导，中国人民有了新的革命道路和奋斗目标，是开天辟地的大事变。", "复习题整理"),
-      q("概括抗日战争胜利的原因。", "中国共产党发挥中流砥柱作用，抗日民族统一战线凝聚全民族力量，正面战场和敌后战场相互配合，国际反法西斯力量也提供了重要支持。", "复习题整理")
-    ],
+    choices: [],
+    essays: [],
     sources: officialTextbookSources("history").concat([{ type: "用户提供PDF", title: "《中国近现代史纲要》（新版教材）笔记和课后习题详解.pdf", note: "近代史章节复习内容已根据该 PDF OCR 识别结果整理，并对重难点做荧光笔和红色标注。", url: "" }], localSources(["中国近现代史纲要2021版.pdf", "课堂重点.docx", "复习题库\\题库.doc", "复习题库\\近代史练习题c(后附答案).docx"]), commonSources("中国近现代史纲要"))
   },
   {
@@ -53,20 +41,8 @@ const courses = [
       ["第六章 学习法治思想 提升法治素养", "掌握法律权利、法律义务、法治思维和法治方式。"]
     ],
     keypoints: ["人生目的是人生观的核心", "理想信念是精神之钙", "中国精神是民族精神和时代精神的统一", "社会主义核心价值观：富强、民主、文明、和谐等三个层面", "法治思维强调规则、权利义务、公平正义和程序意识", "思想道德素质和法治素养共同构成时代新人基础素质"],
-    choices: [
-      q("人生观的核心是（ ）。\nA. 人生态度\nB. 人生目的\nC. 人生价值\nD. 人生道路", "B。人生目的回答人为什么活着，是人生观的核心。", "整理题"),
-      q("理想信念对大学生成长成才具有重要作用，常被称为（ ）。\nA. 精神之钙\nB. 道德底线\nC. 法律尺度\nD. 价值中立", "A。理想信念是共产党人和青年成长的精神支撑。", "整理题"),
-      q("社会主义核心价值观中，国家层面的价值目标是（ ）。\nA. 爱国、敬业、诚信、友善\nB. 自由、平等、公正、法治\nC. 富强、民主、文明、和谐\nD. 改革、发展、稳定、统一", "C。富强、民主、文明、和谐属于国家层面。", "整理题"),
-      q("社会公德最基本的要求是（ ）。\nA. 遵纪守法\nB. 爱岗敬业\nC. 夫妻和睦\nD. 勤俭持家", "A。遵纪守法是维护公共生活秩序的基本要求。", "整理题"),
-      q("法治思维的基本内容不包括（ ）。\nA. 法律至上\nB. 权力制约\nC. 权利保障\nD. 人情优先", "D。法治思维强调规则和程序，不能以人情优先取代法律规则。", "整理题"),
-      q("个人品德形成的关键环节是（ ）。\nA. 道德认知\nB. 道德实践\nC. 道德旁观\nD. 道德标签", "B。道德品质要在实践中养成和检验。", "整理题")
-    ],
-    essays: [
-      q("如何理解理想信念对大学生成长成才的重要意义？", "理想信念提供人生方向、精神动力和价值支撑。大学生应把个人理想融入国家和民族事业，在学习、实践和担当中坚定信念。", "本地笔记整理"),
-      q("简述社会主义核心价值观的三个层面。", "国家层面是富强、民主、文明、和谐；社会层面是自由、平等、公正、法治；个人层面是爱国、敬业、诚信、友善。", "本地笔记整理"),
-      q("大学生应如何提升法治素养？", "学习法律知识，尊重法律权威，增强规则意识、程序意识和权利义务意识，依法行使权利、履行义务，并在公共生活中运用法治思维解决问题。", "本地笔记整理"),
-      q("怎样在日常生活中锤炼道德品格？", "从小事做起，遵守社会公德、职业道德、家庭美德和个人品德要求，坚持知行合一，在公共生活、网络生活和志愿服务中养成良好品格。", "本地笔记整理")
-    ],
+    choices: [],
+    essays: [],
     sources: officialTextbookSources("morality").concat([{ type: "用户提供PDF", title: "《思想道德修养与法律基础》（新版教材）笔记和课后习题详解.pdf", note: "思修章节复习内容已根据该 PDF OCR 识别结果整理，并对重难点做荧光笔和红色标注。", url: "" }], localSources(["【考试精简版】《思想道德修养与法律基础》.pdf", "思修思维导图（24页）.pdf"]), commonSources("思想道德与法治"))
   },
   {
@@ -85,20 +61,8 @@ const courses = [
       ["第七章 科学发展观", "理解第一要义、核心立场、基本要求和根本方法。"]
     ],
     keypoints: ["毛泽东思想活的灵魂：实事求是、群众路线、独立自主", "新民主主义革命总路线包含对象、动力、领导、性质和前途", "三大法宝：统一战线、武装斗争、党的建设", "社会主义改造基本完成标志社会主义基本制度确立", "邓小平理论回答什么是社会主义、怎样建设社会主义", "科学发展观核心立场是以人为本"],
-    choices: [
-      q("毛泽东思想活的灵魂包括（ ）。\nA. 实事求是、群众路线、独立自主\nB. 改革开放、市场经济、依法治国\nC. 以人为本、全面协调、可持续\nD. 富强、民主、文明、和谐", "A。三者是贯穿毛泽东思想各组成部分的立场、观点和方法。", "本地章节整理"),
-      q("新民主主义革命的领导力量是（ ）。\nA. 农民阶级\nB. 民族资产阶级\nC. 无产阶级及其政党\nD. 小资产阶级", "C。无产阶级领导是新民主主义革命区别于旧民主主义革命的根本标志。", "整理题"),
-      q("中国革命的三大法宝是（ ）。\nA. 统一战线、武装斗争、党的建设\nB. 土地革命、根据地、游击战争\nC. 改革、发展、稳定\nD. 理论、道路、制度", "A。三大法宝是统一战线、武装斗争、党的建设。", "整理题"),
-      q("社会主义基本制度在我国确立的标志是（ ）。\nA. 新中国成立\nB. 土地改革完成\nC. 社会主义改造基本完成\nD. 改革开放开始", "C。1956年社会主义改造基本完成，社会主义基本制度确立。", "整理题"),
-      q("邓小平理论首要的基本理论问题是（ ）。\nA. 建设什么样的党、怎样建设党\nB. 实现什么样的发展、怎样发展\nC. 什么是社会主义、怎样建设社会主义\nD. 新时代坚持和发展什么样的中国特色社会主义", "C。邓小平理论围绕这一基本问题展开。", "整理题"),
-      q("科学发展观的核心立场是（ ）。\nA. 发展\nB. 以人为本\nC. 全面协调可持续\nD. 统筹兼顾", "B。科学发展观第一要义是发展，核心立场是以人为本。", "整理题")
-    ],
-    essays: [
-      q("简述毛泽东思想活的灵魂。", "毛泽东思想活的灵魂是实事求是、群众路线、独立自主。实事求是强调从实际出发、理论联系实际；群众路线强调一切为了群众、一切依靠群众；独立自主强调把革命和建设立足点放在自己力量基础上。", "本地章节整理"),
-      q("简述新民主主义革命的三大法宝及其关系。", "三大法宝是统一战线、武装斗争、党的建设。统一战线和武装斗争是战胜敌人的两个基本武器，党的建设是掌握和运用这两个武器的根本保证。", "本地题库整理"),
-      q("社会主义改造基本完成有什么历史意义？", "标志社会主义基本制度在中国确立，实现了中国历史上最深刻最伟大的社会变革，为当代中国发展进步奠定了制度基础。", "本地题库整理"),
-      q("怎样理解邓小平理论的历史地位？", "邓小平理论科学回答了什么是社会主义、怎样建设社会主义，开辟了中国特色社会主义道路，是中国特色社会主义理论体系的开篇之作。", "本地题库整理")
-    ],
+    choices: [],
+    essays: [],
     sources: officialTextbookSources("mao").concat(localSources(["第一章 毛泽东思想及其历史地位 .docx", "第二章  新民主主义革命理论.docx", "2018毛概选择题(3).docx", "2018版毛概思考题答案(3).docx", "精选2019年《毛概》期末考试题库1000题（答案）(2).pdf"]), commonSources("毛泽东思想和中国特色社会主义理论体系概论"))
   },
   {
@@ -129,20 +93,8 @@ const courses = [
       ["结语 在新征程中勇当开路先锋、争当事业闯将", "把理论学习转化为青年担当，把个人奋斗融入强国建设和民族复兴。"]
     ],
     keypoints: ["主题：新时代坚持和发展什么样的中国特色社会主义、怎样坚持和发展中国特色社会主义", "中国共产党领导是中国特色社会主义最本质的特征", "人民立场是根本政治立场", "中国式现代化是人口规模巨大、全体人民共同富裕等特征的现代化", "五位一体：经济、政治、文化、社会、生态文明", "四个全面：现代化国家、深化改革、依法治国、从严治党"],
-    choices: [
-      q("中国特色社会主义最本质的特征是（ ）。\nA. 中国共产党领导\nB. 人民代表大会制度\nC. 社会主义市场经济\nD. 共同富裕", "A。党的领导是中国特色社会主义最本质的特征。", "本地章节整理"),
-      q("新时代我国社会主要矛盾是（ ）。\nA. 生产力和生产关系的矛盾\nB. 经济基础和上层建筑的矛盾\nC. 人民日益增长的美好生活需要和不平衡不充分的发展之间的矛盾\nD. 帝国主义和中华民族的矛盾", "C。党的十九大对新时代我国社会主要矛盾作出这一判断。", "整理题"),
-      q("“五位一体”总体布局不包括（ ）。\nA. 经济建设\nB. 政治建设\nC. 生态文明建设\nD. 军事建设", "D。军事建设不属于“五位一体”总体布局的五个方面。", "整理题"),
-      q("“四个全面”战略布局中居于引领地位的是（ ）。\nA. 全面深化改革\nB. 全面依法治国\nC. 全面从严治党\nD. 全面建设社会主义现代化国家", "D。全面建设社会主义现代化国家是战略目标，其余三项是战略举措。", "整理题"),
-      q("中国式现代化的本质要求之一是（ ）。\nA. 走殖民扩张道路\nB. 坚持中国共产党领导\nC. 照搬西方制度模式\nD. 放弃共同富裕目标", "B。中国式现代化要求坚持中国共产党领导、坚持中国特色社会主义等。", "整理题"),
-      q("全过程人民民主强调（ ）。\nA. 只重视选举环节\nB. 人民依法通过多种途径和形式管理国家事务\nC. 取消基层民主\nD. 以资本力量决定公共事务", "B。全过程人民民主贯通民主选举、协商、决策、管理、监督。", "整理题")
-    ],
-    essays: [
-      q("如何理解习近平新时代中国特色社会主义思想的历史地位？", "它是当代中国马克思主义、二十一世纪马克思主义，是中华文化和中国精神的时代精华，实现了马克思主义中国化时代化新的飞跃，是新时代党和国家事业发展的根本遵循。", "本地章节整理"),
-      q("简述中国式现代化的中国特色。", "人口规模巨大、全体人民共同富裕、物质文明和精神文明相协调、人与自然和谐共生、走和平发展道路。", "整理题"),
-      q("为什么必须坚持党的全面领导？", "党的领导是中国特色社会主义最本质的特征和最大优势，是党和国家的根本所在、命脉所在，是全国各族人民利益所系、命运所系。", "整理题"),
-      q("简述“五位一体”总体布局。", "“五位一体”总体布局包括经济建设、政治建设、文化建设、社会建设、生态文明建设，要求统筹推进、协调发展。", "本地章节整理")
-    ],
+    choices: [],
+    essays: [],
     sources: officialTextbookSources("xi").concat(localSources(["第八章  习近平新时代中国特色社会主义思想及其历史地位.docx", "第九章  坚持和发展中国特色社会主义的总任务.docx", "第十章  “五位一体”总体布局.docx"]), commonSources("习近平新时代中国特色社会主义思想概论"))
   },
   {
@@ -162,20 +114,8 @@ const courses = [
       ["第七章 共产主义崇高理想及其最终实现", "理解共产主义社会基本特征、实现共产主义的历史必然性和长期性。"]
     ],
     keypoints: ["哲学基本问题：思维和存在的关系问题", "物质决定意识，意识对物质具有能动反作用", "矛盾的对立统一规律是唯物辩证法的实质和核心", "实践是认识的来源、动力、目的和检验真理的唯一标准", "生产力和生产关系、经济基础和上层建筑构成社会基本矛盾", "剩余价值理论揭示资本主义剥削秘密"],
-    choices: [
-      q("全部哲学，特别是近代哲学的重大基本问题是（ ）。\nA. 人与自然的关系问题\nB. 思维和存在的关系问题\nC. 阶级和国家的关系问题\nD. 真理和价值的关系问题", "B。恩格斯指出哲学基本问题是思维和存在的关系问题。", "本地客观题整理"),
-      q("马克思主义认为，世界的真正统一性在于它的（ ）。\nA. 精神性\nB. 物质性\nC. 目的性\nD. 神秘性", "B。世界统一于物质。", "整理题"),
-      q("唯物辩证法的实质和核心是（ ）。\nA. 质量互变规律\nB. 否定之否定规律\nC. 对立统一规律\nD. 价值规律", "C。对立统一规律揭示事物发展的源泉和动力。", "整理题"),
-      q("检验认识真理性的唯一标准是（ ）。\nA. 权威意见\nB. 逻辑推演\nC. 实践\nD. 多数投票", "C。实践是检验真理的唯一标准。", "整理题"),
-      q("社会历史发展的决定力量是（ ）。\nA. 地理环境\nB. 人口因素\nC. 生产方式\nD. 英雄人物", "C。生产方式是社会历史发展的决定力量。", "整理题"),
-      q("资本主义生产过程是劳动过程和（ ）的统一。\nA. 价值形成过程\nB. 价值增殖过程\nC. 商品交换过程\nD. 消费过程", "B。资本主义生产的直接目的在于生产剩余价值，实现价值增殖。", "整理题")
-    ],
-    essays: [
-      q("简述物质和意识的辩证关系。", "物质决定意识，意识是物质世界长期发展的产物和人脑对客观存在的反映；意识对物质具有能动反作用，正确意识促进实践发展，错误意识会阻碍实践。", "本地主观题整理"),
-      q("为什么说实践是认识的基础？", "实践是认识的来源、发展动力、目的，也是检验认识真理性的唯一标准。认识产生于实践，并在实践中得到发展和检验。", "本地主观题整理"),
-      q("简述社会基本矛盾及其作用。", "生产力和生产关系、经济基础和上层建筑的矛盾构成社会基本矛盾，推动社会形态更替和社会发展，是理解历史发展的基本线索。", "本地主观题整理"),
-      q("如何理解人民群众是历史的创造者？", "人民群众是社会物质财富和精神财富的创造者，是社会变革的决定力量。坚持群众史观要求尊重人民主体地位，坚持群众路线。", "本地主观题整理")
-    ],
+    choices: [],
+    essays: [],
     sources: officialTextbookSources("marx").concat(localSources(["客观题（2022）老师亲自公布\\习题1：唯物论与辩证法.docx", "客观题（2022）老师亲自公布\\习题2：认识论.doc", "2022.11.17-主观题题库.doc", "主观题复习资料《马克思主义基本原理概论》.doc"]), commonSources("马克思主义基本原理"))
   }
 ];
@@ -443,7 +383,7 @@ const supplements = {
   }
 };
 
-expandQuestionBanks();
+// Questions are loaded from Supabase after membership verification.
 
 function q(question, answer, source) {
   return { question, answer, source };
@@ -537,427 +477,6 @@ function commonSources(keyword) {
   ];
 }
 
-function isXiCourseItem(item) {
-  const source = item.source || "";
-  const question = choiceStem(item.question || "");
-  if (/第(?:八|九|十)章/.test(source)) return true;
-  return /习近平|新时代中国特色社会主义|新时代建设中国特色社会主义|中国特色社会主义新时代|中国特色社会主义最本质的特征|新时代我国社会主要矛盾|我国社会主要矛盾的变化|坚持党的全面领导|中国梦|中华民族伟大复兴|中国式现代化|社会主义现代化强国|全面建设社会主义现代化国家|建设现代化经济体系|五位一体|四个全面|十个明确|十四个坚持|十三个方面成就|六个必须坚持|新发展理念|高质量发展|全过程人民民主|总体国家安全观|人类命运共同体|全面从严治党|全面从严治军|四个意识|强军思想|新型国际关系|美丽中国|全面深化改革的总目标|在发展中加强和改善民生/.test(question);
-}
-
-function splitMaoXiQuestionBanks() {
-  const bank = typeof maoXiLocalQuestionBank !== "undefined"
-    ? maoXiLocalQuestionBank
-    : { mao: { choices: [], essays: [] }, xi: { choices: [], essays: [] } };
-  const combinedChoices = [...(bank.mao?.choices || []), ...(bank.xi?.choices || [])];
-  const combinedEssays = [...(bank.mao?.essays || []), ...(bank.xi?.essays || [])];
-  return {
-    mao: {
-      choices: combinedChoices.filter((item) => !isXiCourseItem(item)),
-      essays: combinedEssays.filter((item) => !isXiCourseItem(item))
-    },
-    xi: {
-      choices: combinedChoices.filter(isXiCourseItem),
-      essays: combinedEssays.filter(isXiCourseItem)
-    }
-  };
-}
-
-function getMarxTeacherAnswerKeys() {
-  return {
-  "习题1：唯物论与辩证法.docx": {
-    answers: [
-      ..."CACADACCABDBDCBACDCDDCBCCCB CBC".replace(/\s/g, ""),
-      ..."BD AD BD AD BC AD BD BD BD ABCD BCD AB ABCD ABCD BD BD ABC ABCD ACD AB".split(/\s+/),
-      ..."ABD ABCD ABD ACD ACD ABC ABCD BCD ABCD BD ABD ABCD ABCD BCD AC ABCD BCD ACD ACD CD".split(/\s+/)
-    ],
-    sourceIndexes: [
-      ...Array.from({ length: 18 }, (_, index) => index),
-      ...Array.from({ length: 11 }, (_, index) => index + 19),
-      ...Array.from({ length: 40 }, (_, index) => index + 30)
-    ]
-  },
-  "习题2：认识论.doc": {
-    answers: [
-      ..."BADDAADACDDCACCDCADBCBBCCBDBD",
-      ..."ACD CD ACD ABCD ABCD BCD BCD ABCD ABD ABD ABCD ABCD ABC ACD BD ABCD BCD ACD ABCD BCD ABD".split(/\s+/)
-    ],
-    sourceIndexes: [
-      ...Array.from({ length: 10 }, (_, index) => index),
-      ...Array.from({ length: 18 }, (_, index) => index + 11),
-      ...Array.from({ length: 21 }, (_, index) => index + 29)
-    ]
-  },
-  "习题3：历史唯物主义.docx": {
-    answers: [
-      ..."DBDABADDCADBADCDC ADBDADDDDCBC".replace(/\s/g, ""),
-      ..."ABCD ABC CD ABC ABC ABC ABCD ABCD BCD BCD ABCD ABC BC ABC CD AD ACD BC BD ABCD AB BCD ABCD".split(/\s+/)
-    ],
-    sourceIndexes: [
-      ...Array.from({ length: 18 }, (_, index) => index),
-      ...Array.from({ length: 10 }, (_, index) => index + 19),
-      ...Array.from({ length: 23 }, (_, index) => index + 29)
-    ]
-  },
-  "习题4：马克思主义政治经济学.doc": {
-    answers: [
-      ..."BBACCDCDCBDDBCDBDDBBCABABACCDC",
-      ..."AC ABD AC BCD BCD ACD AB".split(/\s+/)
-    ],
-    sourceIndexes: [
-      ...Array.from({ length: 26 }, (_, index) => index),
-      28,
-      29,
-      ...Array.from({ length: 7 }, (_, index) => index + 30)
-    ]
-  }
-  };
-}
-
-function applyTeacherAnswerKeys(items) {
-  const answerKeys = getMarxTeacherAnswerKeys();
-  const sourceOffsets = new Map();
-  return items.map((item) => {
-    const sourceKey = Object.keys(answerKeys)
-      .find((key) => (item.source || "").includes(key));
-    if (!sourceKey) return item;
-    const itemIndex = sourceOffsets.get(sourceKey) || 0;
-    sourceOffsets.set(sourceKey, itemIndex + 1);
-    const key = answerKeys[sourceKey];
-    const answerIndex = key.sourceIndexes[itemIndex];
-    const letters = key.answers[answerIndex];
-    if (!letters) return item;
-    const options = parseChoiceOptions(item.question || "");
-    const picked = letters.split("")
-      .filter((letter) => options[letter])
-      .map((letter) => `${letter}. ${options[letter]}`);
-    return {
-      ...item,
-      correctAnswer: letters,
-      answer: `正确答案：${letters}`,
-      questionType: letters.length > 1 ? "多选题" : "单选题",
-      answerKeyVerified: true,
-      verificationReference: item.verificationReference || "马原本地题库教师答案表",
-      analysis: [
-        `解析：本题考查“${shortMemoryKey(choiceStem(item.question || ""))}”。`,
-        picked.length ? `正确项为${picked.join("；")}。` : "",
-        "作答时先确定题干所问的概念、关系或条件，再逐项核对是否与该限定一致；记忆时将题干关键词与正确项的规范表述绑定。"
-      ].filter(Boolean).join("")
-    };
-  });
-}
-
-function expandQuestionBanks() {
-  const maoXiBanks = splitMaoXiQuestionBanks();
-  for (const course of courses) {
-    const localBanks = {
-      history: typeof historyLocalQuestionBank !== "undefined" ? historyLocalQuestionBank : null,
-      morality: typeof moralityLocalQuestionBank !== "undefined" ? moralityLocalQuestionBank : null,
-      mao: maoXiBanks.mao,
-      xi: maoXiBanks.xi,
-      marx: typeof marxLocalQuestionBank !== "undefined" ? marxLocalQuestionBank : null
-    };
-    const localBank = localBanks[course.id] || { choices: [], essays: [] };
-    const additions = typeof verifiedQuestionAdditions !== "undefined"
-      ? verifiedQuestionAdditions[course.id] || { choices: [], essays: [] }
-      : { choices: [], essays: [] };
-    const combinedChoices = course.choices.concat(localBank.choices || [], additions.choices || []);
-    const rawChoices = course.id === "marx"
-      ? applyTeacherAnswerKeys(combinedChoices)
-      : combinedChoices;
-    const overriddenChoices = applyQuestionOverrides(rawChoices, course.id, "choice");
-    const overriddenEssays = applyQuestionOverrides(
-      course.essays.concat(localBank.essays || [], additions.essays || []),
-      course.id,
-      "essay"
-    );
-    markChoiceAnswerConflicts(overriddenChoices.accepted);
-    const choiceCandidates = uniqueChoicesByContent(
-      overriddenChoices.accepted.map((item) => normalizeChoiceItem({ ...item, courseId: course.id }))
-    );
-    const essayCandidates = uniqueByQuestion(overriddenEssays.accepted)
-      .map((item) => normalizeEssayItem({ ...item, courseId: course.id }));
-    const choiceAudit = partitionAuditedItems(choiceCandidates, auditChoiceItem);
-    const essayAudit = partitionAuditedItems(essayCandidates, auditEssayItem);
-
-    course.choices = choiceAudit.accepted;
-    course.essays = essayAudit.accepted;
-    course.reviewQueue = {
-      choices: choiceAudit.rejected,
-      essays: essayAudit.rejected
-    };
-    course.excludedQuestions = [
-      ...overriddenChoices.excluded,
-      ...overriddenEssays.excluded
-    ];
-  }
-}
-
-function applyQuestionOverrides(items, courseId, type) {
-  const overrides = typeof verifiedQuestionOverrides !== "undefined"
-    ? verifiedQuestionOverrides
-    : [];
-  const sourceExclusions = typeof verifiedQuestionSourceExclusions !== "undefined"
-    ? verifiedQuestionSourceExclusions
-    : [];
-  return items.reduce((result, item) => {
-    const sourceExclusion = sourceExclusions.find((entry) => (
-      entry.courseId === courseId
-      && entry.type === type
-      && (item.source || "").includes(entry.sourceIncludes)
-    ));
-    if (sourceExclusion) {
-      result.excluded.push({
-        ...item,
-        exclusionReason: sourceExclusion.exclusionReason
-      });
-      return result;
-    }
-    const stemKey = normalizeQuestionStem(
-      type === "choice" ? choiceStem(item.question || "") : item.question || ""
-    );
-    const override = overrides.find((entry) => (
-      entry.courseId === courseId
-      && entry.type === type
-      && normalizeQuestionStem(entry.stem) === stemKey
-      && (!entry.questionIncludes || (item.question || "").includes(entry.questionIncludes))
-    ));
-    if (!override) {
-      result.accepted.push(item);
-      return result;
-    }
-    const corrected = {
-      ...item,
-      ...(override.question ? { question: override.question } : {}),
-      ...(override.correctAnswer ? {
-        correctAnswer: override.correctAnswer,
-        answer: `正确答案：${override.correctAnswer}`,
-        analysis: Object.prototype.hasOwnProperty.call(override, "analysis")
-          ? override.analysis
-          : ""
-      } : {}),
-      ...(override.answer ? { answer: override.answer } : {}),
-      ...(override.analysis ? { analysis: override.analysis } : {}),
-      ...(override.verificationStatus ? { verificationStatus: override.verificationStatus } : {}),
-      verificationReference: override.verificationReference || ""
-    };
-    if (override.exclude) {
-      result.excluded.push({
-        ...corrected,
-        exclusionReason: override.exclusionReason || "无法恢复为完整可靠题目"
-      });
-    } else {
-      result.accepted.push(corrected);
-    }
-    return result;
-  }, { accepted: [], excluded: [] });
-}
-
-function normalizeChoiceItem(item) {
-  const question = cleanChoiceQuestion(item.question || "");
-  const letters = choiceAnswerLetters(item);
-  const options = parseChoiceOptions(question);
-  const picked = letters.split("").filter((letter) => options[letter]).map((letter) => `${letter}. ${options[letter]}`);
-  const originalAnswer = (item.answer || "").replace(/\s+/g, " ").trim();
-  const originalExplanation = originalAnswer
-    .replace(/^\s*正确答案[:：]\s*[A-F]{1,6}[。.，,\s]*/i, "")
-    .replace(/^\s*[A-F]{1,6}[。.，,\s]*/i, "")
-    .trim();
-  const analysis = cleanAnalysisText(item.analysis || originalExplanation) || [
-    `本题考查“${shortMemoryKey(choiceStem(item.question || ""))}”。`,
-    picked.length ? `正确项是${picked.join("；")}，与题干限定直接对应。` : "",
-    `记忆时把题干关键词和答案“${letters}”对应的规范表述连在一起。`
-  ].filter(Boolean).join("");
-
-  return {
-    ...item,
-    question,
-    correctAnswer: letters,
-    questionType: letters.length > 1 ? "多选题" : "单选题",
-    answer: letters ? `正确答案：${letters}` : originalAnswer,
-    analysis
-  };
-}
-
-function cleanChoiceQuestion(question) {
-  return question.replace(
-    /\s*正确答案[:：]\s*[？?]?\s*(?=\n\s*A(?:[.．、]\s*|\s+|(?=[\u4e00-\u9fff])))/g,
-    ""
-  );
-}
-
-function normalizeEssayItem(item) {
-  const answer = cleanEssayAnswer(item.answer || "");
-  return {
-    ...item,
-    answer,
-    analysis: cleanAnalysisText(item.analysis) || buildEssayAnalysis(item.question || "", answer)
-  };
-}
-
-function cleanEssayAnswer(value) {
-  return value
-    .replace(/\?{5,}/g, "")
-    .replace(/\n*\s*补充(?:作答|得分点)[:：][\s\S]*$/g, "")
-    .replace(/\n\s*第[一二三四五六七八九十]+章\s*$/g, "")
-    .replace(/第\s*\d+\s*页\s*共\s*\d+\s*页/g, "")
-    .replace(/(?:^|\n)\s*[课壹]\s*(?=\n|$)/g, "\n")
-    .trim();
-}
-
-function cleanAnalysisText(value = "") {
-  return value
-    .replace(/^\s*解析[:：]\s*/, "")
-    .replace(/答案区保留本题可直接背诵的要点。?/g, "")
-    .replace(/\?{5,}/g, "")
-    .replace(/本题来自[^。\n]*[。\n]?/g, "")
-    .replace(/复习题库《[^》]+》[。\n]?/g, "")
-    .trim();
-}
-
-function buildEssayAnalysis(question, answer) {
-  const points = answer
-    .replace(/^答[:：]\s*/, "")
-    .split(/(?:\n|；|。|①|②|③|④|⑤|⑥)/)
-    .map((part) => part.trim())
-    .filter((part) => part.length >= 8)
-    .slice(0, 6);
-  const scorePoints = points.map((point, index) => `${index + 1}. ${point}。`).join("\n");
-  return [
-    `解题：先确定题干考查“${shortMemoryKey(question)}”，答案必须直接回应设问。`,
-    scorePoints ? `得分点：\n${scorePoints}` : "",
-    `记忆：先背结论句，再按关键词逐点展开；每个得分点至少写出一条完整判断。`
-  ].filter(Boolean).join("\n");
-}
-
-function partitionAuditedItems(items, audit) {
-  return items.reduce((result, item) => {
-    const reasons = audit(item);
-    if (reasons.length) result.rejected.push({ ...item, auditReasons: reasons });
-    else result.accepted.push({
-      ...item,
-      auditStatus: item.verificationStatus
-        || (item.answerKeyVerified ? "teacher-key-verified" : "source-backed")
-    });
-    return result;
-  }, { accepted: [], rejected: [] });
-}
-
-function markChoiceAnswerConflicts(items) {
-  const exact = new Map();
-  const reordered = new Map();
-  for (const item of items) {
-    const question = item.question || "";
-    const exactKey = question.replace(/\s+/g, "");
-    const options = parseChoiceOptions(question);
-    const letters = choiceAnswerLetters(item);
-    const correctTexts = letters.split("")
-      .map((letter) => options[letter])
-      .filter(Boolean)
-      .map((text) => text.replace(/\s+/g, ""))
-      .sort()
-      .join("|");
-    const optionSet = Object.values(options).map((text) => text.replace(/\s+/g, "")).sort().join("|");
-    const reorderedKey = `${normalizeQuestionStem(choiceStem(question))}|${optionSet}`;
-    for (const [map, key, answer] of [[exact, exactKey, letters], [reordered, reorderedKey, correctTexts]]) {
-      if (!key || !answer) continue;
-      const previous = map.get(key);
-      if (previous && previous.answer !== answer) {
-        previous.item.auditConflict = true;
-        item.auditConflict = true;
-      } else if (!previous) {
-        map.set(key, { answer, item });
-      }
-    }
-  }
-}
-
-function auditChoiceItem(item) {
-  const reasons = [];
-  const question = item.question || "";
-  const options = parseChoiceOptions(question);
-  const optionLetters = Object.keys(options);
-  const answerLetters = choiceAnswerLetters(item).split("");
-  const correctOptionText = answerLetters.map((letter) => options[letter] || "").join(" ");
-  if (question.replace(/\s+/g, "").length < 8) reasons.push("题干过短");
-  if (optionLetters.length < 2 || !options.A) reasons.push("选项不完整");
-  if (item.auditConflict) reasons.push("同题在不同资料中的答案冲突");
-  if (!answerLetters.length) reasons.push("缺少可识别答案");
-  if (answerLetters.some((letter) => !options[letter])) reasons.push("答案指向不存在的选项");
-  if (!(item.source || "").trim()) reasons.push("缺少来源");
-  if ((item.analysis || "").trim().length < 10) reasons.push("解析过短");
-  if (/正确答案[:：]/.test(choiceStem(question))) reasons.push("题干泄漏答案提示");
-  if (/强化变式编号|联网公开题库与教材框架补充/.test(`${question}${item.source || ""}`)) reasons.push("程序生成变式");
-  if (item.courseId === "morality" && /《(?:中华人民共和国)?(?:婚姻法|合同法|继承法|民法通则|治安管理处罚条例)》|(?:我国)?民法通则规定|劳动教养/.test(question)) {
-    reasons.push("引用已失效或名称过时的法律依据");
-  }
-  if (item.courseId === "marx" && /马原本地题库：习题[1-4]/.test(item.source || "") && !item.answerKeyVerified) {
-    reasons.push("教师题库答案未按原始答案表校准");
-  }
-  if (item.courseId === "mao" && isXiCourseItem(item)) reasons.push("课程分组不匹配");
-  if (item.courseId === "xi" && !isXiCourseItem(item)) reasons.push("课程分组不匹配");
-  if (item.courseId === "xi" && /目前.{0,12}全面建成小康社会|从现在到[二〇○0-9]{4}年|全面建成小康社会决胜阶段/.test(question)) {
-    reasons.push("时点或战略表述已不适用于现行教材");
-  }
-  if (item.courseId === "xi" && /四个全面/.test(question) && /全面建成小康社会/.test(question) && !/党的(十八|十九)大|十八届|十九届/.test(question)) {
-    reasons.push("四个全面战略布局采用旧时点表述");
-  }
-  if (item.courseId === "xi" && /八个明确/.test(correctOptionText) && !/十九大/.test(question)) reasons.push("理论概括已按现行教材更新");
-  if (item.courseId === "xi" && /全面建成小康社会/.test(correctOptionText) && !/党的(十七|十八|十九)大|十八届|十九届|从2020|二〇二〇/.test(question)) {
-    reasons.push("时点或战略表述已不适用于现行教材");
-  }
-  if (/[（(]\s*[）)]\s*[。.]*\s*[A-F]{1,6}\s*\n\s*A[.．、]/.test(question)) reasons.push("题干泄漏答案");
-  if (/\?{5,}|�/.test(`${question}${item.answer || ""}${item.analysis || ""}`)) reasons.push("存在乱码或噪声");
-  return reasons;
-}
-
-function auditEssayItem(item) {
-  const reasons = [];
-  const question = (item.question || "").trim();
-  const answer = (item.answer || "").trim();
-  if (question.replace(/\s+/g, "").length < 6) reasons.push("题干过短");
-  if (answer.length < 20) reasons.push("答案过短");
-  if (!(item.source || "").trim()) reasons.push("缺少来源");
-  if ((item.analysis || "").trim().length < 20) reasons.push("解析过短");
-  if (/强化变式编号|联网公开题库与教材框架补充/.test(`${question}${item.source || ""}`)) reasons.push("程序生成变式");
-  if (item.courseId === "mao" && isXiCourseItem(item)) reasons.push("课程分组不匹配");
-  if (item.courseId === "xi" && !isXiCourseItem(item)) reasons.push("课程分组不匹配");
-  if (item.courseId === "xi" && /八个明确/.test(answer) && !/十九大/.test(question)) reasons.push("理论概括已按现行教材更新");
-  if (/应从.{0,12}(方面|层次)回答|答题角度|这类题/.test(answer)) reasons.push("答案是方法提示而非直接答案");
-  if (/补充作答|补充得分点|考试作答时|标准答案通常需要/.test(answer)) reasons.push("答案混入作答方法提示");
-  if (/\.{8,}\s*\d|…{4,}\s*\d|第[一二三四五六七八九十]+章\s+\.{4,}/.test(`${question}\n${answer}`)) reasons.push("疑似目录或页码内容");
-  if (/\?{5,}|�/.test(`${question}${answer}${item.analysis || ""}`)) reasons.push("存在乱码或噪声");
-  return reasons;
-}
-
-function uniqueByQuestion(items) {
-  const seen = new Set();
-  return items.filter((item) => {
-    const key = item.question.replace(/\s+/g, "");
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
-function uniqueChoicesByContent(items) {
-  const seen = new Set();
-  return items.filter((item) => {
-    const options = parseChoiceOptions(item.question || "");
-    const optionSet = Object.values(options).map((text) => text.replace(/\s+/g, "")).sort().join("|");
-    const key = `${normalizeQuestionStem(choiceStem(item.question || ""))}|${optionSet}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
-function normalizeQuestionStem(value) {
-  return value
-    .replace(/[（(]\s*[）)]/g, "")
-    .replace(/[，,。；;：:？?!！“”"'《》、]/g, "")
-    .replace(/\s+/g, "");
-}
-
 const STUDY_STORAGE_KEY = "sizheng-study-progress-v1";
 const studyProgress = loadStudyProgress();
 const questionLookup = new Map();
@@ -1014,6 +533,16 @@ function registerQuestion(item) {
 }
 
 const els = {
+  appHeader: document.querySelector("#appHeader"),
+  authView: document.querySelector("#authView"),
+  authDescription: document.querySelector("#authDescription"),
+  authMessage: document.querySelector("#authMessage"),
+  requestOtpForm: document.querySelector("#requestOtpForm"),
+  verifyOtpForm: document.querySelector("#verifyOtpForm"),
+  emailInput: document.querySelector("#emailInput"),
+  otpInput: document.querySelector("#otpInput"),
+  changeEmailBtn: document.querySelector("#changeEmailBtn"),
+  signOutBtn: document.querySelector("#signOutBtn"),
   homeView: document.querySelector("#homeView"),
   courseView: document.querySelector("#courseView"),
   courseGrid: document.querySelector("#courseGrid"),
@@ -1029,6 +558,8 @@ const els = {
   dialogBody: document.querySelector("#quizDialogBody")
 };
 
+let pendingEmail = "";
+
 document.querySelector("#homeBtn").addEventListener("click", showHome);
 document.querySelector("#backBtn").addEventListener("click", showHome);
 document.querySelector("#randomBtn").addEventListener("click", showRandom);
@@ -1038,7 +569,181 @@ els.search.addEventListener("input", (event) => {
   else renderHome();
 });
 
-initRoute();
+els.requestOtpForm.addEventListener("submit", requestOtp);
+els.verifyOtpForm.addEventListener("submit", verifyOtp);
+els.changeEmailBtn.addEventListener("click", () => {
+  els.verifyOtpForm.hidden = true;
+  els.requestOtpForm.hidden = false;
+  els.otpInput.value = "";
+  setAuthMessage("");
+  els.emailInput.focus();
+});
+els.signOutBtn.addEventListener("click", signOut);
+
+bootstrap();
+
+function setAuthMessage(message, state = "") {
+  els.authMessage.textContent = message;
+  if (state) els.authMessage.dataset.state = state;
+  else delete els.authMessage.dataset.state;
+}
+
+function clearQuestionBank() {
+  questionLookup.clear();
+  courses.forEach((course) => {
+    course.choices = [];
+    course.essays = [];
+  });
+}
+
+function showAuth({ message = "请输入已开通会员的邮箱，获取登录验证码。", error = false, signedIn = false } = {}) {
+  clearQuestionBank();
+  state.courseId = null;
+  els.appHeader.hidden = true;
+  els.homeView.hidden = true;
+  els.courseView.hidden = true;
+  els.authView.hidden = false;
+  els.authDescription.textContent = message;
+  els.requestOtpForm.hidden = signedIn;
+  els.verifyOtpForm.hidden = true;
+  els.signOutBtn.hidden = !signedIn;
+  setAuthMessage(error ? message : "", error ? "error" : "");
+}
+
+async function requestOtp(event) {
+  event.preventDefault();
+  const supabase = window.studySupabase;
+  pendingEmail = els.emailInput.value.trim().toLowerCase();
+  if (!pendingEmail) return;
+  if (!supabase) {
+    setAuthMessage("站点尚未配置登录服务。", "error");
+    return;
+  }
+  setAuthMessage("正在发送验证码……");
+  const { error } = await supabase.auth.signInWithOtp({
+    email: pendingEmail,
+    options: { shouldCreateUser: false }
+  });
+  if (error) {
+    setAuthMessage("该邮箱无法登录。请确认邮箱已由管理员开通。", "error");
+    return;
+  }
+  els.requestOtpForm.hidden = true;
+  els.verifyOtpForm.hidden = false;
+  setAuthMessage("验证码已发送，请查收邮箱。", "");
+  els.otpInput.focus();
+}
+
+async function verifyOtp(event) {
+  event.preventDefault();
+  const token = els.otpInput.value.trim();
+  if (!pendingEmail || !token) return;
+  setAuthMessage("正在验证验证码……");
+  const { error } = await window.studySupabase.auth.verifyOtp({
+    email: pendingEmail,
+    token,
+    type: "email"
+  });
+  if (error) {
+    setAuthMessage("验证码无效或已过期，请重新获取。", "error");
+    return;
+  }
+  await startMemberSession();
+}
+
+async function signOut() {
+  if (window.studySupabase) await window.studySupabase.auth.signOut();
+  pendingEmail = "";
+  els.emailInput.value = "";
+  els.otpInput.value = "";
+  showAuth();
+}
+
+async function bootstrap() {
+  const supabase = window.studySupabase;
+  if (!supabase) {
+    showAuth({ message: "站点尚未配置 Supabase 登录服务，请联系管理员。", error: true });
+    return;
+  }
+  supabase.auth.onAuthStateChange((event) => {
+    if (event === "SIGNED_OUT") showAuth();
+  });
+  const { data, error } = await supabase.auth.getSession();
+  if (error || !data.session) {
+    showAuth();
+    return;
+  }
+  await startMemberSession();
+}
+
+async function startMemberSession() {
+  const supabase = window.studySupabase;
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  const user = sessionData.session?.user;
+  if (sessionError || !user) {
+    showAuth();
+    return;
+  }
+  setAuthMessage("正在核验会员状态……");
+  const { data: membership, error: membershipError } = await supabase
+    .from("memberships")
+    .select("status, expires_at")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const isValid = !membershipError
+    && membership?.status === "active"
+    && Date.parse(membership.expires_at) > Date.now();
+  if (!isValid) {
+    showAuth({
+      message: "当前账号未开通会员、已停用或已过期，无法读取题库。",
+      error: true,
+      signedIn: true
+    });
+    return;
+  }
+  try {
+    await loadQuestionBankFromSupabase();
+  } catch (error) {
+    showAuth({
+      message: "题库加载失败，请稍后重试或联系管理员。",
+      error: true,
+      signedIn: true
+    });
+    return;
+  }
+  els.authView.hidden = true;
+  els.appHeader.hidden = false;
+  initRoute();
+}
+
+async function loadQuestionBankFromSupabase() {
+  clearQuestionBank();
+  const rows = [];
+  const pageSize = 1000;
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await window.studySupabase
+      .from("questions")
+      .select("course_id, question_type, question_order, payload")
+      .order("course_id")
+      .order("question_type")
+      .order("question_order")
+      .range(from, from + pageSize - 1);
+    if (error) throw error;
+    rows.push(...data);
+    if (data.length < pageSize) break;
+  }
+  if (!rows.length) throw new Error("No member question bank rows were returned.");
+  const byCourse = new Map(courses.map((course) => [course.id, course]));
+  for (const row of rows) {
+    const course = byCourse.get(row.course_id);
+    if (!course || !row.payload) continue;
+    if (row.question_type === "choice") course.choices.push(row.payload);
+    else course.essays.push(row.payload);
+  }
+  if (courses.some((course) => !course.choices.length && !course.essays.length)) {
+    throw new Error("At least one course is missing question bank rows.");
+  }
+}
 
 function initRoute() {
   const id = location.hash.replace("#", "");

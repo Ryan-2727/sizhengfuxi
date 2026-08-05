@@ -1,0 +1,20 @@
+{
+  "name": "sizhengfuxi-member-site",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "audit": "node scripts/audit-question-bank.js --quiet",
+    "import:questions": "node scripts/import-question-bank.js",
+    "member:add": "node scripts/admin/add-member.js",
+    "member:revoke": "node scripts/admin/revoke-member.js",
+    "member:extend": "node scripts/admin/extend-member.js",
+    "verify:security": "node scripts/verify-member-gating.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.4"
+  },
+  "devDependencies": {
+    "vite": "^6.2.2"
+  }
+}

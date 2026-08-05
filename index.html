@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <header class="topbar">
+  <header class="topbar" id="appHeader" hidden>
     <button class="brand" id="homeBtn" type="button" aria-label="返回首页">
         <span class="brand-mark">思政</span>
       <span>
@@ -22,7 +22,28 @@
   </header>
 
   <main>
-    <section id="homeView" class="home-view">
+    <section id="authView" class="auth-view">
+      <div class="auth-card">
+        <span class="auth-mark">思政</span>
+        <h1>大学思政一站式复习平台</h1>
+        <p id="authDescription">请输入已开通会员的邮箱，获取登录验证码。</p>
+        <form id="requestOtpForm" class="auth-form">
+          <label for="emailInput">邮箱</label>
+          <input id="emailInput" type="email" autocomplete="email" required placeholder="name@example.com">
+          <button type="submit">发送验证码</button>
+        </form>
+        <form id="verifyOtpForm" class="auth-form" hidden>
+          <label for="otpInput">验证码</label>
+          <input id="otpInput" inputmode="numeric" autocomplete="one-time-code" required placeholder="请输入邮件中的验证码">
+          <button type="submit">验证并进入题库</button>
+          <button class="secondary-btn" id="changeEmailBtn" type="button">更换邮箱</button>
+        </form>
+        <div id="authMessage" class="auth-message" role="status" aria-live="polite"></div>
+        <button id="signOutBtn" class="secondary-btn" type="button" hidden>退出登录</button>
+      </div>
+    </section>
+
+    <section id="homeView" class="home-view" hidden>
       <div class="intro">
         <h1>大学思政一站式复习平台</h1>
         <p>按章节梳理重点，通过刷题、错题复习和大题背诵，提高期末复习效率。</p>
@@ -53,11 +74,6 @@
     <div id="quizDialogBody"></div>
   </dialog>
 
-  <script src="./history-local-question-bank.js"></script>
-  <script src="./morality-local-question-bank.js"></script>
-  <script src="./mao-xi-local-question-bank.js"></script>
-  <script src="./marx-local-question-bank.js"></script>
-  <script src="./verified-question-overrides.js"></script>
-  <script src="./app.js"></script>
+  <script type="module" src="/src/main.js"></script>
 </body>
 </html>

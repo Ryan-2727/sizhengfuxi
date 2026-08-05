@@ -16,10 +16,22 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
       - name: Check JavaScript syntax
         run: |
           node --check app.js
-          node --check verified-question-overrides.js
           node --check scripts/audit-question-bank.js
+      - name: Check local source-bank syntax
+        run: node --check data/question-bank-source/verified-question-overrides.js
+        if: ${{ hashFiles('data/question-bank-source/verified-question-overrides.js') != '' }}
       - name: Audit formal question bank
         run: node scripts/audit-question-bank.js --quiet
+        if: ${{ hashFiles('data/question-bank-source/app-with-question-seed.js') != '' }}
+      - name: Verify member access contract
+        run: npm run verify:security
+      - name: Verify production build excludes question sources
+        run: |
+          npm run build
+          node scripts/verify-production-build.js
