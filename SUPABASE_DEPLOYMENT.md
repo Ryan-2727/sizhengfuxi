@@ -37,6 +37,12 @@ npm run import:questions
 
 The importer also updates `question_bank_catalog`. It calculates a stable SHA-256 hash for each course's ordered question payload and changes the catalog version only when that course content changes. Run the import again whenever question content is changed; the browser will re-download only courses whose catalog hash changed.
 
+For an existing project whose `questions` table is already populated, create the catalog rows without deleting or re-importing those questions:
+
+```powershell
+npm run import:questions -- --catalog-only
+```
+
 The importer refuses to overwrite an existing question table. To intentionally replace it after reviewing the source data:
 
 ```powershell

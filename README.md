@@ -43,3 +43,5 @@ npm run member:add -- student@example.com 30
 题库首页只从 `question_bank_catalog` 读取每门课程的题量和版本。会员进入某门课程或随机选择该课程时，浏览器才分页读取该课程的题目，并按 `user_id + course_id + content_hash` 写入 IndexedDB。每次打开网站仍会重新核验会员状态；未通过核验时不会读取缓存。退出登录会删除该账号的题库缓存。
 
 题库内容更新后执行导入脚本。脚本会为每门课程计算稳定 SHA-256 内容哈希，并且只在内容实际变化时更新目录版本；旧版本缓存会自然失效。
+
+已存在题目但尚未创建目录表记录的项目，可运行 `npm run import:questions -- --catalog-only`，该命令不会改写任何题目行。

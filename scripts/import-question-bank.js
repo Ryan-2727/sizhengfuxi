@@ -3,6 +3,7 @@ const { createHash } = require("crypto");
 const { loadQuestionBank } = require("./lib/load-question-bank");
 
 const dryRun = process.argv.includes("--dry-run");
+const catalogOnly = process.argv.includes("--catalog-only");
 const url = process.env.SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!dryRun && (!url || !serviceRoleKey)) {
@@ -75,6 +76,11 @@ async function main() {
     })));
     console.table(catalogRows().map(({ course_id, choice_count, essay_count, content_hash }) => ({ course_id, choice_count, essay_count, content_hash })));
     console.log(`Validated ${rows.length} questions without writing to Supabase.`);
+    return;
+  }
+  if (catalogOnly) {
+    await updateCatalog();
+    console.log("Updated question bank catalog without changing question rows.");
     return;
   }
   const { count, error: countError } = await supabase
