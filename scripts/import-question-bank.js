@@ -91,6 +91,12 @@ function questionKey(payload) {
   return String(payload?.question || "").replace(/\s+/g, "").trim();
 }
 
+function isCuratedAddition(payload) {
+  return typeof payload?.source === "string" && (
+    payload.source === "精选补充题" || payload.source === "用户提供真题（已核验）"
+  );
+}
+
 async function updateCatalogFromDatabase() {
   for (const course of courses) {
     const [choices, essays] = await Promise.all([
@@ -116,8 +122,8 @@ async function appendCuratedQuestions() {
   const summary = [];
   for (const course of courses) {
     const additions = {
-      choice: course.choices.filter((item) => item.source === "精选补充题"),
-      essay: course.essays.filter((item) => item.source === "精选补充题")
+      choice: course.choices.filter(isCuratedAddition),
+      essay: course.essays.filter(isCuratedAddition)
     };
     let added = 0;
     let skipped = 0;

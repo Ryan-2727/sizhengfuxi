@@ -23,7 +23,7 @@ const courses = [
     keypoints: ["近代中国社会性质：半殖民地半封建社会", "两大历史任务：民族独立、人民解放；国家富强、人民富裕", "五四运动是新民主主义革命的开端", "中国共产党成立是开天辟地的大事变", "抗日战争胜利是近代以来中国抗击外敌入侵的第一次完全胜利", "新中国成立标志中国人民从此站起来了"],
     choices: [],
     essays: [],
-    sources: officialTextbookSources("history").concat([{ type: "用户提供PDF", title: "《中国近现代史纲要》（新版教材）笔记和课后习题详解.pdf", note: "近代史章节复习内容已根据该 PDF OCR 识别结果整理，并对重难点做荧光笔和红色标注。", url: "" }], localSources(["中国近现代史纲要2021版.pdf", "课堂重点.docx", "复习题库\\题库.doc", "复习题库\\近代史练习题c(后附答案).docx"]), commonSources("中国近现代史纲要"))
+    sources: officialTextbookSources("history").concat([{ type: "用户提供PDF", title: "《中国近现代史纲要》（新版教材）笔记和课后习题详解.pdf", note: "近代史章节复习内容已根据该 PDF OCR 识别结果整理，并对重难点做荧光笔和红色标注。", url: "" }, userExamSource("2024自学考试大纲与高校公开试题库", "已用于补充并核验题干、选项与标准答案；仅追加答案明确的题目。")], localSources(["中国近现代史纲要2021版.pdf", "课堂重点.docx", "复习题库\\题库.doc", "复习题库\\近代史练习题c(后附答案).docx"]), commonSources("中国近现代史纲要"))
   },
   {
     id: "morality",
@@ -43,7 +43,7 @@ const courses = [
     keypoints: ["人生目的是人生观的核心", "理想信念是精神之钙", "中国精神是民族精神和时代精神的统一", "社会主义核心价值观：富强、民主、文明、和谐等三个层面", "法治思维强调规则、权利义务、公平正义和程序意识", "思想道德素质和法治素养共同构成时代新人基础素质"],
     choices: [],
     essays: [],
-    sources: officialTextbookSources("morality").concat([{ type: "用户提供PDF", title: "《思想道德修养与法律基础》（新版教材）笔记和课后习题详解.pdf", note: "思修章节复习内容已根据该 PDF OCR 识别结果整理，并对重难点做荧光笔和红色标注。", url: "" }], localSources(["【考试精简版】《思想道德修养与法律基础》.pdf", "思修思维导图（24页）.pdf"]), commonSources("思想道德与法治"))
+    sources: officialTextbookSources("morality").concat([{ type: "用户提供PDF", title: "《思想道德修养与法律基础》（新版教材）笔记和课后习题详解.pdf", note: "思修章节复习内容已根据该 PDF OCR 识别结果整理，并对重难点做荧光笔和红色标注。", url: "" }, userExamSource("2024自学考试大纲", "已作为复习范围比对资料；该文件未包含可逐题核验的题干与答案，因此未直接导入题目。")], localSources(["【考试精简版】《思想道德修养与法律基础》.pdf", "思修思维导图（24页）.pdf"]), commonSources("思想道德与法治"))
   },
   {
     id: "mao",
@@ -63,7 +63,7 @@ const courses = [
     keypoints: ["毛泽东思想活的灵魂：实事求是、群众路线、独立自主", "新民主主义革命总路线包含对象、动力、领导、性质和前途", "三大法宝：统一战线、武装斗争、党的建设", "社会主义改造基本完成标志社会主义基本制度确立", "邓小平理论回答什么是社会主义、怎样建设社会主义", "科学发展观核心立场是以人为本"],
     choices: [],
     essays: [],
-    sources: officialTextbookSources("mao").concat(localSources(["第一章 毛泽东思想及其历史地位 .docx", "第二章  新民主主义革命理论.docx", "2018毛概选择题(3).docx", "2018版毛概思考题答案(3).docx", "精选2019年《毛概》期末考试题库1000题（答案）(2).pdf"]), commonSources("毛泽东思想和中国特色社会主义理论体系概论"))
+    sources: officialTextbookSources("mao").concat([userExamSource("课程教学大纲与考研真题及解析", "已用于补充并核验题干、标准答案和解析；仅追加可完整对应的题目。")], localSources(["第一章 毛泽东思想及其历史地位 .docx", "第二章  新民主主义革命理论.docx", "2018毛概选择题(3).docx", "2018版毛概思考题答案(3).docx", "精选2019年《毛概》期末考试题库1000题（答案）(2).pdf"]), commonSources("毛泽东思想和中国特色社会主义理论体系概论"))
   },
   {
     id: "xi",
@@ -95,7 +95,7 @@ const courses = [
     keypoints: ["主题：新时代坚持和发展什么样的中国特色社会主义、怎样坚持和发展中国特色社会主义", "中国共产党领导是中国特色社会主义最本质的特征", "人民立场是根本政治立场", "中国式现代化是人口规模巨大、全体人民共同富裕等特征的现代化", "五位一体：经济、政治、文化、社会、生态文明", "四个全面：现代化国家、深化改革、依法治国、从严治党"],
     choices: [],
     essays: [],
-    sources: officialTextbookSources("xi").concat(localSources(["第八章  习近平新时代中国特色社会主义思想及其历史地位.docx", "第九章  坚持和发展中国特色社会主义的总任务.docx", "第十章  “五位一体”总体布局.docx"]), commonSources("习近平新时代中国特色社会主义思想概论"))
+    sources: officialTextbookSources("xi").concat([userExamSource("课程教学大纲与第五至七章练习题", "已用于补充并核验题干、标准答案和主观题作答要点；仅追加可完整对应的题目。")], localSources(["第八章  习近平新时代中国特色社会主义思想及其历史地位.docx", "第九章  坚持和发展中国特色社会主义的总任务.docx", "第十章  “五位一体”总体布局.docx"]), commonSources("习近平新时代中国特色社会主义思想概论"))
   },
   {
     id: "marx",
@@ -116,7 +116,7 @@ const courses = [
     keypoints: ["哲学基本问题：思维和存在的关系问题", "物质决定意识，意识对物质具有能动反作用", "矛盾的对立统一规律是唯物辩证法的实质和核心", "实践是认识的来源、动力、目的和检验真理的唯一标准", "生产力和生产关系、经济基础和上层建筑构成社会基本矛盾", "剩余价值理论揭示资本主义剥削秘密"],
     choices: [],
     essays: [],
-    sources: officialTextbookSources("marx").concat(localSources(["客观题（2022）老师亲自公布\\习题1：唯物论与辩证法.docx", "客观题（2022）老师亲自公布\\习题2：认识论.doc", "2022.11.17-主观题题库.doc", "主观题复习资料《马克思主义基本原理概论》.doc"]), commonSources("马克思主义基本原理"))
+    sources: officialTextbookSources("marx").concat([userExamSource("2024自学考试大纲与部分习题参考答案", "已作为复习范围比对资料；现有网页仅含参考答案而缺少对应完整题干，因此未直接导入题目。")], localSources(["客观题（2022）老师亲自公布\\习题1：唯物论与辩证法.docx", "客观题（2022）老师亲自公布\\习题2：认识论.doc", "2022.11.17-主观题题库.doc", "主观题复习资料《马克思主义基本原理概论》.doc"]), commonSources("马克思主义基本原理"))
   }
 ];
 
@@ -609,6 +609,10 @@ function setAuthMessage(message, state = "") {
   els.authMessage.textContent = message;
   if (state) els.authMessage.dataset.state = state;
   else delete els.authMessage.dataset.state;
+}
+
+function userExamSource(title, note) {
+  return { type: "用户提供真题/大纲", title, note, url: "" };
 }
 
 function clearQuestionBank() {
