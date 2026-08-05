@@ -31,6 +31,8 @@ jobs:
         if: ${{ hashFiles('data/question-bank-source/app-with-question-seed.js') != '' }}
       - name: Verify member access contract
         run: npm run verify:security
+      - name: Verify structured course knowledge
+        run: npm run verify:knowledge
       - name: Verify production build excludes question sources
         run: |
           npm run build

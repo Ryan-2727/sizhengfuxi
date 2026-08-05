@@ -120,6 +120,16 @@ const courses = [
   }
 ];
 
+const knowledgeByCourse = new Map((window.courseKnowledge || []).map((course) => [course.id, course]));
+for (const course of courses) {
+  const knowledge = knowledgeByCourse.get(course.id);
+  if (!knowledge) continue;
+  course.edition = knowledge.edition;
+  course.isbn = knowledge.isbn;
+  course.knowledge = knowledge;
+  course.chapters = knowledge.chapters.map((chapter) => [chapter.title, chapter.summary]);
+}
+
 const supplements = {
   history: {
     facts: [
@@ -582,6 +592,16 @@ els.changeEmailBtn.addEventListener("click", () => {
   els.emailInput.focus();
 });
 els.signOutBtn.addEventListener("click", signOut);
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-knowledge-mastered]");
+  if (!button) return;
+  const key = button.dataset.knowledgeMastered;
+  const mastered = studyProgress.mastery[key] === "mastered";
+  if (mastered) delete studyProgress.mastery[key];
+  else studyProgress.mastery[key] = "mastered";
+  saveStudyProgress();
+  if (state.courseId) renderCourse();
+});
 
 bootstrap();
 
@@ -754,7 +774,7 @@ function renderHome() {
   els.homeView.hidden = false;
   els.courseView.hidden = true;
   const query = state.query;
-  els.courseGrid.innerHTML = courses
+  const matchedCourses = courses
     .filter((course) => searchable(course).includes(query))
     .map((course) => `
       <button class="course-card" style="--accent:${course.accent}" type="button" data-course="${course.id}">
@@ -768,9 +788,36 @@ function renderHome() {
         </div>
       </button>
     `).join("");
+  const knowledgeResults = query ? findKnowledgeResults(query) : [];
+  els.courseGrid.innerHTML = `${matchedCourses}${knowledgeResults.length ? `
+    <section class="search-results">
+      <h2>知识点搜索结果</h2>
+      ${knowledgeResults.map((result) => `<button type="button" data-search-chapter="${result.courseId}:${result.chapterIndex}"><strong>${escapeHtml(result.title)}</strong><span>${escapeHtml(result.courseName)} · ${escapeHtml(result.chapterTitle)}</span><small>${escapeHtml(result.summary)}</small></button>`).join("")}
+    </section>` : ""}`;
   document.querySelectorAll("[data-course]").forEach((card) => {
     card.addEventListener("click", () => { void showCourse(card.dataset.course); });
   });
+  document.querySelectorAll("[data-search-chapter]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const [courseId, chapterIndex] = button.dataset.searchChapter.split(":");
+      await showCourse(courseId);
+      document.querySelector(`#chapter-${Number(chapterIndex) + 1}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+}
+
+function findKnowledgeResults(query) {
+  const needle = query.toLowerCase();
+  return courses.flatMap((course) => (course.knowledge?.chapters || []).flatMap((chapter, chapterIndex) =>
+    chapter.sections.flatMap((section) => section.points.filter((item) => `${item.title}${item.keywords.join("")}${item.keyPoints.join("")}`.toLowerCase().includes(needle)).map((item) => ({
+      courseId: course.id,
+      courseName: course.name,
+      chapterIndex,
+      chapterTitle: chapter.title,
+      title: item.title,
+      summary: item.keyPoints[0]
+    })))
+  )).slice(0, 20);
 }
 
 function showHome() {
@@ -901,6 +948,7 @@ function renderCourse() {
     <div class="hero-block">
       <p class="eyebrow">${course.short}</p>
       <h1>${course.name}</h1>
+      <p class="edition-line">教材：${escapeHtml(course.edition || "版本待人工核验")} · ISBN：${escapeHtml(course.isbn || "待人工核验")}</p>
       <p>${course.summary}</p>
     </div>
     <div class="hero-note">
@@ -919,6 +967,7 @@ function renderCourse() {
     <div class="key-grid">
       ${course.keypoints.map((point) => `<div class="key-card">${point}</div>`).join("")}
     </div>
+    ${course.knowledge?.overview ? `<div class="course-overview-map"><h3>总览知识图谱</h3><div>${course.knowledge.overview.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div></div>` : ""}
   `;
   renderQuestions(course);
   els.sources.innerHTML = `
@@ -1017,6 +1066,8 @@ function bindQuestionInteractions(root) {
 }
 
 function renderChapter(course, chapter, index) {
+  const structuredChapter = course.knowledge?.chapters[index];
+  if (structuredChapter?.sections?.length) return renderStructuredChapter(course, structuredChapter, index);
   const detail = buildChapterDetail(course, chapter, index);
   return `
     <section class="chapter-item rich-chapter" id="chapter-${index + 1}">
@@ -2244,6 +2295,44 @@ function normalizeAnswerLetters(value) {
   return [...new Set(String(value).toUpperCase().match(/[A-F]/g) || [])].sort().join("");
 }
 
+function renderStructuredChapter(course, chapter, index) {
+  const points = chapter.sections.flatMap((section) => section.points.map((item) => ({ ...item, sectionTitle: section.title })));
+  return `
+    <section class="chapter-item rich-chapter structured-chapter" id="chapter-${index + 1}">
+      <div class="chapter-heading"><div><h3>${escapeHtml(chapter.title)}</h3><p>${escapeHtml(chapter.summary)}</p></div><span class="importance-tag importance-${chapter.importance}">${escapeHtml(chapter.importance)}</span></div>
+      ${chapter.sections.map((section) => `
+        <section class="knowledge-section">
+          <h4>${escapeHtml(section.title)}</h4>
+          ${section.points.map((item) => renderKnowledgePoint(course, chapter, item)).join("")}
+        </section>
+      `).join("")}
+      <div class="chapter-map compact-map" aria-label="${escapeHtml(chapter.title)}知识图谱">
+        <strong>本章知识图谱</strong>
+        <span>${points.map((item) => escapeHtml(item.title)).join(" · ")}</span>
+      </div>
+    </section>
+  `;
+}
+
+function renderKnowledgePoint(course, chapter, item) {
+  const progressId = `knowledge:${course.id}:${chapter.id}:${item.id}`;
+  const mastered = studyProgress.mastery[progressId] === "mastered";
+  const list = (label, values) => values?.length ? `<div class="knowledge-block"><strong>${label}</strong><ul>${values.map((value) => `<li>${escapeHtml(value)}</li>`).join("")}</ul></div>` : "";
+  const comparison = item.distinctions?.length ? `<div class="knowledge-block comparison-block"><strong>对比</strong><ul>${item.distinctions.map((value) => `<li><b>${escapeHtml(value.left)}</b>：${escapeHtml(value.right)}</li>`).join("")}</ul></div>` : "";
+  return `
+    <article class="knowledge-card knowledge-${item.importance}">
+      <div class="knowledge-card-head"><div><span class="importance-tag importance-${item.importance}">${escapeHtml(item.importance)}</span><h5>${escapeHtml(item.title)}</h5></div><button type="button" class="knowledge-mastered ${mastered ? "active" : ""}" data-knowledge-mastered="${progressId}">${mastered ? "已掌握" : "标记已掌握"}</button></div>
+      <div class="keyword-row">${item.keywords.map((word) => `<span>${escapeHtml(word)}</span>`).join("")}</div>
+      ${list("核心内容", item.keyPoints)}
+      ${list("意义与作用", item.significance)}
+      ${list("常见误区", item.commonMistakes)}
+      ${comparison}
+      ${list("材料题答题框架", item.answerTemplate)}
+      <p class="knowledge-source">来源：${escapeHtml(item.source.book)}（${escapeHtml(item.source.edition)}），${escapeHtml(item.source.chapter)}；${escapeHtml(item.source.verification)}${item.source.page ? `，第 ${escapeHtml(item.source.page)} 页` : ""}</p>
+    </article>
+  `;
+}
+
 function cleanAnalysisText(value = "") {
   return String(value)
     .replace(/^\s*解析[:：]\s*/, "")
@@ -2402,7 +2491,15 @@ function getCourseById(courseId) {
 }
 
 function searchable(course) {
-  return `${course.short}${course.name}${course.summary}${course.keypoints.join("")}${course.chapters.flat().join("")}`;
+  const knowledge = course.knowledge?.chapters.flatMap((chapter) => [
+    chapter.title,
+    chapter.summary,
+    ...chapter.sections.flatMap((section) => [
+      section.title,
+      ...section.points.flatMap((item) => [item.title, ...item.keywords, ...item.keyPoints, ...(item.commonMistakes || [])])
+    ])
+  ]).join("") || "";
+  return `${course.short}${course.name}${course.summary}${course.keypoints.join("")}${course.chapters.flat().join("")}${knowledge}`;
 }
 
 function escapeHtml(value) {

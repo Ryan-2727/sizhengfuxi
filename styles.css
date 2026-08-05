@@ -237,6 +237,36 @@ input {
   min-width: 0;
 }
 
+.search-results {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 8px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.search-results h2 {
+  margin: 0 0 4px;
+  font-size: 18px;
+}
+
+.search-results button {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #f8fafc;
+  text-align: left;
+  cursor: pointer;
+}
+
+.search-results span,
+.search-results small {
+  color: #64748b;
+}
+
 .course-card {
   display: grid;
   grid-template-rows: 32px minmax(88px, auto) minmax(86px, 1fr) auto;
@@ -394,6 +424,13 @@ input {
 .hero-note p {
   color: var(--muted);
   line-height: 1.7;
+}
+
+.hero-block .edition-line {
+  margin: -3px 0 10px;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .hero-note {
@@ -761,6 +798,137 @@ input {
   gap: 12px;
 }
 
+.chapter-heading,
+.knowledge-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.knowledge-section {
+  margin-top: 18px;
+}
+
+.knowledge-section > h4 {
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.knowledge-card {
+  margin-top: 12px;
+  padding: 15px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.knowledge-card h5 {
+  margin: 7px 0 0;
+  font-size: 16px;
+}
+
+.importance-tag {
+  display: inline-flex;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.importance-基础 { background: #e2e8f0; color: #334155; }
+.importance-重点 { background: #fef3c7; color: #92400e; }
+.importance-高频 { background: #fee2e2; color: #b91c1c; }
+
+.knowledge-block {
+  margin-top: 12px;
+}
+
+.knowledge-block strong {
+  display: block;
+  color: #334155;
+}
+
+.knowledge-block ul {
+  margin: 6px 0 0;
+  padding-left: 20px;
+  color: #263243;
+  line-height: 1.72;
+}
+
+.knowledge-block li + li {
+  margin-top: 5px;
+}
+
+.knowledge-source {
+  margin-top: 14px !important;
+  font-size: 12px;
+  color: #64748b !important;
+}
+
+.knowledge-mastered {
+  flex: 0 0 auto;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+}
+
+.knowledge-mastered.active {
+  border-color: #15803d;
+  background: #dcfce7;
+  color: #166534;
+}
+
+.compact-map {
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  background: #f8fafc;
+}
+
+.compact-map strong,
+.compact-map span {
+  display: block;
+}
+
+.compact-map span {
+  margin-top: 7px;
+  color: #475569;
+  line-height: 1.65;
+}
+
+.course-overview-map {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--accent);
+  background: #fff;
+}
+
+.course-overview-map h3 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+
+.course-overview-map div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.course-overview-map span {
+  padding: 7px 9px;
+  border: 1px solid color-mix(in srgb, var(--accent), #ffffff 60%);
+  border-radius: 5px;
+  color: #334155;
+  font-size: 13px;
+}
+
 .question-load-state {
   padding: 18px;
   border: 1px solid var(--line);
@@ -1126,6 +1294,15 @@ dialog {
 
 dialog::backdrop {
   background: rgba(15, 23, 42, .45);
+}
+
+.site-disclaimer {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 18px 24px 34px;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.7;
 }
 
 .dialog-close {
