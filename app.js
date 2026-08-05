@@ -2244,6 +2244,13 @@ function normalizeAnswerLetters(value) {
   return [...new Set(String(value).toUpperCase().match(/[A-F]/g) || [])].sort().join("");
 }
 
+function cleanAnalysisText(value = "") {
+  return String(value)
+    .replace(/^\s*解析[:：]\s*/, "")
+    .replace(/\?{5,}/g, "")
+    .trim();
+}
+
 function choiceCorrectAnswer(item) {
   const letters = choiceAnswerLetters(item);
   return letters ? `正确答案：${letters}` : item.answer;

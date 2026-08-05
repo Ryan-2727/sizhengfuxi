@@ -32,6 +32,7 @@ async function main() {
   assert(ensure.includes("putCourseQuestionCache"), "first course downloads must be cached");
   assert(app.includes('from("question_bank_catalog")'), "startup must load the catalog");
   assert(!app.includes("loadQuestionBankFromSupabase"), "startup must not use the old full-bank loader");
+  assert(/function cleanAnalysisText\(/.test(app), "choice analysis rendering must include its text-cleaning helper");
   console.log("Lazy course cache contract passed.");
 }
 
