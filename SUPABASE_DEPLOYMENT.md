@@ -64,6 +64,8 @@ npm run member:extend -- student@example.com 2026-12-31T23:59:59+08:00
 npm run member:revoke -- student@example.com
 ```
 
+`member:add` has a 300 active, unexpired member limit. Renewing an already active member remains allowed. When the limit is reached, the script refuses to create or activate another account and asks the administrator to check **Supabase Dashboard > Usage** before changing the operating limit.
+
 ## 5. Cloudflare Pages
 
 Set the project build settings:

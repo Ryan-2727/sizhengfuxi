@@ -36,6 +36,8 @@ npm run import:questions
 npm run member:add -- student@example.com 30
 ```
 
+`member:add` limits the site to 300 active, unexpired members. At capacity it refuses the new activation before creating an Auth user and directs the administrator to check Supabase Usage.
+
 完整的 Supabase、Cloudflare Pages、SMTP、RLS 与会员管理操作见 [SUPABASE_DEPLOYMENT.md](SUPABASE_DEPLOYMENT.md)。
 
 ## 维护说明
