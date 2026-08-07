@@ -8,6 +8,7 @@ loadLocalEnv(require("path").resolve(__dirname, ".."));
 const dryRun = process.argv.includes("--dry-run");
 const catalogOnly = process.argv.includes("--catalog-only");
 const appendCurated = process.argv.includes("--append-curated");
+const syncCurated = process.argv.includes("--sync-curated");
 const url = process.env.SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!dryRun && (!url || !serviceRoleKey)) {
@@ -76,7 +77,7 @@ async function readCourseQuestions(courseId, questionType) {
   for (let from = 0; ; from += 1000) {
     const { data, error } = await supabase
       .from("questions")
-      .select("course_id, question_type, question_order, payload")
+      .select("id, course_id, question_type, question_order, payload")
       .eq("course_id", courseId)
       .eq("question_type", questionType)
       .order("question_order", { ascending: true })
@@ -155,6 +156,37 @@ async function appendCuratedQuestions() {
   console.log("Appended curated questions without replacing existing question rows.");
 }
 
+async function syncCuratedQuestions() {
+  const summary = [];
+  for (const course of courses) {
+    let updated = 0;
+    let skipped = 0;
+    for (const [questionType, items] of Object.entries({
+      choice: course.choices.filter(isCuratedAddition),
+      essay: course.essays.filter(isCuratedAddition)
+    })) {
+      if (!items.length) continue;
+      const existing = await readCourseQuestions(course.id, questionType);
+      const byQuestion = new Map(existing.map((item) => [questionKey(item.payload), item]));
+      for (const payload of items) {
+        const current = byQuestion.get(questionKey(payload));
+        if (!current || !isCuratedAddition(current.payload)) {
+          skipped += 1;
+          continue;
+        }
+        if (stableJson(current.payload) === stableJson(payload)) continue;
+        const { error } = await supabase.from("questions").update({ payload }).eq("id", current.id);
+        if (error) throw error;
+        updated += 1;
+      }
+    }
+    summary.push({ course: course.id, updated, skipped });
+  }
+  await updateCatalogFromDatabase();
+  console.table(summary);
+  console.log("Synced curated question quality without changing original question rows.");
+}
+
 async function main() {
   if (dryRun) {
     console.table(courses.map((course) => ({
@@ -173,6 +205,10 @@ async function main() {
   }
   if (appendCurated) {
     await appendCuratedQuestions();
+    return;
+  }
+  if (syncCurated) {
+    await syncCuratedQuestions();
     return;
   }
   const { count, error: countError } = await supabase

@@ -11,7 +11,8 @@
     "member:extend": "node scripts/admin/extend-member.js",
     "verify:security": "node scripts/verify-member-gating.js",
     "verify:lazy-cache": "node scripts/verify-lazy-question-bank.js",
-    "verify:knowledge": "node scripts/verify-course-knowledge.js"
+    "verify:knowledge": "node scripts/verify-course-knowledge.js",
+    "verify:database": "node scripts/verify-supabase-question-bank.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.4"

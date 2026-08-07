@@ -846,7 +846,7 @@ function findKnowledgeResults(query) {
   const guideResults = courses.flatMap((course) => {
     const guide = course.knowledge?.reviewGuide;
     if (!guide) return [];
-    const text = `${guide.title}${guide.patterns.join("")}${guide.comparisons.map((item) => `${item.left}${item.right}`).join("")}${guide.mistakes.join("")}${guide.answerTemplate.join("")}`;
+    const text = `${guide.title}${guide.patterns.join("")}${guide.comparisons.map((item) => `${item.left}${item.right}`).join("")}${guide.mistakes.join("")}${guide.answerTemplate.join("")}${guide.timeline?.map((item) => `${item.date}${item.event}${item.note}`).join("") || ""}${guide.modelAnswers?.map((item) => `${item.question}${item.answer}${item.scoring.join("")}`).join("") || ""}`;
     if (!text.toLowerCase().includes(needle)) return [];
     return [{
       courseId: course.id,
@@ -2341,6 +2341,24 @@ function normalizeAnswerLetters(value) {
 function renderCourseReviewGuide(guide) {
   if (!guide) return "";
   const list = (items) => `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+  const timeline = guide.timeline?.length ? `
+    <section class="course-timeline">
+      <h4>关键时间线</h4>
+      <ol>${guide.timeline.map((item) => `<li><time>${escapeHtml(item.date)}</time><div><strong>${escapeHtml(item.event)}</strong><span>${escapeHtml(item.note)}</span></div></li>`).join("")}</ol>
+    </section>
+  ` : "";
+  const modelAnswers = guide.modelAnswers?.length ? `
+    <section class="model-answers">
+      <h4>大题标准答案示范</h4>
+      ${guide.modelAnswers.map((item) => `
+        <article>
+          <h5>${escapeHtml(item.question)}</h5>
+          <p>${escapeHtml(item.answer)}</p>
+          <div><strong>得分点</strong><ul>${item.scoring.map((point) => `<li>${escapeHtml(point)}</li>`).join("")}</ul></div>
+        </article>
+      `).join("")}
+    </section>
+  ` : "";
   return `
     <section class="course-review-guide" aria-label="${escapeHtml(guide.title)}">
       <h3>${escapeHtml(guide.title)}</h3>
@@ -2350,6 +2368,8 @@ function renderCourseReviewGuide(guide) {
         <div><h4>易错表述</h4>${list(guide.mistakes)}</div>
         <div><h4>材料题框架</h4><ol>${guide.answerTemplate.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ol></div>
       </div>
+      ${timeline}
+      ${modelAnswers}
     </section>
   `;
 }
@@ -2461,11 +2481,20 @@ function choiceAnalysis(item) {
   const picked = letters.split("").filter((letter) => opts[letter]).map((letter) => `${letter}. ${opts[letter]}`);
   const stem = choiceStem(item.question);
   const explanation = cleanAnalysisText(item.analysis);
+  const courseGuide = {
+    history: "先核对历史阶段、时间、事件主体和历史意义，再排除把相近事件或阶段混在一起的选项。",
+    morality: "先判断题干属于人生价值、理想信念、道德规范还是法治素养，再按概念层级核对选项。",
+    mao: "先定位理论形成时期和题干所问的核心问题，再区分理论精髓、主要内容、历史地位与具体政策。",
+    xi: "重点核对“根本、核心、首要、关键、保障”等限定词，区分战略目标、原则、路径和具体举措。",
+    marx: "先找出材料或题干所体现的原理关系，再核对原理的适用条件和方法论，避免只按字面相似作答。"
+  }[item.courseId] || "先抓题干限定词，再回到教材中的规范表述逐项核对。";
+  const answerType = letters.length > 1 ? "多选题" : "单选题";
   return [
     `考点：本题考查“${shortMemoryKey(stem)}”。`,
-    explanation,
+    `判断依据：${explanation || "题干的限定词决定了正确选项必须同时符合概念、范围和层级。"}`,
     picked.length ? `答案对应：${picked.join("；")}。` : "",
-    `记忆方法：不要只记字母，把题干关键词与正确选项中的规范表述绑定记忆；多选题按选项逐项核对。`
+    `选项排除：${courseGuide}`,
+    `记忆方法：不要只记字母，把题干关键词与正确选项中的规范表述绑定记忆；${answerType}按${letters.length || "全部"}个正确项逐项核对。`
   ].filter(Boolean).join("\n");
 }
 

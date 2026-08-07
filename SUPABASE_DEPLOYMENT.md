@@ -57,6 +57,18 @@ npm run import:questions -- --append-curated
 
 This mode checks question stems for duplicates, appends only missing curated questions at the end of each course and question type, then recalculates catalog counts and hashes from the database.
 
+When a reviewed correction affects only the curated supplement, sync it without touching the original question-bank rows:
+
+```powershell
+npm run import:questions -- --sync-curated
+```
+
+Before release, run the read-only structural check. It rejects exact duplicate stems within a course and type, missing answers, invalid choice answers, and single/multiple-choice label mismatches:
+
+```powershell
+npm run verify:database
+```
+
 ## 4. Member management
 
 All three scripts require `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in the local shell. Do not put the service role key in Cloudflare Pages.

@@ -11,6 +11,8 @@ async function main() {
   let completeChapters = 0;
   let points = 0;
   let pendingVerification = 0;
+  let modelAnswers = 0;
+  let timelineEntries = 0;
 
   assert.equal(courseKnowledge.length, 5, "Exactly five courses are required.");
   for (const course of courseKnowledge) {
@@ -18,6 +20,22 @@ async function main() {
     courseIds.add(course.id);
     assert(course.isbn && course.edition, `${course.id} needs textbook metadata.`);
     assert(course.chapters.length > 0, `${course.id} needs chapters.`);
+    const guide = course.reviewGuide;
+    assert(guide, `${course.id} needs a course review guide.`);
+    assert(guide.patterns?.length >= 3, `${course.id} needs high-frequency patterns.`);
+    assert(guide.comparisons?.length >= 3, `${course.id} needs concept comparisons.`);
+    assert(guide.mistakes?.length >= 3, `${course.id} needs common mistakes.`);
+    assert(guide.answerTemplate?.length >= 3, `${course.id} needs an answer template.`);
+    assert(guide.modelAnswers?.length >= 2, `${course.id} needs model essay answers.`);
+    for (const model of guide.modelAnswers) {
+      assert(model.question && model.answer?.length >= 120, `${course.id} has an incomplete model answer.`);
+      assert(model.scoring?.length >= 4, `${course.id} model answer needs scoring points.`);
+      modelAnswers += 1;
+    }
+    for (const entry of guide.timeline || []) {
+      assert(entry.date && entry.event && entry.note, `${course.id} has an incomplete timeline entry.`);
+      timelineEntries += 1;
+    }
     for (const chapter of course.chapters) {
       assert(!chapterIds.has(chapter.id), `Duplicate chapter id: ${chapter.id}`);
       chapterIds.add(chapter.id);
@@ -39,7 +57,7 @@ async function main() {
     }
   }
   assert.equal(completeChapters, chapterIds.size, "Every course chapter needs structured review content.");
-  console.log(JSON.stringify({ courses: courseKnowledge.length, completeChapters, points, pendingVerification }));
+  console.log(JSON.stringify({ courses: courseKnowledge.length, completeChapters, points, modelAnswers, timelineEntries, pendingVerification }));
 }
 
 main().catch((error) => {

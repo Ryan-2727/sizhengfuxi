@@ -17,6 +17,9 @@ npm run dev
 npm run audit
 npm run verify:security
 npm run verify:lazy-cache
+npm run verify:knowledge
+# Requires local SUPABASE_SERVICE_ROLE_KEY; reads only.
+npm run verify:database
 npm run build
 node scripts/verify-production-build.js
 ```
@@ -31,6 +34,9 @@ node scripts/import-question-bank.js --dry-run
 
 # 设置 SUPABASE_URL 和 SUPABASE_SERVICE_ROLE_KEY 后导入
 npm run import:questions
+
+# 仅同步“精选补充题/用户提供真题”的答案、解析或题型修正，不改动原题库行
+npm run import:questions -- --sync-curated
 
 # 首个会员，30 天有效
 npm run member:add -- student@example.com 30
