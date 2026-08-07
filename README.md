@@ -28,6 +28,8 @@ node scripts/verify-production-build.js
 
 完整题库源数据位于本地的 `data/question-bank-source/`，仅供审计和一次性导入脚本使用。该目录被 `.gitignore` 排除，不会被 Vite 复制到 `dist/`，也不会推送到公开仓库。
 
+题库维护时运行 `npm run verify:coverage` 查看每门课距离 500 道选择题、50 道大题的缺口；只有题干、答案和解析可核验的新增题才能用于补齐缺口。正式发布前可运行 `node scripts/verify-question-coverage.js --strict` 作为硬性门槛。
+
 ```powershell
 # 不写入数据库，仅核对可导入的题目数量
 node scripts/import-question-bank.js --dry-run

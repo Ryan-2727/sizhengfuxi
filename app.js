@@ -561,9 +561,79 @@ function questionSourceLabel(item) {
   return "课程题库";
 }
 
+const reviewedQuestionChapterRules = {
+  history: [
+    ["history-1", ["鸦片战争", "南京条约", "半殖民地半封建", "三元里", "林则徐", "魏源", "师夷长技"]],
+    ["history-2", ["太平天国", "天朝田亩", "资政新篇", "洋务运动", "自强", "求富", "戊戌维新", "百日维新"]],
+    ["history-3", ["辛亥革命", "三民主义", "武昌起义", "中华民国", "君主专制"]],
+    ["history-4", ["五四运动", "中共一大", "中国共产党成立", "第一次国共合作", "北伐", "大革命"]],
+    ["history-5", ["井冈山", "南昌起义", "秋收起义", "遵义会议", "长征", "土地革命"]],
+    ["history-6", ["九一八", "卢沟桥", "抗日民族统一战线", "敌后战场", "抗日战争"]],
+    ["history-7", ["解放战争", "三大战役", "政协", "中华人民共和国成立", "新中国成立"]],
+    ["history-8", ["社会主义改造", "一化三改", "过渡时期", "社会主义基本制度"]],
+    ["history-9", ["十一届三中全会", "改革开放", "社会主义初级阶段", "社会主义市场经济"]],
+    ["history-10", ["中国特色社会主义进入新时代", "新时代主要矛盾", "中国梦", "十八大"]]
+  ],
+  morality: [
+    ["morality-1", ["人生目的", "人生态度", "人生价值", "人生观", "人为什么活着"]],
+    ["morality-2", ["理想信念", "个人理想", "社会理想", "共同理想", "精神之钙"]],
+    ["morality-3", ["中国精神", "民族精神", "时代精神", "爱国主义", "改革创新"]],
+    ["morality-4", ["核心价值观", "富强民主文明和谐", "自由平等公正法治", "爱国敬业诚信友善"]],
+    ["morality-5", ["社会公德", "职业道德", "家庭美德", "个人品德", "诚实守信"]],
+    ["morality-6", ["法治思维", "法律权利", "法律义务", "依法治国", "程序意识"]]
+  ],
+  mao: [
+    ["mao-1", ["毛泽东思想", "活的灵魂", "实事求是", "群众路线", "独立自主"]],
+    ["mao-2", ["新民主主义革命", "革命总路线", "三大法宝", "统一战线", "武装斗争"]],
+    ["mao-3", ["社会主义改造", "过渡时期总路线", "三大改造", "和平赎买"]],
+    ["mao-4", ["社会主义建设道路", "论十大关系", "正确处理人民内部矛盾"]],
+    ["mao-5", ["中国特色社会主义理论体系", "马克思主义中国化时代化", "理论成果"]],
+    ["mao-6", ["邓小平理论", "社会主义本质", "三个有利于", "初级阶段"]],
+    ["mao-7", ["三个代表", "先进生产力", "先进文化", "根本利益"]],
+    ["mao-8", ["科学发展观", "以人为本", "全面协调可持续", "统筹兼顾"]]
+  ],
+  xi: [
+    ["xi-1", ["新时代", "中国特色社会主义", "主要矛盾", "历史方位"]],
+    ["xi-2", ["中国式现代化", "民族复兴", "五个特征", "本质要求"]],
+    ["xi-3", ["党的全面领导", "党的领导", "最大优势", "根本保证"]],
+    ["xi-4", ["以人民为中心", "人民至上", "人民立场", "共同富裕"]],
+    ["xi-5", ["全面深化改革", "十八届三中全会", "国家治理体系", "改革开放"]],
+    ["xi-6", ["高质量发展", "新发展理念", "新发展格局", "国内大循环"]],
+    ["xi-7", ["教育强国", "科技强国", "人才强国", "科教兴国", "基础研究"]],
+    ["xi-8", ["全过程人民民主", "人民民主", "协商民主"]],
+    ["xi-9", ["全面依法治国", "法治体系", "科学立法", "严格执法", "公正司法"]],
+    ["xi-13", ["总体国家安全观", "国家安全", "政治安全", "统筹发展和安全"]],
+    ["xi-17", ["全面从严治党", "自我革命", "党的政治建设", "不敢腐"]]
+  ],
+  marx: [
+    ["marx-1", ["物质决定意识", "唯物辩证法", "量变质变", "矛盾", "辩证否定"]],
+    ["marx-2", ["实践", "认识", "真理", "感性认识", "理性认识"]],
+    ["marx-3", ["社会存在", "社会意识", "生产力", "生产关系", "人民群众"]],
+    ["marx-4", ["使用价值", "价值", "具体劳动", "抽象劳动", "剩余价值", "不变资本", "可变资本"]],
+    ["marx-5", ["垄断资本主义", "经济全球化", "资本主义基本矛盾"]],
+    ["marx-6", ["科学社会主义", "社会主义发展道路", "空想社会主义"]],
+    ["marx-7", ["共产主义", "远大理想", "共同理想"]]
+  ]
+};
+
+function reviewedQuestionChapterInfo(item, knowledge) {
+  const text = `${item.question || ""}\n${item.answer || ""}\n${item.analysis || ""}`;
+  const rules = reviewedQuestionChapterRules[item.courseId] || [];
+  const matches = rules.map(([chapterId, terms]) => ({
+    chapterId,
+    score: terms.reduce((count, term) => count + (text.includes(term) ? 1 : 0), 0)
+  })).sort((left, right) => right.score - left.score);
+  const best = matches[0];
+  if (!best || best.score === 0 || (matches[1] && best.score === matches[1].score)) return null;
+  const chapter = knowledge.chapters.find((entry) => entry.id === best.chapterId);
+  return chapter ? { id: chapter.id, title: chapter.title, automated: false, reviewed: true } : null;
+}
+
 function questionChapterInfo(item) {
   const knowledge = knowledgeByCourse.get(item.courseId);
   if (!knowledge) return { id: "unclassified", title: "综合题集", automated: false };
+  const reviewed = reviewedQuestionChapterInfo(item, knowledge);
+  if (reviewed) return reviewed;
   const text = `${item.question || ""}\n${item.answer || ""}\n${item.analysis || ""}`;
   const ignoredTerms = new Set(["中国", "理论", "发展", "建设", "实践", "历史", "社会主义", "马克思主义", "新时代", "人民"]);
   const candidates = knowledge.chapters.map((chapter) => {
@@ -2201,7 +2271,7 @@ function renderQuestion(item) {
       <div class="question-head">
         <div class="question-meta">
           <span class="type-pill">${questionTypeLabel(item)}${item.index ? ` ${item.index}` : ""}</span>
-          <span class="question-chapter-pill" title="${item.chapterInfo.automated ? "根据题干关键词自动归类，可结合教材目录复核" : "未能可靠定位到单一章节"}">${item.chapterInfo.automated ? "章节定位：" : "题集归类："}${escapeHtml(item.chapterInfo.title)}</span>
+          <span class="question-chapter-pill" title="${item.chapterInfo.reviewed ? "按编辑规则人工核对的章节定位" : item.chapterInfo.automated ? "根据题干关键词自动归类，可结合教材目录复核" : "未能可靠定位到单一章节"}">${item.chapterInfo.reviewed ? "核对章节：" : item.chapterInfo.automated ? "章节定位：" : "题集归类："}${escapeHtml(item.chapterInfo.title)}</span>
           <span class="question-source-pill">${escapeHtml(item.sourceLabel)}</span>
           ${verificationStatusLabel(item.auditStatus) ? `<span class="verification-status">${verificationStatusLabel(item.auditStatus)}</span>` : ""}
           ${status ? `<span class="study-status">${status}</span>` : ""}

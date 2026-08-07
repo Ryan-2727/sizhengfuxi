@@ -12,6 +12,7 @@
     "verify:security": "node scripts/verify-member-gating.js",
     "verify:lazy-cache": "node scripts/verify-lazy-question-bank.js",
     "verify:knowledge": "node scripts/verify-course-knowledge.js",
+    "verify:coverage": "node scripts/verify-question-coverage.js",
     "verify:database": "node scripts/verify-supabase-question-bank.js"
   },
   "dependencies": {

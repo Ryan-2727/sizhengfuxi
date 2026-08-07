@@ -140,6 +140,17 @@ const chapterNotes = {
   ]
 };
 
+const chapterPracticePrompt = (courseId, title, keywords) => {
+  const focus = {
+    history: "交代历史背景和社会力量，概括事件或道路的主要内容，并评价其历史作用、局限或经验",
+    morality: "从概念内涵、价值依据和大学生实践要求三个层次展开",
+    mao: "说明理论形成的实践条件、核心观点及其历史地位",
+    xi: "围绕根本立场、战略目标、重点任务和制度保障组织答案",
+    marx: "先阐明基本原理，再结合材料说明其辩证关系和方法论意义"
+  }[courseId];
+  return `结合具体材料，围绕“${keywords.slice(0, 3).join("、")}”说明${title}。作答时应${focus}。`;
+};
+
 function addChapterNotes(courseId, notes) {
   const course = courseKnowledge.find((item) => item.id === courseId);
   for (const [chapterId, page, title, keyPoints, keywords] of notes) {
@@ -191,7 +202,7 @@ function addChapterNotes(courseId, notes) {
       }
     ];
     chapter.examPractice = {
-      prompt: `结合相关材料，说明“${title}”的核心内容、内在关系及其对本章主题的意义。`,
+      prompt: chapterPracticePrompt(courseId, title, keywords),
       answer: [keyPoints[0], keyPoints[1], keyPoints[2], keyPoints[3]],
       scoring: ["准确点明本章核心问题", "结合关键内容说明内在关系", "回应历史意义、理论作用或实践要求", "结合材料信息作出具体回扣"]
     };
@@ -240,7 +251,7 @@ for (const course of courseKnowledge) {
     if (!chapter.examPractice) {
       const corePoints = primary.keyPoints.slice(0, 3);
       chapter.examPractice = {
-        prompt: `结合相关材料，说明“${chapter.title}”的主要内容、核心关系及其意义。`,
+        prompt: chapterPracticePrompt(course.id, chapter.title, terms),
         answer: [...corePoints, `作答时围绕“${terms.join("、")}”回扣材料中的具体信息。`],
         scoring: ["准确点明章节核心问题", "分点说明主要内容", "说明概念或环节之间的关系", "回应材料与实践意义"]
       };
