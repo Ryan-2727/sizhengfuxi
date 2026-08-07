@@ -833,7 +833,7 @@ function renderHome() {
 
 function findKnowledgeResults(query) {
   const needle = query.toLowerCase();
-  return courses.flatMap((course) => (course.knowledge?.chapters || []).flatMap((chapter, chapterIndex) =>
+  const chapterResults = courses.flatMap((course) => (course.knowledge?.chapters || []).flatMap((chapter, chapterIndex) =>
     chapter.sections.flatMap((section) => section.points.filter((item) => `${item.title}${item.keywords.join("")}${item.keyPoints.join("")}`.toLowerCase().includes(needle)).map((item) => ({
       courseId: course.id,
       courseName: course.name,
@@ -842,7 +842,22 @@ function findKnowledgeResults(query) {
       title: item.title,
       summary: item.keyPoints[0]
     })))
-  )).slice(0, 20);
+  ));
+  const guideResults = courses.flatMap((course) => {
+    const guide = course.knowledge?.reviewGuide;
+    if (!guide) return [];
+    const text = `${guide.title}${guide.patterns.join("")}${guide.comparisons.map((item) => `${item.left}${item.right}`).join("")}${guide.mistakes.join("")}${guide.answerTemplate.join("")}`;
+    if (!text.toLowerCase().includes(needle)) return [];
+    return [{
+      courseId: course.id,
+      courseName: course.name,
+      chapterIndex: 0,
+      chapterTitle: "课程重点速览",
+      title: guide.title,
+      summary: guide.mistakes[0]
+    }];
+  });
+  return [...chapterResults, ...guideResults].slice(0, 20);
 }
 
 function showHome() {
@@ -993,6 +1008,7 @@ function renderCourse() {
       ${course.keypoints.map((point) => `<div class="key-card">${point}</div>`).join("")}
     </div>
     ${course.knowledge?.overview ? `<div class="course-overview-map"><h3>总览知识图谱</h3><div>${course.knowledge.overview.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div></div>` : ""}
+    ${renderCourseReviewGuide(course.knowledge?.reviewGuide)}
   `;
   renderQuestions(course);
   els.sources.innerHTML = `
@@ -2176,24 +2192,24 @@ function renderAnswerContent(item) {
   if (item.type === "大题") {
     return `
       <div class="answer-section">
-        <strong class="answer-label">答案</strong>
+        <strong class="answer-label">标准答案</strong>
         <div class="essay-answer-steps">
           ${essayAnswerSegments(essayAnswerContent(item)).map((segment) => `<div class="essay-answer-step">${escapeHtml(segment)}</div>`).join("")}
         </div>
       </div>
       <div class="analysis-section">
-        <strong class="answer-label">解析</strong>
+        <strong class="answer-label">得分点解析</strong>
         <div>${escapeHtml(essayAnalysisContent(item))}</div>
       </div>
     `;
   }
   return `
     <div class="answer-section">
-      <strong class="answer-label">答案</strong>
+      <strong class="answer-label">标准答案</strong>
       <div>${escapeHtml(choiceCorrectAnswer(item))}</div>
     </div>
     <div class="analysis-section">
-      <strong class="answer-label">解析</strong>
+      <strong class="answer-label">得分点解析</strong>
       <div>${escapeHtml(choiceAnalysis(item))}</div>
     </div>
   `;
@@ -2320,6 +2336,22 @@ function choiceAnswerLetters(item) {
 
 function normalizeAnswerLetters(value) {
   return [...new Set(String(value).toUpperCase().match(/[A-F]/g) || [])].sort().join("");
+}
+
+function renderCourseReviewGuide(guide) {
+  if (!guide) return "";
+  const list = (items) => `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+  return `
+    <section class="course-review-guide" aria-label="${escapeHtml(guide.title)}">
+      <h3>${escapeHtml(guide.title)}</h3>
+      <div class="course-review-grid">
+        <div><h4>高频考法</h4>${list(guide.patterns)}</div>
+        <div><h4>跨章节对比</h4><ul>${guide.comparisons.map((item) => `<li><strong>${escapeHtml(item.left)}</strong>${escapeHtml(item.right)}</li>`).join("")}</ul></div>
+        <div><h4>易错表述</h4>${list(guide.mistakes)}</div>
+        <div><h4>材料题框架</h4><ol>${guide.answerTemplate.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ol></div>
+      </div>
+    </section>
+  `;
 }
 
 function normalizeSectionTitle(title) {

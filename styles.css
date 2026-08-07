@@ -980,6 +980,53 @@ input {
   font-size: 13px;
 }
 
+.course-review-guide {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  background: #fff;
+}
+
+.course-review-guide h3,
+.course-review-guide h4 {
+  margin: 0;
+  color: #1e293b;
+}
+
+.course-review-guide h3 {
+  font-size: 16px;
+}
+
+.course-review-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 24px;
+  margin-top: 14px;
+}
+
+.course-review-grid h4 {
+  font-size: 14px;
+}
+
+.course-review-grid ul,
+.course-review-grid ol {
+  margin: 7px 0 0;
+  padding-left: 20px;
+  color: #334155;
+  line-height: 1.68;
+}
+
+.course-review-grid li + li {
+  margin-top: 6px;
+}
+
+.course-review-grid li strong {
+  display: block;
+  color: color-mix(in srgb, var(--accent), #172033 42%);
+  font-size: 13px;
+}
+
 .question-load-state {
   padding: 18px;
   border: 1px solid var(--line);
@@ -1409,6 +1456,7 @@ dialog::backdrop {
   .course-view,
   .course-hero,
   .key-grid,
+  .course-review-grid,
   .chapter-detail-grid,
   .mindmap,
   .mind-branches,
