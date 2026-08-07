@@ -144,18 +144,57 @@ function addChapterNotes(courseId, notes) {
   const course = courseKnowledge.find((item) => item.id === courseId);
   for (const [chapterId, page, title, keyPoints, keywords] of notes) {
     const chapter = course.chapters.find((item) => item.id === chapterId);
-    const pointId = `${chapterId}-review`;
     chapter.summary = `${title}：围绕核心概念、主要内容、易混点和答题角度复习。`;
-    chapter.sections = [{
-      id: `${chapterId}-review-section`,
-      title: "核心梳理",
-      points: [point(pointId, title, chapter.importance, keywords, keyPoints, source(courseId === "history" ? "《中国近现代史纲要》" : courseId === "morality" ? "《思想道德与法治》" : courseId === "mao" ? "《毛泽东思想和中国特色社会主义理论体系概论》" : courseId === "xi" ? "《习近平新时代中国特色社会主义思想概论》" : "《马克思主义基本原理》", course.edition, chapter.title), {
-        commonMistakes: ["答题时先写本章核心判断，再展开依据、内容或历史意义；不要只罗列概念。"],
-        answerTemplate: ["点明本章核心概念或历史判断。", "结合关键内容、关系或实践要求分点说明。", "回扣材料中的具体问题或时代背景。"]
-      })]
-    }];
-    chapter.sections[0].points[0].source.page = page;
-    chapter.sections[0].points[0].source.verification = "目录及页码已核验";
+    const sourceInfo = source(
+      courseId === "history" ? "《中国近现代史纲要》" : courseId === "morality" ? "《思想道德与法治》" : courseId === "mao" ? "《毛泽东思想和中国特色社会主义理论体系概论》" : courseId === "xi" ? "《习近平新时代中国特色社会主义思想概论》" : "《马克思主义基本原理》",
+      course.edition,
+      chapter.title
+    );
+    sourceInfo.page = page;
+    sourceInfo.verification = "目录及页码已核验";
+    chapter.sections = [
+      {
+        id: `${chapterId}-core-section`,
+        title: "重点理解",
+        points: [point(`${chapterId}-core`, `${title}的核心判断`, chapter.importance, keywords.slice(0, 3), [
+          keyPoints[0],
+          keyPoints[1],
+          `复习时先用“${keywords.slice(0, 2).join("、")}”概括本章，再展开具体内容。`
+        ], { ...sourceInfo }, {
+          commonMistakes: ["不要只背术语名称，应同时说明它回答的历史问题、理论问题或实践问题。"],
+          answerTemplate: ["先写本章的核心判断。", "结合两个关键词说明基本内容或条件。", "用题干材料中的事实回扣判断。"]
+        })]
+      },
+      {
+        id: `${chapterId}-relation-section`,
+        title: "关系与辨析",
+        points: [point(`${chapterId}-relation`, `${title}的重点关系`, "重点", keywords, [
+          keyPoints[1],
+          keyPoints[2],
+          `辨析题应围绕“${keywords.slice(0, 3).join("、")}”区分层次、条件和作用，避免把相关概念并列替换。`
+        ], { ...sourceInfo }, {
+          commonMistakes: [`不要把“${keywords[0]}”与“${keywords[1] || "相关概念"}”混作同一层次。`],
+          answerTemplate: ["指出需要辨析的两个概念或环节。", "分别说明各自的含义、作用或条件。", "说明二者的联系并回到本章主题。"]
+        })]
+      },
+      {
+        id: `${chapterId}-application-section`,
+        title: "材料题运用",
+        points: [point(`${chapterId}-application`, `${title}的材料题表达`, "高频", keywords.slice(-3), [
+          keyPoints[2],
+          keyPoints[3],
+          "材料题应先判断材料对应的核心问题，再按背景或依据、主要内容、作用或意义三个层次组织答案。"
+        ], { ...sourceInfo }, {
+          commonMistakes: ["不能只摘录材料现象；每一个材料信息都要对应本章的概念、关系或结论。"],
+          answerTemplate: ["概括材料所反映的本章问题。", "分点写出理论依据、主要内容或历史过程。", "落到作用、意义、经验或实践要求。"]
+        })]
+      }
+    ];
+    chapter.examPractice = {
+      prompt: `结合相关材料，说明“${title}”的核心内容、内在关系及其对本章主题的意义。`,
+      answer: [keyPoints[0], keyPoints[1], keyPoints[2], keyPoints[3]],
+      scoring: ["准确点明本章核心问题", "结合关键内容说明内在关系", "回应历史意义、理论作用或实践要求", "结合材料信息作出具体回扣"]
+    };
   }
 }
 
@@ -198,6 +237,14 @@ for (const course of courseKnowledge) {
         answerTemplate: ["用一句话写出本章的核心判断。", "围绕两个到三个关键词分别说明依据、内容或历史意义。", "结合材料中的事实、现象或设问要求作出回扣。"]
       })]
     });
+    if (!chapter.examPractice) {
+      const corePoints = primary.keyPoints.slice(0, 3);
+      chapter.examPractice = {
+        prompt: `结合相关材料，说明“${chapter.title}”的主要内容、核心关系及其意义。`,
+        answer: [...corePoints, `作答时围绕“${terms.join("、")}”回扣材料中的具体信息。`],
+        scoring: ["准确点明章节核心问题", "分点说明主要内容", "说明概念或环节之间的关系", "回应材料与实践意义"]
+      };
+    }
   }
 }
 
@@ -369,4 +416,40 @@ const courseReviewGuides = {
   }
 };
 
-for (const course of courseKnowledge) course.reviewGuide = courseReviewGuides[course.id];
+const materialTopicsByCourse = {
+  history: {
+    title: "历史材料题：评价救国探索",
+    signals: ["民族危机", "救亡图存", "改革或革命", "失败原因"],
+    framework: ["先交代事件所处的民族危机和社会性质。", "概括相关社会力量的主张、实践或道路。", "评价其历史作用，同时说明时代与阶级局限。", "以人民选择和历史发展逻辑收束。"],
+    avoid: "不能把辛亥革命、洋务运动等探索的历史作用写成已经完成反帝反封建任务。"
+  },
+  morality: {
+    title: "价值与法治材料题：从价值判断到实践要求",
+    signals: ["青年选择", "责任担当", "道德失范", "权利义务", "公共生活"],
+    framework: ["先指出材料涉及的人生价值、道德规范或法治素养。", "写出相应概念的基本内容和价值依据。", "联系权利义务、公共利益或人民立场说明行为边界。", "提出可落实到学习、劳动或社会实践的行动要求。"],
+    avoid: "不能把道德倡导与法律强制混为一谈，也不能只喊口号而不写实践要求。"
+  },
+  mao: {
+    title: "理论形成材料题：按背景、问题、内容、地位作答",
+    signals: ["马克思主义中国化", "革命道路", "改革开放", "理论成果"],
+    framework: ["说明理论形成所面对的历史任务和实践基础。", "准确写出理论回答的核心问题。", "分点概括主要内容或关键观点。", "概括历史地位，并说明理论与实践的结合。"],
+    avoid: "不能把理论精髓、主要内容、历史地位写成同义重复，也不要混淆形成时期。"
+  },
+  xi: {
+    title: "新时代治理材料题：按领导、人民、发展、保障展开",
+    signals: ["中国式现代化", "高质量发展", "改革", "安全", "民生"],
+    framework: ["开头点明党的领导和以人民为中心的根本立场。", "结合题干写出发展目标、重点任务或改革举措。", "说明法治、安全或制度保障如何发挥作用。", "以现代化建设成效和人民利益收束。"],
+    avoid: "不能把战略目标、重点任务和具体举措放在同一层次，也不能把双循环误写为放弃开放。"
+  },
+  marx: {
+    title: "马克思主义原理材料题：原理、对应、方法论",
+    signals: ["变化", "矛盾", "实践", "认识", "社会关系", "资本"],
+    framework: ["先准确写出相关原理的基本判断。", "解释原理内部概念及其辩证关系。", "逐项对应材料中的事实、变化或矛盾。", "最后写出方法论要求，避免停留在定义。"],
+    avoid: "不能把原理名称当作答案本身；必须说明其适用条件和材料对应关系。"
+  }
+};
+
+for (const course of courseKnowledge) {
+  course.reviewGuide = courseReviewGuides[course.id];
+  course.reviewGuide.materialTopic = materialTopicsByCourse[course.id];
+}

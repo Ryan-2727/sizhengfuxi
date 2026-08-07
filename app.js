@@ -498,6 +498,8 @@ const state = {
   courseId: null,
   randomCourseId: null,
   type: "all",
+  chapterId: "all",
+  sourceType: "all",
   query: ""
 };
 
@@ -540,9 +542,52 @@ function stableQuestionId(item) {
 
 function registerQuestion(item) {
   const questionId = stableQuestionId(item);
-  const registered = { ...item, questionId };
+  const registered = {
+    ...item,
+    questionId,
+    chapterInfo: questionChapterInfo(item),
+    sourceLabel: questionSourceLabel(item)
+  };
   questionLookup.set(questionId, registered);
   return registered;
+}
+
+function questionSourceLabel(item) {
+  const source = String(item.source || "");
+  if (/真题|自学考试|考试大纲/.test(source)) return "公开真题";
+  if (/教师|老师|课堂/.test(source)) return "教师资料";
+  if (/精选补充/.test(source)) return "精选补充";
+  if (/教材|课程|整理/.test(source)) return "教材整理";
+  return "课程题库";
+}
+
+function questionChapterInfo(item) {
+  const knowledge = knowledgeByCourse.get(item.courseId);
+  if (!knowledge) return { id: "unclassified", title: "综合题集", automated: false };
+  const text = `${item.question || ""}\n${item.answer || ""}\n${item.analysis || ""}`;
+  const ignoredTerms = new Set(["中国", "理论", "发展", "建设", "实践", "历史", "社会主义", "马克思主义", "新时代", "人民"]);
+  const candidates = knowledge.chapters.map((chapter) => {
+    const terms = new Set();
+    for (const section of chapter.sections || []) {
+      for (const point of section.points || []) {
+        for (const keyword of point.keywords || []) {
+          if (keyword.length >= 3 && !ignoredTerms.has(keyword)) terms.add(keyword);
+        }
+      }
+    }
+    const titleTerms = chapter.title.replace(/^(导言|绪论|结束语|结语|第[一二三四五六七八九十\d]+章)\s*/, "").split(/[、，：\s]/).filter((term) => term.length >= 3);
+    for (const term of titleTerms) terms.add(term);
+    let score = 0;
+    for (const term of terms) {
+      if (text.includes(term)) score += term.length >= 5 ? 3 : 2;
+    }
+    return { chapter, score };
+  }).sort((left, right) => right.score - left.score);
+  const best = candidates[0];
+  if (!best || best.score < 2 || (candidates[1] && best.score === candidates[1].score)) {
+    return { id: "unclassified", title: "综合题集", automated: false };
+  }
+  return { id: best.chapter.id, title: best.chapter.title, automated: true };
 }
 
 const els = {
@@ -846,7 +891,7 @@ function findKnowledgeResults(query) {
   const guideResults = courses.flatMap((course) => {
     const guide = course.knowledge?.reviewGuide;
     if (!guide) return [];
-    const text = `${guide.title}${guide.patterns.join("")}${guide.comparisons.map((item) => `${item.left}${item.right}`).join("")}${guide.mistakes.join("")}${guide.answerTemplate.join("")}${guide.timeline?.map((item) => `${item.date}${item.event}${item.note}`).join("") || ""}${guide.modelAnswers?.map((item) => `${item.question}${item.answer}${item.scoring.join("")}`).join("") || ""}`;
+    const text = `${guide.title}${guide.patterns.join("")}${guide.comparisons.map((item) => `${item.left}${item.right}`).join("")}${guide.mistakes.join("")}${guide.answerTemplate.join("")}${guide.timeline?.map((item) => `${item.date}${item.event}${item.note}`).join("") || ""}${guide.modelAnswers?.map((item) => `${item.question}${item.answer}${item.scoring.join("")}`).join("") || ""}${guide.materialTopic ? `${guide.materialTopic.title}${guide.materialTopic.signals.join("")}${guide.materialTopic.framework.join("")}${guide.materialTopic.avoid}` : ""}`;
     if (!text.toLowerCase().includes(needle)) return [];
     return [{
       courseId: course.id,
@@ -862,6 +907,8 @@ function findKnowledgeResults(query) {
 
 function showHome() {
   state.type = "all";
+  state.chapterId = "all";
+  state.sourceType = "all";
   renderHome();
   if (location.hash) history.pushState("", document.title, location.pathname + location.search);
   window.scrollTo({ top: 0, behavior: "auto" });
@@ -870,6 +917,8 @@ function showHome() {
 async function showCourse(id, updateHash = true) {
   state.courseId = id;
   state.type = "all";
+  state.chapterId = "all";
+  state.sourceType = "all";
   els.homeView.hidden = true;
   els.courseView.hidden = false;
   renderCourse();
@@ -1040,10 +1089,14 @@ function renderQuestions(course) {
     ...course.choices.map((item, index) => registerQuestion({ ...item, courseId: course.id, type: "选择题", index: index + 1 })),
     ...course.essays.map((item, index) => registerQuestion({ ...item, courseId: course.id, type: "大题", index: index + 1 }))
   ];
+  const chapterOptions = course.knowledge?.chapters || [];
+  const sourceTypes = [...new Set(all.map((item) => item.sourceLabel))];
   const filtered = all.filter((item) => {
     const typeOk = questionMatchesFilter(item, state.type);
-    const queryOk = !state.query || `${item.question}${item.answer}${item.analysis || ""}${item.source}`.includes(state.query);
-    return typeOk && queryOk;
+    const chapterOk = state.chapterId === "all" || item.chapterInfo.id === state.chapterId;
+    const sourceOk = state.sourceType === "all" || item.sourceLabel === state.sourceType;
+    const queryOk = !state.query || `${item.question}${item.answer}${item.analysis || ""}${item.source}${item.chapterInfo.title}`.includes(state.query);
+    return typeOk && chapterOk && sourceOk && queryOk;
   });
   els.questions.innerHTML = `
     <div class="question-toolbar">
@@ -1057,6 +1110,22 @@ function renderQuestions(course) {
         ${filterButton("review", "需复习")}
       </div>
     </div>
+    <div class="question-filter-selects">
+      <label>章节
+        <select data-question-chapter>
+          <option value="all">全部章节</option>
+          ${chapterOptions.map((chapter) => `<option value="${escapeHtml(chapter.id)}" ${state.chapterId === chapter.id ? "selected" : ""}>${escapeHtml(chapter.title)}</option>`).join("")}
+          <option value="unclassified" ${state.chapterId === "unclassified" ? "selected" : ""}>综合题集（未定位）</option>
+        </select>
+      </label>
+      <label>题源
+        <select data-question-source>
+          <option value="all">全部题源</option>
+          ${sourceTypes.map((sourceType) => `<option value="${escapeHtml(sourceType)}" ${state.sourceType === sourceType ? "selected" : ""}>${escapeHtml(sourceType)}</option>`).join("")}
+        </select>
+      </label>
+      <span class="question-filter-count">当前 ${filtered.length} 题</span>
+    </div>
     <div class="question-list">
       ${filtered.length ? filtered.map(renderQuestion).join("") : `<p>没有匹配的题目。</p>`}
     </div>
@@ -1066,6 +1135,14 @@ function renderQuestions(course) {
       state.type = button.dataset.filter;
       renderCourse();
     });
+  });
+  els.questions.querySelector("[data-question-chapter]").addEventListener("change", (event) => {
+    state.chapterId = event.target.value;
+    renderCourse();
+  });
+  els.questions.querySelector("[data-question-source]").addEventListener("change", (event) => {
+    state.sourceType = event.target.value;
+    renderCourse();
   });
   bindQuestionInteractions(els.questions);
 }
@@ -2124,6 +2201,8 @@ function renderQuestion(item) {
       <div class="question-head">
         <div class="question-meta">
           <span class="type-pill">${questionTypeLabel(item)}${item.index ? ` ${item.index}` : ""}</span>
+          <span class="question-chapter-pill" title="${item.chapterInfo.automated ? "根据题干关键词自动归类，可结合教材目录复核" : "未能可靠定位到单一章节"}">${item.chapterInfo.automated ? "章节定位：" : "题集归类："}${escapeHtml(item.chapterInfo.title)}</span>
+          <span class="question-source-pill">${escapeHtml(item.sourceLabel)}</span>
           ${verificationStatusLabel(item.auditStatus) ? `<span class="verification-status">${verificationStatusLabel(item.auditStatus)}</span>` : ""}
           ${status ? `<span class="study-status">${status}</span>` : ""}
         </div>
@@ -2359,6 +2438,14 @@ function renderCourseReviewGuide(guide) {
       `).join("")}
     </section>
   ` : "";
+  const materialTopic = guide.materialTopic ? `
+    <section class="material-topic">
+      <h4>材料题专题：${escapeHtml(guide.materialTopic.title)}</h4>
+      <p><strong>材料信号：</strong>${guide.materialTopic.signals.map((signal) => `<span>${escapeHtml(signal)}</span>`).join("")}</p>
+      <ol>${guide.materialTopic.framework.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}</ol>
+      <p class="material-topic-avoid"><strong>避免失分：</strong>${escapeHtml(guide.materialTopic.avoid)}</p>
+    </section>
+  ` : "";
   return `
     <section class="course-review-guide" aria-label="${escapeHtml(guide.title)}">
       <h3>${escapeHtml(guide.title)}</h3>
@@ -2370,6 +2457,7 @@ function renderCourseReviewGuide(guide) {
       </div>
       ${timeline}
       ${modelAnswers}
+      ${materialTopic}
     </section>
   `;
 }
@@ -2429,7 +2517,26 @@ function renderStructuredChapter(course, chapter, index) {
         <strong>本章知识图谱</strong>
         <span>${points.map((item) => escapeHtml(item.title)).join(" · ")}</span>
       </div>
+      ${renderChapterExamPractice(chapter)}
       ${renderKnowledgeSources(points)}
+    </section>
+  `;
+}
+
+function renderChapterExamPractice(chapter) {
+  const practice = chapter.examPractice;
+  if (!practice) return "";
+  return `
+    <section class="chapter-exam-practice">
+      <h4>本章材料题训练</h4>
+      <p class="chapter-exam-question">${escapeHtml(practice.prompt)}</p>
+      <details>
+        <summary>展开答题参考</summary>
+        <strong>答案要点</strong>
+        <ol>${practice.answer.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ol>
+        <strong>得分点</strong>
+        <ul>${practice.scoring.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </details>
     </section>
   `;
 }

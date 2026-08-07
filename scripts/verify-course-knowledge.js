@@ -26,6 +26,10 @@ async function main() {
     assert(guide.comparisons?.length >= 3, `${course.id} needs concept comparisons.`);
     assert(guide.mistakes?.length >= 3, `${course.id} needs common mistakes.`);
     assert(guide.answerTemplate?.length >= 3, `${course.id} needs an answer template.`);
+    assert(guide.materialTopic?.title, `${course.id} needs a material-question topic.`);
+    assert(guide.materialTopic.signals?.length >= 3, `${course.id} material-question topic needs signals.`);
+    assert(guide.materialTopic.framework?.length >= 4, `${course.id} material-question topic needs a four-step framework.`);
+    assert(guide.materialTopic.avoid, `${course.id} material-question topic needs a common mistake.`);
     assert(guide.modelAnswers?.length >= 2, `${course.id} needs model essay answers.`);
     for (const model of guide.modelAnswers) {
       assert(model.question && model.answer?.length >= 120, `${course.id} has an incomplete model answer.`);
@@ -40,6 +44,11 @@ async function main() {
       assert(!chapterIds.has(chapter.id), `Duplicate chapter id: ${chapter.id}`);
       chapterIds.add(chapter.id);
       if (chapter.sections.length) completeChapters += 1;
+      const chapterPointCount = chapter.sections.reduce((count, section) => count + section.points.length, 0);
+      assert(chapterPointCount >= 4 && chapterPointCount <= 5, `${chapter.id} needs 3-5 independent knowledge points plus one memory outline.`);
+      assert(chapter.examPractice?.prompt, `${chapter.id} needs a chapter material-question prompt.`);
+      assert(chapter.examPractice.answer?.length >= 4, `${chapter.id} needs a chapter material-question answer reference.`);
+      assert(chapter.examPractice.scoring?.length >= 4, `${chapter.id} needs chapter material-question scoring points.`);
       for (const section of chapter.sections) {
         for (const item of section.points) {
           assert(!pointIds.has(item.id), `Duplicate knowledge id: ${item.id}`);
