@@ -13,6 +13,7 @@ async function main() {
   let pendingVerification = 0;
   let modelAnswers = 0;
   let timelineEntries = 0;
+  let topicPacks = 0;
 
   assert.equal(courseKnowledge.length, 5, "Exactly five courses are required.");
   for (const course of courseKnowledge) {
@@ -30,6 +31,13 @@ async function main() {
     assert(guide.materialTopic.signals?.length >= 3, `${course.id} material-question topic needs signals.`);
     assert(guide.materialTopic.framework?.length >= 4, `${course.id} material-question topic needs a four-step framework.`);
     assert(guide.materialTopic.avoid, `${course.id} material-question topic needs a common mistake.`);
+    assert(guide.topicPacks?.length >= 4, `${course.id} needs at least four cross-chapter topic packs.`);
+    for (const pack of guide.topicPacks) {
+      assert(pack.title && pack.chapters, `${course.id} has an incomplete topic-pack heading.`);
+      assert(pack.core?.length >= 3, `${course.id}/${pack.title} needs at least three core points.`);
+      assert(pack.pitfall && pack.practice, `${course.id}/${pack.title} needs a pitfall and practice method.`);
+      topicPacks += 1;
+    }
     assert(guide.modelAnswers?.length >= 2, `${course.id} needs model essay answers.`);
     for (const model of guide.modelAnswers) {
       assert(model.question && model.answer?.length >= 120, `${course.id} has an incomplete model answer.`);
@@ -66,7 +74,7 @@ async function main() {
     }
   }
   assert.equal(completeChapters, chapterIds.size, "Every course chapter needs structured review content.");
-  console.log(JSON.stringify({ courses: courseKnowledge.length, completeChapters, points, modelAnswers, timelineEntries, pendingVerification }));
+  console.log(JSON.stringify({ courses: courseKnowledge.length, completeChapters, points, modelAnswers, timelineEntries, topicPacks, pendingVerification }));
 }
 
 main().catch((error) => {

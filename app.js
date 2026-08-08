@@ -563,6 +563,7 @@ function questionSourceLabel(item) {
 
 const reviewedQuestionChapterRules = {
   history: [
+    ["history-intro", ["两大历史任务", "民族独立人民解放", "国家富强人民富裕", "近代中国社会性质"]],
     ["history-1", ["鸦片战争", "南京条约", "半殖民地半封建", "三元里", "林则徐", "魏源", "师夷长技"]],
     ["history-2", ["太平天国", "天朝田亩", "资政新篇", "洋务运动", "自强", "求富", "戊戌维新", "百日维新"]],
     ["history-3", ["辛亥革命", "三民主义", "武昌起义", "中华民国", "君主专制"]],
@@ -575,6 +576,7 @@ const reviewedQuestionChapterRules = {
     ["history-10", ["中国特色社会主义进入新时代", "新时代主要矛盾", "中国梦", "十八大"]]
   ],
   morality: [
+    ["morality-intro", ["时代新人", "复兴大任", "思想道德素质", "法治素养"]],
     ["morality-1", ["人生目的", "人生态度", "人生价值", "人生观", "人为什么活着"]],
     ["morality-2", ["理想信念", "个人理想", "社会理想", "共同理想", "精神之钙"]],
     ["morality-3", ["中国精神", "民族精神", "时代精神", "爱国主义", "改革创新"]],
@@ -583,6 +585,7 @@ const reviewedQuestionChapterRules = {
     ["morality-6", ["法治思维", "法律权利", "法律义务", "依法治国", "程序意识"]]
   ],
   mao: [
+    ["mao-intro", ["马克思主义中国化时代化", "两个结合", "理论创新"]],
     ["mao-1", ["毛泽东思想", "活的灵魂", "实事求是", "群众路线", "独立自主"]],
     ["mao-2", ["新民主主义革命", "革命总路线", "三大法宝", "统一战线", "武装斗争"]],
     ["mao-3", ["社会主义改造", "过渡时期总路线", "三大改造", "和平赎买"]],
@@ -590,9 +593,11 @@ const reviewedQuestionChapterRules = {
     ["mao-5", ["中国特色社会主义理论体系", "马克思主义中国化时代化", "理论成果"]],
     ["mao-6", ["邓小平理论", "社会主义本质", "三个有利于", "初级阶段"]],
     ["mao-7", ["三个代表", "先进生产力", "先进文化", "根本利益"]],
-    ["mao-8", ["科学发展观", "以人为本", "全面协调可持续", "统筹兼顾"]]
+    ["mao-8", ["科学发展观", "以人为本", "全面协调可持续", "统筹兼顾"]],
+    ["mao-9", ["不断谱写马克思主义中国化时代化新篇章", "推进马克思主义中国化时代化"]]
   ],
   xi: [
+    ["xi-intro", ["习近平新时代中国特色社会主义思想", "十个明确", "十四个坚持", "十三个方面成就", "六个必须坚持"]],
     ["xi-1", ["新时代", "中国特色社会主义", "主要矛盾", "历史方位"]],
     ["xi-2", ["中国式现代化", "民族复兴", "五个特征", "本质要求"]],
     ["xi-3", ["党的全面领导", "党的领导", "最大优势", "根本保证"]],
@@ -602,10 +607,18 @@ const reviewedQuestionChapterRules = {
     ["xi-7", ["教育强国", "科技强国", "人才强国", "科教兴国", "基础研究"]],
     ["xi-8", ["全过程人民民主", "人民民主", "协商民主"]],
     ["xi-9", ["全面依法治国", "法治体系", "科学立法", "严格执法", "公正司法"]],
+    ["xi-10", ["文化强国", "文化自信", "意识形态", "核心价值观"]],
+    ["xi-11", ["保障和改善民生", "就业", "社会保障", "收入分配", "健康中国"]],
+    ["xi-12", ["生态文明", "绿水青山", "绿色发展", "人与自然和谐共生"]],
     ["xi-13", ["总体国家安全观", "国家安全", "政治安全", "统筹发展和安全"]],
-    ["xi-17", ["全面从严治党", "自我革命", "党的政治建设", "不敢腐"]]
+    ["xi-14", ["强军目标", "国防和军队", "听党指挥", "能打胜仗", "军队现代化"]],
+    ["xi-15", ["一国两制", "一个中国原则", "九二共识", "祖国完全统一"]],
+    ["xi-16", ["中国特色大国外交", "人类命运共同体", "新型国际关系", "合作共赢"]],
+    ["xi-17", ["全面从严治党", "自我革命", "党的政治建设", "不敢腐"]],
+    ["xi-18", ["新征程", "青年担当", "理论武装"]]
   ],
   marx: [
+    ["marx-intro", ["什么是马克思主义", "马克思主义基本特征", "人民立场", "科学性和革命性"]],
     ["marx-1", ["物质决定意识", "唯物辩证法", "量变质变", "矛盾", "辩证否定"]],
     ["marx-2", ["实践", "认识", "真理", "感性认识", "理性认识"]],
     ["marx-3", ["社会存在", "社会意识", "生产力", "生产关系", "人民群众"]],
@@ -961,7 +974,7 @@ function findKnowledgeResults(query) {
   const guideResults = courses.flatMap((course) => {
     const guide = course.knowledge?.reviewGuide;
     if (!guide) return [];
-    const text = `${guide.title}${guide.patterns.join("")}${guide.comparisons.map((item) => `${item.left}${item.right}`).join("")}${guide.mistakes.join("")}${guide.answerTemplate.join("")}${guide.timeline?.map((item) => `${item.date}${item.event}${item.note}`).join("") || ""}${guide.modelAnswers?.map((item) => `${item.question}${item.answer}${item.scoring.join("")}`).join("") || ""}${guide.materialTopic ? `${guide.materialTopic.title}${guide.materialTopic.signals.join("")}${guide.materialTopic.framework.join("")}${guide.materialTopic.avoid}` : ""}`;
+    const text = `${guide.title}${guide.patterns.join("")}${guide.comparisons.map((item) => `${item.left}${item.right}`).join("")}${guide.mistakes.join("")}${guide.answerTemplate.join("")}${guide.timeline?.map((item) => `${item.date}${item.event}${item.note}`).join("") || ""}${guide.modelAnswers?.map((item) => `${item.question}${item.answer}${item.scoring.join("")}`).join("") || ""}${guide.materialTopic ? `${guide.materialTopic.title}${guide.materialTopic.signals.join("")}${guide.materialTopic.framework.join("")}${guide.materialTopic.avoid}` : ""}${guide.topicPacks?.map((item) => `${item.title}${item.chapters}${item.core.join("")}${item.pitfall}${item.practice}`).join("") || ""}`;
     if (!text.toLowerCase().includes(needle)) return [];
     return [{
       courseId: course.id,
@@ -2339,16 +2352,31 @@ function renderEssayControls(item) {
 
 function renderAnswerContent(item) {
   if (item.type === "大题") {
+    const scoringRows = essayScoringRows(item);
+    const keywords = essayKeywords(item);
     return `
       <div class="answer-section">
-        <strong class="answer-label">标准答案</strong>
+        <strong class="answer-label">答题骨架</strong>
+        <ol class="essay-outline">${scoringRows.map((row) => `<li>${escapeHtml(row.criterion)}</li>`).join("")}</ol>
+        <strong class="answer-label">必写关键词</strong>
+        <div class="essay-keywords">${keywords.map((keyword) => `<span>${escapeHtml(keyword)}</span>`).join("")}</div>
+        <strong class="answer-label">完整标准答案</strong>
         <div class="essay-answer-steps">
           ${essayAnswerSegments(essayAnswerContent(item)).map((segment) => `<div class="essay-answer-step">${escapeHtml(segment)}</div>`).join("")}
         </div>
       </div>
       <div class="analysis-section">
-        <strong class="answer-label">得分点解析</strong>
-        <div>${escapeHtml(essayAnalysisContent(item))}</div>
+        <strong class="answer-label">得分点逐句对照</strong>
+        <div class="essay-scoring-grid">
+          ${scoringRows.map((row, index) => `
+            <label class="essay-scoring-row">
+              <input type="checkbox" aria-label="自检得分点 ${index + 1}">
+              <span><b>得分点 ${index + 1}：${escapeHtml(row.criterion)}</b><em>答案对应：${escapeHtml(row.evidence)}</em></span>
+            </label>
+          `).join("")}
+        </div>
+        <div class="essay-loss-warning"><strong>常见失分：</strong>${escapeHtml(essayLossWarning(item))}</div>
+        <div class="essay-analysis-note"><strong>解析：</strong>${escapeHtml(essayAnalysisContent(item))}</div>
       </div>
     `;
   }
@@ -2374,6 +2402,49 @@ function essayAnswerSegments(answer) {
     else segments[segments.length - 1] += sentence;
   }
   return segments;
+}
+
+function essayAnalysisPoints(item) {
+  return essayAnalysisContent(item)
+    .replace(/按[“\"]?([^”\"]+)[”\"]?作答/g, "$1")
+    .split(/(?:\n|；|。|①|②|③|④|⑤|⑥|一是|二是|三是|四是|五是)/)
+    .map((part) => part.replace(/^\s*[一二三四五六七八九十\d]+[、.．]\s*/, "").trim())
+    .filter((part) => part.length >= 4 && part.length <= 80)
+    .slice(0, 6);
+}
+
+function essayScoringRows(item) {
+  const segments = essayAnswerSegments(essayAnswerContent(item));
+  const analysisPoints = essayAnalysisPoints(item);
+  return segments.slice(0, 6).map((segment, index) => ({
+    criterion: analysisPoints[index] || shortMemoryKey(segment),
+    evidence: segment
+  }));
+}
+
+function essayKeywords(item) {
+  const text = essayAnswerContent(item);
+  const pools = {
+    history: ["社会性质", "主要矛盾", "历史背景", "领导力量", "统一战线", "武装斗争", "党的建设", "历史意义", "经验教训"],
+    morality: ["理想信念", "人生价值", "中国精神", "核心价值观", "道德规范", "法治思维", "权利义务", "实践要求"],
+    mao: ["实事求是", "群众路线", "独立自主", "新民主主义革命", "社会主义改造", "社会主义本质", "历史地位", "理论成果"],
+    xi: ["党的领导", "人民立场", "中国式现代化", "高质量发展", "全面深化改革", "依法治国", "国家安全", "制度优势"],
+    marx: ["基本原理", "辩证关系", "实践", "矛盾", "方法论", "社会存在", "生产关系", "剩余价值"]
+  }[item.courseId] || [];
+  const matched = pools.filter((keyword) => text.includes(keyword));
+  if (matched.length >= 3) return matched.slice(0, 8);
+  const extracted = [...text.matchAll(/[“《]([^”》]{2,12})[”》]/g)].map((match) => match[1]);
+  return [...new Set([...matched, ...extracted, shortMemoryKey(item.question)])].slice(0, 8);
+}
+
+function essayLossWarning(item) {
+  return {
+    history: "只写事件结论，不交代背景、主体、历史作用与局限；或把不同历史阶段的意义混写。",
+    morality: "只表态不解释概念依据，实践要求停留在口号，未落到大学生的具体行动。",
+    mao: "混淆理论形成时期、核心问题、主要内容和历史地位，或者遗漏理论与中国实际的结合。",
+    xi: "忽略题干中的层级限定词，把根本立场、战略目标、重点任务和具体措施并列混写。",
+    marx: "只写原理名称，未解释辩证关系、适用条件，也没有逐项对应材料。"
+  }[item.courseId] || "只罗列关键词，没有形成完整判断，也没有对应题干材料。";
 }
 
 function toggleFavorite(button) {
@@ -2516,6 +2587,23 @@ function renderCourseReviewGuide(guide) {
       <p class="material-topic-avoid"><strong>避免失分：</strong>${escapeHtml(guide.materialTopic.avoid)}</p>
     </section>
   ` : "";
+  const topicPacks = guide.topicPacks?.length ? `
+    <section class="topic-packs">
+      <h4>跨章节专题包</h4>
+      <div class="topic-pack-list">
+        ${guide.topicPacks.map((pack) => `
+          <details>
+            <summary><strong>${escapeHtml(pack.title)}</strong><span>${escapeHtml(pack.chapters)}</span></summary>
+            <div class="topic-pack-body">
+              <div><b>必须掌握</b><ul>${pack.core.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></div>
+              <p><b>易错点：</b>${escapeHtml(pack.pitfall)}</p>
+              <p><b>训练方法：</b>${escapeHtml(pack.practice)}</p>
+            </div>
+          </details>
+        `).join("")}
+      </div>
+    </section>
+  ` : "";
   return `
     <section class="course-review-guide" aria-label="${escapeHtml(guide.title)}">
       <h3>${escapeHtml(guide.title)}</h3>
@@ -2528,6 +2616,7 @@ function renderCourseReviewGuide(guide) {
       ${timeline}
       ${modelAnswers}
       ${materialTopic}
+      ${topicPacks}
     </section>
   `;
 }
