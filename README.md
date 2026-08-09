@@ -19,6 +19,7 @@ npm run verify:security
 npm run verify:lazy-cache
 npm run verify:knowledge
 npm run verify:navigation
+npm run verify:campus
 npm run verify:analysis
 npm run verify:payloads
 npm run verify:editorial-migration
@@ -89,3 +90,23 @@ npm run member:add -- student@example.com 30
 题目页会在浏览器渲染时补齐过短的答案解析：选择题保留原解析并补充正确选项定位和记忆提示，大题保留原解析并补充作答组织与检查提示。该处理不修改题干、答案、题型、题目顺序或 Supabase 题库数据；可运行 `npm run verify:analysis` 复核这一约束。左侧“题集”折叠导航的静态契约可通过 `npm run verify:navigation` 检查。
 
 五门课程共 55 章，每章至少包含 8 个结构化知识点。章节综合卡基于本章已有教材小节、已核验页码范围和原知识点生成，并通过 `derivedFrom` 保留追溯关系；不会新增无法核实的教材引文或页码。
+
+## 校园推广页
+
+公开落地页为 `/campus`，访客无需登录即可查看产品说明，并可体验《中国近现代史纲要》第一章、20 道既有选择题和 3 道既有大题。免费体验数据单独保存在 `src/campus-preview.js`，不读取 Supabase 完整题库或会员 IndexedDB；完整题库仍只允许有效会员通过 RLS 读取。
+
+推广链接支持以下来源参数，参数会在首次访问时保存到浏览器，并在站内跳转期间保留：
+
+```text
+https://sizhengfuxi.pages.dev/campus?from=qq
+https://sizhengfuxi.pages.dev/campus?from=wechat
+https://sizhengfuxi.pages.dev/campus?from=forum
+https://sizhengfuxi.pages.dev/campus?from=wall
+https://sizhengfuxi.pages.dev/campus?from=xhs
+https://sizhengfuxi.pages.dev/campus?from=douyin
+https://sizhengfuxi.pages.dev/campus?from=friend
+```
+
+当前没有为渠道统计新增数据库表，也不收集姓名、学号或手机号。Cloudflare Pages 中可在项目的 `Analytics & Logs` 中启用 Web Analytics，用于查看 `/campus` 的访问量、来源站点、设备和地区趋势；Cloudflare 可能不会把查询参数作为独立页面维度，因此 `from` 的精确分渠道汇总不作为当前 MVP 的可靠指标。分享按钮始终复制 `?from=friend`，不会继续传播访客原始来源。
+
+反馈入口会打开仓库的 GitHub Issues 新建页面，并预填问题类型、反馈正文和当前页面。联系方式为选填，不需要额外后端配置。

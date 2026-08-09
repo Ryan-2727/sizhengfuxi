@@ -3,7 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>大学思政课程复习</title>
+  <title>大学思政期末复习｜思政复习</title>
+  <meta name="description" content="大学思政一站式复习工具，提供章节重点、题库练习、错题复习和大题背诵。">
+  <meta property="og:title" content="大学思政期末复习，不用再翻一堆 PDF">
+  <meta property="og:description" content="章节重点、刷题、错题和大题集中到一个网站。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://sizhengfuxi.pages.dev/campus">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
@@ -22,11 +28,29 @@
   </header>
 
   <main>
-    <section id="authView" class="auth-view">
-      <div class="auth-card">
-        <span class="auth-mark">思政</span>
+    <section id="authView" class="public-home-view">
+      <div class="public-hero public-shell">
+        <p class="public-kicker">学生自己整理的复习工具</p>
         <h1>大学思政一站式复习平台</h1>
-        <p id="authDescription">请输入已开通会员的邮箱，获取登录验证码。</p>
+        <p class="public-subtitle">章节重点｜题库刷题｜错题复习｜大题背诵</p>
+        <p class="public-support">支持五门大学思政课程，先免费体验实际内容，再决定是否登录完整版本。</p>
+        <div class="public-actions">
+          <button class="primary-cta" id="homePreviewBtn" type="button">免费体验</button>
+          <button class="secondary-cta" id="memberLoginBtn" type="button">会员登录</button>
+        </div>
+        <div class="public-course-names" aria-label="支持的课程">
+          <span>思想道德与法治</span>
+          <span>马克思主义基本原理</span>
+          <span>中国近现代史纲要</span>
+          <span>毛泽东思想和中国特色社会主义理论体系概论</span>
+          <span>习近平新时代中国特色社会主义思想概论</span>
+        </div>
+      </div>
+      <div class="login-section public-shell" id="loginSection">
+        <div class="auth-card">
+          <span class="auth-mark">思政</span>
+          <h2>会员登录</h2>
+          <p id="authDescription">请输入已开通会员的邮箱，获取登录验证码。</p>
         <form id="requestOtpForm" class="auth-form">
           <label for="emailInput">邮箱</label>
           <input id="emailInput" type="email" autocomplete="email" required placeholder="name@example.com">
@@ -40,7 +64,63 @@
         </form>
         <div id="authMessage" class="auth-message" role="status" aria-live="polite"></div>
         <button id="signOutBtn" class="secondary-btn" type="button" hidden>退出登录</button>
+        </div>
       </div>
+    </section>
+
+    <section id="campusView" class="campus-view" hidden>
+      <div class="campus-hero public-shell">
+        <a class="campus-brand" href="/campus" aria-label="思政复习校园体验页">思政复习</a>
+        <div class="campus-hero-copy">
+          <p class="public-kicker">期末复习工具</p>
+          <h1>大学思政期末复习，不用再翻一堆 PDF</h1>
+          <p class="public-subtitle">章节重点｜题库刷题｜错题复习｜大题背诵</p>
+          <div class="public-actions">
+            <button class="primary-cta" id="campusPreviewBtn" type="button">免费体验</button>
+            <button class="secondary-cta" id="campusLoginBtn" type="button">已有账号，登录</button>
+          </div>
+        </div>
+      </div>
+
+      <section class="campus-section public-shell" aria-labelledby="campusCoursesTitle">
+        <div class="section-heading">
+          <p class="public-kicker">五门课程</p>
+          <h2 id="campusCoursesTitle">复习内容按课程和章节整理</h2>
+        </div>
+        <div class="campus-course-list">
+          <button class="campus-course-item campus-course-item--free" type="button" data-start-preview>
+            <span class="course-dot course-dot--blue" aria-hidden="true"></span>
+            <span><strong>中国近现代史纲要</strong><small>第一章知识点与精选题目可免费体验</small></span>
+            <b>免费</b>
+          </button>
+          <button class="campus-course-item" type="button" data-locked-content>
+            <span class="course-dot course-dot--green" aria-hidden="true"></span><span><strong>思想道德与法治</strong><small>完整章节与题库</small></span><b>完整版本</b>
+          </button>
+          <button class="campus-course-item" type="button" data-locked-content>
+            <span class="course-dot course-dot--yellow" aria-hidden="true"></span><span><strong>马克思主义基本原理</strong><small>完整章节与题库</small></span><b>完整版本</b>
+          </button>
+          <button class="campus-course-item" type="button" data-locked-content>
+            <span class="course-dot course-dot--dark-red" aria-hidden="true"></span><span><strong>毛泽东思想和中国特色社会主义理论体系概论</strong><small>完整章节与题库</small></span><b>完整版本</b>
+          </button>
+          <button class="campus-course-item" type="button" data-locked-content>
+            <span class="course-dot course-dot--red" aria-hidden="true"></span><span><strong>习近平新时代中国特色社会主义思想概论</strong><small>完整章节与题库</small></span><b>完整版本</b>
+          </button>
+        </div>
+      </section>
+
+      <section class="campus-story">
+        <div class="public-shell">
+          <h2>为什么做这个网站</h2>
+          <p>我自己复习思政的时候，经常需要在教材、PPT、PDF 和题库之间来回找资料，所以把常用的复习流程整理到了一个网站里。现在还在持续完善，如果发现错误或者有不好用的地方，欢迎反馈。</p>
+          <button class="text-action" type="button" data-open-feedback>发现错误 / 功能建议</button>
+        </div>
+      </section>
+
+      <section class="campus-share public-shell">
+        <h2>觉得有用，可以分享给一起复习的同学</h2>
+        <button class="secondary-cta" id="copyCampusLinkBtn" type="button">复制网站链接</button>
+        <span id="copyCampusLinkStatus" role="status" aria-live="polite"></span>
+      </section>
     </section>
 
     <section id="homeView" class="home-view" hidden>
@@ -66,13 +146,38 @@
       </article>
     </section>
   </main>
-  <footer class="site-disclaimer">本网站为大学思想政治理论课程学习辅助工具，内容以知识梳理、复习提示和自主总结为主，不替代正式教材及课堂教学。教材名称及章节结构以正版教材为准。部分内容可能因教材修订、学校教学安排或考试范围不同而变化，请结合任课教师要求使用。</footer>
+  <footer class="site-disclaimer"><p>本网站为大学思想政治理论课程学习辅助工具，内容以知识梳理、复习提示和自主总结为主，不替代正式教材及课堂教学。教材名称及章节结构以正版教材为准。部分内容可能因教材修订、学校教学安排或考试范围不同而变化，请结合任课教师要求使用。</p><button class="text-action" type="button" data-open-feedback>发现错误 / 功能建议</button></footer>
 
   <dialog id="quizDialog">
     <form method="dialog">
       <button class="dialog-close" aria-label="关闭">×</button>
     </form>
     <div id="quizDialogBody"></div>
+  </dialog>
+
+  <dialog id="feedbackDialog" class="feedback-dialog">
+    <form method="dialog">
+      <button class="dialog-close" aria-label="关闭">×</button>
+    </form>
+    <div class="feedback-dialog-body">
+      <h2>发现错误 / 功能建议</h2>
+      <p>提交后会打开 GitHub 反馈页面。联系方式可不填写。</p>
+      <form id="feedbackForm" class="feedback-form">
+        <label for="feedbackType">问题类型</label>
+        <select id="feedbackType" required>
+          <option>题目错误</option>
+          <option>知识点错误</option>
+          <option>网站 Bug</option>
+          <option>功能建议</option>
+          <option>其他</option>
+        </select>
+        <label for="feedbackContent">反馈内容</label>
+        <textarea id="feedbackContent" rows="6" required placeholder="请描述所在课程、章节或题目，以及具体问题。"></textarea>
+        <label for="feedbackContact">可选联系方式</label>
+        <input id="feedbackContact" type="text" autocomplete="off" placeholder="选填">
+        <button class="primary-cta" type="submit">继续提交反馈</button>
+      </form>
+    </div>
   </dialog>
 
   <script type="module" src="/src/main.js"></script>

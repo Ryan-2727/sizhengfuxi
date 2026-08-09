@@ -22,10 +22,10 @@ const banned = [
   "morality-local-question-bank.js",
   "mao-xi-local-question-bank.js",
   "marx-local-question-bank.js",
-  "verified-question-overrides.js",
-  "鸦片战争前中国封建社会的主要矛盾"
+  "verified-question-overrides.js"
 ];
 for (const value of banned) {
   if (output.includes(value)) throw new Error(`Production build contains forbidden content: ${value}`);
 }
-console.log(`Production build verified: ${allFiles.length} files, no static bank or service role secret.`);
+if (!output.includes("campus-preview-v1")) throw new Error("Production build is missing the limited campus preview.");
+console.log(`Production build verified: ${allFiles.length} files, limited preview present, no full static bank or service role secret.`);

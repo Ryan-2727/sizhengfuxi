@@ -492,7 +492,7 @@ const studyProgress = loadStudyProgress();
 const questionLookup = new Map();
 const questionBankCatalog = new Map();
 const loadedCourseIds = new Set();
-const sessionState = { memberValidated: false, userId: null };
+const sessionState = { memberValidated: false, userId: null, preview: false };
 
 const state = {
   courseId: null,
@@ -503,6 +503,37 @@ const state = {
   questionNavExpanded: false,
   query: ""
 };
+
+const CAMPUS_SOURCE_KEY = "sizheng-campus-source-v1";
+const CAMPUS_SOURCES = new Set(["qq", "wechat", "forum", "wall", "xhs", "douyin", "friend"]);
+const CAMPUS_SHARE_URL = "https://sizhengfuxi.pages.dev/campus?from=friend";
+const DEFAULT_META = {
+  title: "大学思政期末复习｜思政复习",
+  description: "大学思政一站式复习工具，提供章节重点、题库练习、错题复习和大题背诵。",
+  ogTitle: "大学思政期末复习，不用再翻一堆 PDF",
+  ogDescription: "章节重点、刷题、错题和大题集中到一个网站。"
+};
+
+function isCampusPath() {
+  return location.pathname.replace(/\/+$/, "") === "/campus";
+}
+
+function captureCampusSource() {
+  const source = new URLSearchParams(location.search).get("from");
+  if (!CAMPUS_SOURCES.has(source) || typeof localStorage === "undefined") return;
+  try {
+    if (!localStorage.getItem(CAMPUS_SOURCE_KEY)) localStorage.setItem(CAMPUS_SOURCE_KEY, source);
+  } catch {
+    // Source attribution is optional when browser storage is unavailable.
+  }
+}
+
+function setPageMetadata(meta = DEFAULT_META) {
+  document.title = meta.title;
+  document.querySelector('meta[name="description"]')?.setAttribute("content", meta.description);
+  document.querySelector('meta[property="og:title"]')?.setAttribute("content", meta.ogTitle);
+  document.querySelector('meta[property="og:description"]')?.setAttribute("content", meta.ogDescription);
+}
 
 function loadStudyProgress() {
   const empty = { favorites: {}, wrong: {}, mastery: {}, attempts: {} };
@@ -627,6 +658,8 @@ function questionChapterInfo(item) {
 const els = {
   appHeader: document.querySelector("#appHeader"),
   authView: document.querySelector("#authView"),
+  campusView: document.querySelector("#campusView"),
+  loginSection: document.querySelector("#loginSection"),
   authDescription: document.querySelector("#authDescription"),
   authMessage: document.querySelector("#authMessage"),
   requestOtpForm: document.querySelector("#requestOtpForm"),
@@ -647,7 +680,10 @@ const els = {
   sources: document.querySelector("#sources"),
   search: document.querySelector("#globalSearch"),
   dialog: document.querySelector("#quizDialog"),
-  dialogBody: document.querySelector("#quizDialogBody")
+  dialogBody: document.querySelector("#quizDialogBody"),
+  feedbackDialog: document.querySelector("#feedbackDialog"),
+  feedbackForm: document.querySelector("#feedbackForm"),
+  copyStatus: document.querySelector("#copyCampusLinkStatus")
 };
 
 let pendingEmail = "";
@@ -657,6 +693,15 @@ let otpCooldownTimer = null;
 document.querySelector("#homeBtn").addEventListener("click", showHome);
 document.querySelector("#backBtn").addEventListener("click", showHome);
 document.querySelector("#randomBtn").addEventListener("click", showRandom);
+document.querySelector("#homePreviewBtn").addEventListener("click", startCampusPreview);
+document.querySelector("#campusPreviewBtn").addEventListener("click", startCampusPreview);
+document.querySelectorAll("[data-start-preview]").forEach((button) => button.addEventListener("click", startCampusPreview));
+document.querySelector("#memberLoginBtn").addEventListener("click", showPublicLogin);
+document.querySelector("#campusLoginBtn").addEventListener("click", showPublicLogin);
+document.querySelectorAll("[data-locked-content]").forEach((button) => button.addEventListener("click", showLockedContent));
+document.querySelectorAll("[data-open-feedback]").forEach((button) => button.addEventListener("click", () => els.feedbackDialog.showModal()));
+document.querySelector("#copyCampusLinkBtn").addEventListener("click", copyCampusLink);
+els.feedbackForm.addEventListener("submit", submitFeedback);
 els.search.addEventListener("input", (event) => {
   state.query = event.target.value.trim();
   if (state.courseId) renderCourse();
@@ -684,7 +729,17 @@ document.addEventListener("click", (event) => {
   if (state.courseId) renderCourse();
 });
 
+captureCampusSource();
 bootstrap();
+window.addEventListener("popstate", () => {
+  if (sessionState.memberValidated) {
+    void initRoute();
+    return;
+  }
+  if (isCampusPath() && location.hash === "#preview") startCampusPreview({ updateHistory: false });
+  else if (isCampusPath()) showCampusLanding();
+  else showAuth();
+});
 
 function setAuthMessage(message, state = "") {
   els.authMessage.textContent = message;
@@ -725,9 +780,14 @@ function clearQuestionBank() {
 function showAuth({ message = "请输入已开通会员的邮箱，获取登录验证码。", error = false, signedIn = false } = {}) {
   sessionState.memberValidated = false;
   sessionState.userId = null;
+  sessionState.preview = false;
   clearQuestionBank();
+  questionBankCatalog.clear();
   state.courseId = null;
+  delete document.body.dataset.accessMode;
+  els.search.hidden = false;
   els.appHeader.hidden = true;
+  els.campusView.hidden = true;
   els.homeView.hidden = true;
   els.courseView.hidden = true;
   els.authView.hidden = false;
@@ -736,6 +796,90 @@ function showAuth({ message = "请输入已开通会员的邮箱，获取登录�
   els.verifyOtpForm.hidden = true;
   els.signOutBtn.hidden = !signedIn;
   setAuthMessage(error ? message : "", error ? "error" : "");
+  setPageMetadata();
+}
+
+function showCampusLanding({ updateHistory = false } = {}) {
+  sessionState.memberValidated = false;
+  sessionState.userId = null;
+  sessionState.preview = false;
+  clearQuestionBank();
+  questionBankCatalog.clear();
+  state.courseId = null;
+  state.query = "";
+  delete document.body.dataset.accessMode;
+  els.search.hidden = false;
+  els.appHeader.hidden = true;
+  els.authView.hidden = true;
+  els.homeView.hidden = true;
+  els.courseView.hidden = true;
+  els.campusView.hidden = false;
+  setPageMetadata();
+  if (updateHistory) history.pushState("", document.title, `/campus${location.search}`);
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+function showPublicLogin() {
+  showAuth();
+  if (isCampusPath()) history.replaceState("", document.title, `${location.pathname}${location.search}#login`);
+  requestAnimationFrame(() => {
+    els.loginSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    els.emailInput.focus({ preventScroll: true });
+  });
+}
+
+function showLockedContent() {
+  els.dialog.style.setProperty("--accent", "#172033");
+  els.dialogBody.innerHTML = `
+    <div class="locked-message">
+      <span class="type-pill">完整版本</span>
+      <h2>免费体验已结束</h2>
+      <p>完整版本可继续使用全部章节、题库、错题复习和大题内容。</p>
+      <button class="primary-cta" type="button" data-login-full>登录 / 开通完整版本</button>
+    </div>
+  `;
+  els.dialogBody.querySelector("[data-login-full]").addEventListener("click", () => {
+    els.dialog.close();
+    showPublicLogin();
+  });
+  if (!els.dialog.open) els.dialog.showModal();
+}
+
+async function copyCampusLink() {
+  let copied = false;
+  try {
+    await navigator.clipboard.writeText(CAMPUS_SHARE_URL);
+    copied = true;
+  } catch {
+    const input = document.createElement("textarea");
+    input.value = CAMPUS_SHARE_URL;
+    input.setAttribute("readonly", "");
+    input.style.position = "fixed";
+    input.style.opacity = "0";
+    document.body.append(input);
+    input.select();
+    copied = document.execCommand("copy");
+    input.remove();
+  }
+  els.copyStatus.textContent = copied ? "链接已复制" : "复制失败，请手动复制当前网址";
+}
+
+function submitFeedback(event) {
+  event.preventDefault();
+  const type = document.querySelector("#feedbackType").value;
+  const content = document.querySelector("#feedbackContent").value.trim();
+  const contact = document.querySelector("#feedbackContact").value.trim();
+  if (!content) return;
+  const body = [
+    `问题类型：${type}`,
+    `反馈内容：${content}`,
+    contact ? `可选联系方式：${contact}` : "可选联系方式：未填写",
+    `页面：${location.href}`
+  ].join("\n\n");
+  const url = new URL("https://github.com/Ryan-2727/sizhengfuxi/issues/new");
+  url.searchParams.set("title", `[网站反馈] ${type}`);
+  url.searchParams.set("body", body);
+  window.open(url.toString(), "_blank", "noopener,noreferrer");
 }
 
 async function requestOtp(event) {
@@ -790,21 +934,29 @@ async function signOut() {
   pendingEmail = "";
   els.emailInput.value = "";
   els.otpInput.value = "";
-  showAuth();
+  if (isCampusPath()) showCampusLanding();
+  else showAuth();
 }
 
 async function bootstrap() {
   const supabase = window.studySupabase;
   if (!supabase) {
-    showAuth({ message: "站点尚未配置 Supabase 登录服务，请联系管理员。", error: true });
+    if (isCampusPath() && location.hash === "#preview") startCampusPreview({ updateHistory: false });
+    else if (isCampusPath()) showCampusLanding();
+    else showAuth({ message: "站点尚未配置 Supabase 登录服务，请联系管理员。", error: true });
     return;
   }
   supabase.auth.onAuthStateChange((event) => {
-    if (event === "SIGNED_OUT") showAuth();
+    if (event === "SIGNED_OUT") {
+      if (isCampusPath()) showCampusLanding();
+      else showAuth();
+    }
   });
   const { data, error } = await supabase.auth.getSession();
   if (error || !data.session) {
-    showAuth();
+    if (isCampusPath() && location.hash === "#preview") startCampusPreview({ updateHistory: false });
+    else if (isCampusPath()) showCampusLanding();
+    else showAuth();
     return;
   }
   await startMemberSession();
@@ -849,8 +1001,13 @@ async function startMemberSession() {
   }
   sessionState.memberValidated = true;
   sessionState.userId = user.id;
+  sessionState.preview = false;
+  delete document.body.dataset.accessMode;
+  els.search.hidden = false;
   els.authView.hidden = true;
+  els.campusView.hidden = true;
   els.appHeader.hidden = false;
+  setPageMetadata();
   await initRoute();
 }
 
@@ -873,8 +1030,50 @@ async function initRoute() {
   else renderHome();
 }
 
+function startCampusPreview(options = {}) {
+  const updateHistory = options.updateHistory !== false;
+  const preview = window.campusPreview;
+  const course = getCourseById(preview?.courseId);
+  if (!preview || !course) {
+    showLockedContent();
+    return;
+  }
+  sessionState.memberValidated = false;
+  sessionState.userId = null;
+  sessionState.preview = true;
+  clearQuestionBank();
+  questionBankCatalog.clear();
+  hydrateCourseQuestionBank(course, preview.choices, preview.essays);
+  questionBankCatalog.set(course.id, {
+    course_id: course.id,
+    choice_count: preview.choices.length,
+    essay_count: preview.essays.length,
+    content_hash: "campus-preview-v1"
+  });
+  state.courseId = course.id;
+  state.randomCourseId = course.id;
+  state.type = "all";
+  state.chapterId = "all";
+  state.sourceType = "all";
+  state.questionNavExpanded = false;
+  state.query = "";
+  document.body.dataset.accessMode = "preview";
+  els.search.value = "";
+  els.search.hidden = true;
+  els.authView.hidden = true;
+  els.campusView.hidden = true;
+  els.homeView.hidden = true;
+  els.courseView.hidden = false;
+  els.appHeader.hidden = false;
+  renderCourse();
+  if (updateHistory) history.pushState("", document.title, `/campus${location.search}#preview`);
+  jumpToCourseTop();
+}
+
 function renderHome() {
   state.courseId = null;
+  els.authView.hidden = true;
+  els.campusView.hidden = true;
   els.homeView.hidden = false;
   els.courseView.hidden = true;
   const query = state.query;
@@ -940,6 +1139,10 @@ function findKnowledgeResults(query) {
 }
 
 function showHome() {
+  if (sessionState.preview) {
+    showCampusLanding({ updateHistory: true });
+    return;
+  }
   state.type = "all";
   state.chapterId = "all";
   state.sourceType = "all";
@@ -950,6 +1153,11 @@ function showHome() {
 }
 
 async function showCourse(id, updateHash = true) {
+  if (sessionState.preview) {
+    if (id === window.campusPreview?.courseId) renderCourse();
+    else showLockedContent();
+    return;
+  }
   state.courseId = id;
   state.type = "all";
   state.chapterId = "all";
@@ -1125,6 +1333,10 @@ function jumpToCourseTop() {
 
 function renderCourse() {
   const course = getCourse();
+  if (sessionState.preview) {
+    renderPreviewCourse(course);
+    return;
+  }
   document.documentElement.style.setProperty("--accent", course.accent);
   els.sideTitle.textContent = course.short;
   renderCourseNavigation(course);
@@ -1179,12 +1391,100 @@ function renderCourse() {
   `;
 }
 
+function renderPreviewCourse(course) {
+  const preview = window.campusPreview;
+  const chapter = course.knowledge?.chapters?.[preview.chapterIndex];
+  if (!chapter || chapter.id !== preview.chapterId) {
+    throw new Error("Campus preview chapter configuration is invalid.");
+  }
+  document.documentElement.style.setProperty("--accent", course.accent);
+  els.sideTitle.textContent = "免费体验";
+  renderPreviewNavigation(course, chapter);
+  els.courseHero.innerHTML = `
+    <div class="hero-block">
+      <p class="eyebrow">免费体验 · ${escapeHtml(course.short)}</p>
+      <h1>${escapeHtml(course.name)}</h1>
+      <p class="edition-line">教材：${escapeHtml(course.edition || "2023年版")} · ISBN：${escapeHtml(course.isbn || "978-7-04-059901-5")}</p>
+      <p>当前开放第一章知识点、${preview.choices.length} 道选择题和 ${preview.essays.length} 道大题，可以完整体验作答、答案解析、收藏和复习标记。</p>
+    </div>
+    <div class="hero-note preview-note">
+      <span class="type-pill">无需登录</span>
+      <h2>先用真实内容试一遍</h2>
+      <p>免费体验不会读取会员题库。登录有效会员后，才会通过 Supabase 权限校验加载全部课程内容。</p>
+    </div>
+  `;
+  els.chapters.innerHTML = `
+    <div class="question-toolbar"><h2>开放章节</h2><span class="preview-count">1 个章节</span></div>
+    <div class="chapter-list">${renderStructuredChapter(course, chapter, preview.chapterIndex)}</div>
+    <button class="locked-content-row" type="button" data-preview-lock>
+      <span><strong>其余章节已锁定</strong><small>登录完整版本后继续按章节复习</small></span><b>查看完整版本</b>
+    </button>
+  `;
+  els.keypoints.innerHTML = `
+    <h2>本章复习提示</h2>
+    <div class="key-grid">
+      <div class="key-card">先判断鸦片战争前后中国社会性质和主要矛盾的变化。</div>
+      <div class="key-card">侵略方式按军事、政治、经济和文化四个方面归纳。</div>
+      <div class="key-card">反侵略斗争失败原因要区分根本原因与重要原因。</div>
+      <div class="key-card">时间、条约、人物和历史意义要放回同一事件中记忆。</div>
+    </div>
+  `;
+  renderQuestions(course);
+  els.sources.innerHTML = `
+    <div class="preview-upgrade">
+      <div><p class="public-kicker">继续复习</p><h2>完整版本包含五门课程全部章节与题库</h2><p>登录后可继续使用全文搜索、随机题、错题复习、收藏和大题背诵。</p></div>
+      <button class="primary-cta" type="button" data-preview-login>登录 / 开通完整版本</button>
+    </div>
+  `;
+  document.querySelectorAll("[data-preview-lock]").forEach((button) => button.addEventListener("click", showLockedContent));
+  document.querySelector("[data-preview-login]").addEventListener("click", showPublicLogin);
+}
+
+function renderPreviewNavigation(course, chapter) {
+  const expanded = state.questionNavExpanded;
+  const subId = `question-nav-${course.id}`;
+  els.chapterNav.innerHTML = `
+    <a href="#courseHero">体验说明</a>
+    <a href="#chapter-${window.campusPreview.chapterIndex + 1}">${escapeHtml(chapter.title)}</a>
+    <button class="side-lock-btn" type="button" data-preview-lock>其余章节 · 已锁定</button>
+    <div class="question-nav-group ${expanded ? "open" : ""}">
+      <button class="question-nav-toggle" type="button" data-question-nav-toggle aria-expanded="${expanded}" aria-controls="${subId}">
+        <span>体验题集</span><span class="question-nav-chevron" aria-hidden="true">⌄</span>
+      </button>
+      <div class="question-nav-sub" id="${subId}" aria-hidden="${!expanded}">
+        <div class="question-nav-sub-inner">
+          <a href="#questions" class="${state.type === "选择题" ? "active" : ""}" data-question-nav-type="选择题" ${expanded ? "" : 'tabindex="-1"'}><span>选择题</span><b>${questionCount(course.id, "choice")}</b></a>
+          <a href="#questions" class="${state.type === "大题" ? "active" : ""}" data-question-nav-type="大题" ${expanded ? "" : 'tabindex="-1"'}><span>大题</span><b>${questionCount(course.id, "essay")}</b></a>
+        </div>
+      </div>
+    </div>
+    <button class="side-lock-btn" type="button" data-preview-login>登录完整版本</button>
+  `;
+  els.chapterNav.querySelector("[data-question-nav-toggle]").addEventListener("click", () => {
+    state.questionNavExpanded = !expanded;
+    renderPreviewNavigation(course, chapter);
+  });
+  els.chapterNav.querySelectorAll("[data-question-nav-type]").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      state.type = link.dataset.questionNavType;
+      state.questionNavExpanded = true;
+      renderCourse();
+      document.querySelector("#questions")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+  els.chapterNav.querySelector("[data-preview-lock]").addEventListener("click", showLockedContent);
+  els.chapterNav.querySelector("[data-preview-login]").addEventListener("click", showPublicLogin);
+}
+
 function renderQuestions(course) {
   const all = [
     ...course.choices.map((item, index) => registerQuestion({ ...item, courseId: course.id, type: "选择题", index: index + 1 })),
     ...course.essays.map((item, index) => registerQuestion({ ...item, courseId: course.id, type: "大题", index: index + 1 }))
   ];
-  const chapterOptions = course.knowledge?.chapters || [];
+  const chapterOptions = sessionState.preview
+    ? [course.knowledge.chapters[window.campusPreview.chapterIndex]]
+    : course.knowledge?.chapters || [];
   const sourceTypes = [...new Set(all.map((item) => item.sourceLabel))];
   const filtered = all.filter((item) => {
     const typeOk = questionMatchesFilter(item, state.type);
@@ -2886,6 +3186,12 @@ function parseChoiceOptions(question) {
 }
 
 function showRandom() {
+  if (sessionState.preview) {
+    state.randomCourseId = window.campusPreview.courseId;
+    renderRandomQuestion();
+    els.dialog.showModal();
+    return;
+  }
   renderRandomCoursePicker();
   els.dialog.showModal();
 }
@@ -2946,7 +3252,7 @@ function renderRandomQuestion() {
         <p>${escapeHtml(item.courseName)}</p>
       </div>
       <div class="random-actions">
-        <button class="next-random-btn" type="button" data-change-random-course>换课程</button>
+        ${sessionState.preview ? '<button class="next-random-btn" type="button" data-preview-random-lock>其他课程</button>' : '<button class="next-random-btn" type="button" data-change-random-course>换课程</button>'}
         <button class="next-random-btn" type="button" data-next-random>下一题</button>
       </div>
     </div>
@@ -2956,9 +3262,10 @@ function renderRandomQuestion() {
   els.dialogBody.querySelector("[data-next-random]").addEventListener("click", () => {
     renderRandomQuestion();
   });
-  els.dialogBody.querySelector("[data-change-random-course]").addEventListener("click", () => {
-    renderRandomCoursePicker();
-  });
+  const changeCourse = els.dialogBody.querySelector("[data-change-random-course]");
+  if (changeCourse) changeCourse.addEventListener("click", renderRandomCoursePicker);
+  const previewLock = els.dialogBody.querySelector("[data-preview-random-lock]");
+  if (previewLock) previewLock.addEventListener("click", showLockedContent);
 }
 
 function getCourse() {
