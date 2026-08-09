@@ -1,6 +1,7 @@
 import { supabase } from "./supabase-client.js";
 import { courseKnowledge } from "./course-knowledge.js";
 import { reviewedQuestionChapterRules } from "./question-chapter-rules.js";
+import { enrichChoiceAnalysis, enrichEssayAnalysis } from "./question-analysis.js";
 import {
   deleteUserQuestionCaches,
   getCourseQuestionCache,
@@ -10,6 +11,7 @@ import {
 window.studySupabase = supabase;
 window.courseKnowledge = courseKnowledge;
 window.questionChapterRules = reviewedQuestionChapterRules;
+window.questionAnalysis = { enrichChoiceAnalysis, enrichEssayAnalysis };
 window.questionBankCache = {
   deleteUserQuestionCaches,
   getCourseQuestionCache,

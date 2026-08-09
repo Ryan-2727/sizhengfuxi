@@ -18,6 +18,8 @@ npm run audit
 npm run verify:security
 npm run verify:lazy-cache
 npm run verify:knowledge
+npm run verify:navigation
+npm run verify:analysis
 # Requires local SUPABASE_SERVICE_ROLE_KEY; reads only.
 npm run verify:database
 npm run build
@@ -68,3 +70,5 @@ npm run member:add -- student@example.com 30
 章节归类元数据同样参与版本哈希。候选或已核验章节发生变化时，重新打开该课程会下载带有新章节标签的题目，不会误用旧缓存。
 
 已存在题目但尚未创建目录表记录的项目，可运行 `npm run import:questions -- --catalog-only`，该命令不会改写任何题目行。
+
+题目页会在浏览器渲染时补齐过短的答案解析：选择题保留原解析并补充正确选项定位和记忆提示，大题保留原解析并补充作答组织与检查提示。该处理不修改题干、答案、题型、题目顺序或 Supabase 题库数据；可运行 `npm run verify:analysis` 复核这一约束。左侧“题集”折叠导航的静态契约可通过 `npm run verify:navigation` 检查。

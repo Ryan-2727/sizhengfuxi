@@ -500,6 +500,7 @@ const state = {
   type: "all",
   chapterId: "all",
   sourceType: "all",
+  questionNavExpanded: false,
   query: ""
 };
 
@@ -942,6 +943,7 @@ function showHome() {
   state.type = "all";
   state.chapterId = "all";
   state.sourceType = "all";
+  state.questionNavExpanded = false;
   renderHome();
   if (location.hash) history.pushState("", document.title, location.pathname + location.search);
   window.scrollTo({ top: 0, behavior: "auto" });
@@ -952,6 +954,7 @@ async function showCourse(id, updateHash = true) {
   state.type = "all";
   state.chapterId = "all";
   state.sourceType = "all";
+  state.questionNavExpanded = false;
   els.homeView.hidden = true;
   els.courseView.hidden = false;
   renderCourse();
@@ -1065,12 +1068,7 @@ function renderCourse() {
   const course = getCourse();
   document.documentElement.style.setProperty("--accent", course.accent);
   els.sideTitle.textContent = course.short;
-  els.chapterNav.innerHTML = [
-    `<a href="#courseHero">课程概览</a>`,
-    ...course.chapters.map((chapter, index) => `<a href="#chapter-${index + 1}">${navLabel(chapter[0], index)}</a>`),
-    `<a href="#questions">题集</a>`,
-    `<a href="#sources">资料来源</a>`
-  ].join("");
+  renderCourseNavigation(course);
   els.courseHero.innerHTML = `
     <div class="hero-block">
       <p class="eyebrow">${course.short}</p>
@@ -1171,6 +1169,7 @@ function renderQuestions(course) {
   document.querySelectorAll("[data-filter]").forEach((button) => {
     button.addEventListener("click", () => {
       state.type = button.dataset.filter;
+      if (state.type === "选择题" || state.type === "大题") state.questionNavExpanded = true;
       renderCourse();
     });
   });
@@ -2341,7 +2340,7 @@ function renderAnswerContent(item) {
       <div>${escapeHtml(choiceCorrectAnswer(item))}</div>
     </div>
     <div class="analysis-section">
-      <strong class="answer-label">得分点解析</strong>
+      <strong class="answer-label">答案解析</strong>
       <div>${escapeHtml(choiceAnalysis(item))}</div>
     </div>
   `;
@@ -2576,6 +2575,43 @@ function renderCourseReviewGuide(guide) {
   `;
 }
 
+function renderCourseNavigation(course) {
+  const questionTypeActive = state.type === "选择题" || state.type === "大题";
+  const expanded = state.questionNavExpanded;
+  const subId = `question-nav-${course.id}`;
+  els.chapterNav.innerHTML = [
+    `<a href="#courseHero">课程概览</a>`,
+    ...course.chapters.map((chapter, index) => `<a href="#chapter-${index + 1}">${navLabel(chapter[0], index)}</a>`),
+    `<div class="question-nav-group ${expanded ? "open" : ""}">
+      <button class="question-nav-toggle ${questionTypeActive ? "active" : ""}" type="button" data-question-nav-toggle aria-expanded="${expanded}" aria-controls="${subId}">
+        <span>题集</span><span class="question-nav-chevron" aria-hidden="true">⌄</span>
+      </button>
+      <div class="question-nav-sub" id="${subId}" aria-hidden="${!expanded}">
+        <div class="question-nav-sub-inner">
+          <a href="#questions" class="${state.type === "选择题" ? "active" : ""}" data-question-nav-type="选择题" ${expanded ? "" : 'tabindex="-1"'}><span>选择题</span><b>${questionCount(course.id, "choice")}</b></a>
+          <a href="#questions" class="${state.type === "大题" ? "active" : ""}" data-question-nav-type="大题" ${expanded ? "" : 'tabindex="-1"'}><span>大题</span><b>${questionCount(course.id, "essay")}</b></a>
+        </div>
+      </div>
+    </div>`,
+    `<a href="#sources">资料来源</a>`
+  ].join("");
+
+  els.chapterNav.querySelector("[data-question-nav-toggle]").addEventListener("click", () => {
+    state.questionNavExpanded = !expanded;
+    renderCourseNavigation(course);
+  });
+  els.chapterNav.querySelectorAll("[data-question-nav-type]").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      state.type = link.dataset.questionNavType;
+      state.questionNavExpanded = true;
+      renderCourseNavigation(course);
+      renderQuestions(course);
+      document.querySelector("#questions")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+}
+
 function normalizeSectionTitle(title) {
   return String(title || "").trim().replace(/[：:]$/, "");
 }
@@ -2712,25 +2748,18 @@ function choiceCorrectAnswer(item) {
 
 function choiceAnalysis(item) {
   const letters = choiceAnswerLetters(item);
-  const opts = parseChoiceOptions(item.question);
-  const picked = letters.split("").filter((letter) => opts[letter]).map((letter) => `${letter}. ${opts[letter]}`);
-  const stem = choiceStem(item.question);
+  const options = parseChoiceOptions(item.question);
   const explanation = cleanAnalysisText(item.analysis);
-  const courseGuide = {
-    history: "先核对历史阶段、时间、事件主体和历史意义，再排除把相近事件或阶段混在一起的选项。",
-    morality: "先判断题干属于人生价值、理想信念、道德规范还是法治素养，再按概念层级核对选项。",
-    mao: "先定位理论形成时期和题干所问的核心问题，再区分理论精髓、主要内容、历史地位与具体政策。",
-    xi: "重点核对“根本、核心、首要、关键、保障”等限定词，区分战略目标、原则、路径和具体举措。",
-    marx: "先找出材料或题干所体现的原理关系，再核对原理的适用条件和方法论，避免只按字面相似作答。"
-  }[item.courseId] || "先抓题干限定词，再回到教材中的规范表述逐项核对。";
-  const answerType = letters.length > 1 ? "多选题" : "单选题";
-  return [
-    `考点：本题考查“${shortMemoryKey(stem)}”。`,
-    `判断依据：${explanation || "题干的限定词决定了正确选项必须同时符合概念、范围和层级。"}`,
-    picked.length ? `答案对应：${picked.join("；")}。` : "",
-    `选项排除：${courseGuide}`,
-    `记忆方法：不要只记字母，把题干关键词与正确选项中的规范表述绑定记忆；${answerType}按${letters.length || "全部"}个正确项逐项核对。`
-  ].filter(Boolean).join("\n");
+  if (window.questionAnalysis?.enrichChoiceAnalysis) {
+    return window.questionAnalysis.enrichChoiceAnalysis({
+      question: item.question,
+      analysis: explanation,
+      letters,
+      options
+    });
+  }
+  const picked = letters.split("").filter((letter) => options[letter]).map((letter) => `${letter}. ${options[letter]}`);
+  return [explanation, picked.length ? `答案定位：${picked.join("；")}。` : ""].filter(Boolean).join("\n");
 }
 
 function shortMemoryKey(text) {
@@ -2745,6 +2774,14 @@ function essayAnswerContent(item) {
 }
 
 function essayAnalysisContent(item) {
+  if (window.questionAnalysis?.enrichEssayAnalysis) {
+    return window.questionAnalysis.enrichEssayAnalysis({
+      question: item.question,
+      analysis: item.analysis,
+      answer: essayAnswerContent(item),
+      keywords: essayKeywords(item)
+    });
+  }
   if ((item.analysis || "").trim()) return item.analysis;
   const answer = (item.answer || "").replace(/^答[:：]\s*/, "").trim();
   const points = answer

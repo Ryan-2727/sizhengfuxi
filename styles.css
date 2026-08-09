@@ -386,6 +386,89 @@ input {
   color: color-mix(in srgb, var(--accent), #000 35%);
 }
 
+.question-nav-group {
+  display: grid;
+  min-width: 0;
+}
+
+.question-nav-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.question-nav-toggle:hover,
+.question-nav-toggle.active {
+  background: color-mix(in srgb, var(--accent), #ffffff 82%);
+  color: color-mix(in srgb, var(--accent), #000 35%);
+}
+
+.question-nav-chevron {
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1;
+  transform: rotate(-90deg);
+  transition: transform 200ms ease;
+}
+
+.question-nav-group.open .question-nav-chevron {
+  transform: rotate(0deg);
+}
+
+.question-nav-sub {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 200ms ease, opacity 160ms ease;
+}
+
+.question-nav-group.open .question-nav-sub {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.question-nav-sub-inner {
+  display: grid;
+  gap: 4px;
+  min-height: 0;
+  margin-left: 12px;
+  padding-left: 8px;
+  border-left: 2px solid color-mix(in srgb, var(--accent), #ffffff 68%);
+  overflow: hidden;
+}
+
+.question-nav-sub a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  padding: 8px 10px;
+  font-size: 14px;
+}
+
+.question-nav-sub a b {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .question-nav-chevron,
+  .question-nav-sub {
+    transition: none;
+  }
+}
+
 .course-main {
   padding: 26px clamp(18px, 4vw, 48px) 48px;
 }
@@ -1836,7 +1919,6 @@ dialog::backdrop {
   }
 
   .course-grid,
-  .course-view,
   .course-hero,
   .key-grid,
   .course-review-grid,
@@ -1846,6 +1928,10 @@ dialog::backdrop {
   .combined-section-grid,
   .review-dashboard {
     grid-template-columns: 1fr;
+  }
+
+  .course-view {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .course-timeline ol {
