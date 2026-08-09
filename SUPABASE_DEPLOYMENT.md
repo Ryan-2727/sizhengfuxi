@@ -19,9 +19,13 @@ Open the Supabase SQL editor and run every file in `supabase/migrations/` in fil
 -- supabase/migrations/202608050002_grant_admin_import_access.sql
 -- Lazy course cache catalog:
 -- supabase/migrations/202608050003_question_bank_catalog.sql
+-- Question chapter metadata:
+-- supabase/migrations/202608080004_question_chapter_assignments.sql
 ```
 
 The migrations create `memberships`, `questions`, and `question_bank_catalog`, enable RLS on every business table, grant no browser write permissions, and permit catalog and question reads only through `public.is_active_member()`.
+
+The fourth migration adds chapter metadata to `questions`. It does not alter question stems, answers, analyses, order, or RLS. `verified` is reserved for editorially checked assignments; `candidate` is a visible, non-final rule result.
 
 ## 3. Local environment and question import
 
@@ -61,6 +65,16 @@ When a reviewed correction affects only the curated supplement, sync it without 
 
 ```powershell
 npm run import:questions -- --sync-curated
+```
+
+After running the fourth migration, review the local candidate report first. The write mode changes only rows that are still `unclassified`; it never changes `verified` assignments or question content. It also recalculates `question_bank_catalog` so browser caches refresh their chapter labels.
+
+```powershell
+# Read-only candidate coverage report
+npm run questions:chapters
+
+# Write candidate metadata after editorial approval of the rules
+npm run questions:chapters -- --apply-candidates
 ```
 
 Before release, run the read-only structural check. It rejects exact duplicate stems within a course and type, missing answers, invalid choice answers, and single/multiple-choice label mismatches:

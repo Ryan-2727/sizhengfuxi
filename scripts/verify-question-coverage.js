@@ -1,6 +1,4 @@
-const fs = require("fs");
 const path = require("path");
-const vm = require("vm");
 const { pathToFileURL } = require("url");
 const { loadQuestionBank } = require("./lib/load-question-bank");
 
@@ -8,18 +6,8 @@ const strict = process.argv.includes("--strict");
 const courseMinimums = { choice: 500, essay: 50 };
 const chapterMinimums = { choice: 10, essay: 2 };
 
-function loadReviewedRules(root) {
-  const appSource = fs.readFileSync(path.join(root, "app.js"), "utf8");
-  const startMarker = "const reviewedQuestionChapterRules = ";
-  const endMarker = "\n\nfunction reviewedQuestionChapterInfo";
-  const start = appSource.indexOf(startMarker);
-  const end = appSource.indexOf(endMarker, start);
-  if (start < 0 || end < 0) throw new Error("Reviewed question chapter rules are unavailable.");
-  const literal = appSource.slice(start + startMarker.length, end).replace(/;\s*$/, "");
-  return vm.runInNewContext(`(${literal})`, Object.create(null));
-}
-
 function classifyQuestion(item, courseId, rules) {
+  if (item.chapterId && ["candidate", "verified"].includes(item.chapterAssignmentStatus)) return item.chapterId;
   const text = `${item.question || ""}\n${item.answer || ""}\n${item.analysis || ""}`;
   const matches = (rules[courseId] || []).map(([chapterId, terms]) => ({
     chapterId,
@@ -32,7 +20,8 @@ function classifyQuestion(item, courseId, rules) {
 
 async function main() {
   const root = path.resolve(__dirname, "..");
-  const rules = loadReviewedRules(root);
+  const rulesModule = await import(pathToFileURL(path.join(root, "src", "question-chapter-rules.js")).href);
+  const rules = rulesModule.reviewedQuestionChapterRules;
   const { courses } = loadQuestionBank();
   const knowledgeModule = await import(pathToFileURL(path.join(root, "src", "course-knowledge.js")).href);
   const knowledgeByCourse = new Map(knowledgeModule.courseKnowledge.map((course) => [course.id, course]));

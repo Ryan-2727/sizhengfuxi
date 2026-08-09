@@ -13,6 +13,7 @@
     "verify:lazy-cache": "node scripts/verify-lazy-question-bank.js",
     "verify:knowledge": "node scripts/verify-course-knowledge.js",
     "verify:coverage": "node scripts/verify-question-coverage.js",
+    "questions:chapters": "node scripts/assign-question-chapters.js",
     "verify:database": "node scripts/verify-supabase-question-bank.js"
   },
   "dependencies": {

@@ -30,6 +30,17 @@ node scripts/verify-production-build.js
 
 题库维护时运行 `npm run verify:coverage` 查看每门课距离 500 道选择题、50 道大题的缺口，同时检查每章至少 10 道选择题、2 道大题的基础覆盖和未可靠归类题量。新增题应优先投向薄弱章节，且只有题干、答案和解析可核验的题目才能用于补齐缺口。正式发布前可运行 `node scripts/verify-question-coverage.js --strict` 作为硬性门槛。
 
+题目章节归类分为三种状态：`verified` 为人工核验，`candidate` 为确定性关键词规则的候选结果，`unclassified` 为暂不归入单一章节。候选结果只用于辅助筛选，不能替代编辑核验。运行迁移后，先生成报告；确认规则适用时才写入候选元数据：
+
+```powershell
+# 不写入数据库，只统计可归类题目
+npm run questions:chapters
+
+# 执行 supabase/migrations/202608080004_question_chapter_assignments.sql 后，
+# 只将数据库中仍为 unclassified 的题目写为 candidate，并同步题库版本缓存
+npm run questions:chapters -- --apply-candidates
+```
+
 ```powershell
 # 不写入数据库，仅核对可导入的题目数量
 node scripts/import-question-bank.js --dry-run
@@ -53,5 +64,7 @@ npm run member:add -- student@example.com 30
 题库首页只从 `question_bank_catalog` 读取每门课程的题量和版本。会员进入某门课程或随机选择该课程时，浏览器才分页读取该课程的题目，并按 `user_id + course_id + content_hash` 写入 IndexedDB。每次打开网站仍会重新核验会员状态；未通过核验时不会读取缓存。退出登录会删除该账号的题库缓存。
 
 题库内容更新后执行导入脚本。脚本会为每门课程计算稳定 SHA-256 内容哈希，并且只在内容实际变化时更新目录版本；旧版本缓存会自然失效。
+
+章节归类元数据同样参与版本哈希。候选或已核验章节发生变化时，重新打开该课程会下载带有新章节标签的题目，不会误用旧缓存。
 
 已存在题目但尚未创建目录表记录的项目，可运行 `npm run import:questions -- --catalog-only`，该命令不会改写任何题目行。

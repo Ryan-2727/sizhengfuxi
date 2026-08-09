@@ -561,73 +561,7 @@ function questionSourceLabel(item) {
   return "课程题库";
 }
 
-const reviewedQuestionChapterRules = {
-  history: [
-    ["history-intro", ["两大历史任务", "民族独立人民解放", "国家富强人民富裕", "近代中国社会性质"]],
-    ["history-1", ["鸦片战争", "南京条约", "半殖民地半封建", "三元里", "林则徐", "魏源", "师夷长技"]],
-    ["history-2", ["太平天国", "天朝田亩", "资政新篇", "洋务运动", "自强", "求富", "戊戌维新", "百日维新"]],
-    ["history-3", ["辛亥革命", "三民主义", "武昌起义", "中华民国", "君主专制"]],
-    ["history-4", ["五四运动", "中共一大", "中国共产党成立", "第一次国共合作", "北伐", "大革命"]],
-    ["history-5", ["井冈山", "南昌起义", "秋收起义", "遵义会议", "长征", "土地革命"]],
-    ["history-6", ["九一八", "卢沟桥", "抗日民族统一战线", "敌后战场", "抗日战争"]],
-    ["history-7", ["解放战争", "三大战役", "政协", "中华人民共和国成立", "新中国成立"]],
-    ["history-8", ["社会主义改造", "一化三改", "过渡时期", "社会主义基本制度"]],
-    ["history-9", ["十一届三中全会", "改革开放", "社会主义初级阶段", "社会主义市场经济"]],
-    ["history-10", ["中国特色社会主义进入新时代", "新时代主要矛盾", "中国梦", "十八大"]]
-  ],
-  morality: [
-    ["morality-intro", ["时代新人", "复兴大任", "思想道德素质", "法治素养"]],
-    ["morality-1", ["人生目的", "人生态度", "人生价值", "人生观", "人为什么活着"]],
-    ["morality-2", ["理想信念", "个人理想", "社会理想", "共同理想", "精神之钙"]],
-    ["morality-3", ["中国精神", "民族精神", "时代精神", "爱国主义", "改革创新"]],
-    ["morality-4", ["核心价值观", "富强民主文明和谐", "自由平等公正法治", "爱国敬业诚信友善"]],
-    ["morality-5", ["社会公德", "职业道德", "家庭美德", "个人品德", "诚实守信"]],
-    ["morality-6", ["法治思维", "法律权利", "法律义务", "依法治国", "程序意识"]]
-  ],
-  mao: [
-    ["mao-intro", ["马克思主义中国化时代化", "两个结合", "理论创新"]],
-    ["mao-1", ["毛泽东思想", "活的灵魂", "实事求是", "群众路线", "独立自主"]],
-    ["mao-2", ["新民主主义革命", "革命总路线", "三大法宝", "统一战线", "武装斗争"]],
-    ["mao-3", ["社会主义改造", "过渡时期总路线", "三大改造", "和平赎买"]],
-    ["mao-4", ["社会主义建设道路", "论十大关系", "正确处理人民内部矛盾"]],
-    ["mao-5", ["中国特色社会主义理论体系", "马克思主义中国化时代化", "理论成果"]],
-    ["mao-6", ["邓小平理论", "社会主义本质", "三个有利于", "初级阶段"]],
-    ["mao-7", ["三个代表", "先进生产力", "先进文化", "根本利益"]],
-    ["mao-8", ["科学发展观", "以人为本", "全面协调可持续", "统筹兼顾"]],
-    ["mao-9", ["不断谱写马克思主义中国化时代化新篇章", "推进马克思主义中国化时代化"]]
-  ],
-  xi: [
-    ["xi-intro", ["习近平新时代中国特色社会主义思想", "十个明确", "十四个坚持", "十三个方面成就", "六个必须坚持"]],
-    ["xi-1", ["新时代", "中国特色社会主义", "主要矛盾", "历史方位"]],
-    ["xi-2", ["中国式现代化", "民族复兴", "五个特征", "本质要求"]],
-    ["xi-3", ["党的全面领导", "党的领导", "最大优势", "根本保证"]],
-    ["xi-4", ["以人民为中心", "人民至上", "人民立场", "共同富裕"]],
-    ["xi-5", ["全面深化改革", "十八届三中全会", "国家治理体系", "改革开放"]],
-    ["xi-6", ["高质量发展", "新发展理念", "新发展格局", "国内大循环"]],
-    ["xi-7", ["教育强国", "科技强国", "人才强国", "科教兴国", "基础研究"]],
-    ["xi-8", ["全过程人民民主", "人民民主", "协商民主"]],
-    ["xi-9", ["全面依法治国", "法治体系", "科学立法", "严格执法", "公正司法"]],
-    ["xi-10", ["文化强国", "文化自信", "意识形态", "核心价值观"]],
-    ["xi-11", ["保障和改善民生", "就业", "社会保障", "收入分配", "健康中国"]],
-    ["xi-12", ["生态文明", "绿水青山", "绿色发展", "人与自然和谐共生"]],
-    ["xi-13", ["总体国家安全观", "国家安全", "政治安全", "统筹发展和安全"]],
-    ["xi-14", ["强军目标", "国防和军队", "听党指挥", "能打胜仗", "军队现代化"]],
-    ["xi-15", ["一国两制", "一个中国原则", "九二共识", "祖国完全统一"]],
-    ["xi-16", ["中国特色大国外交", "人类命运共同体", "新型国际关系", "合作共赢"]],
-    ["xi-17", ["全面从严治党", "自我革命", "党的政治建设", "不敢腐"]],
-    ["xi-18", ["新征程", "青年担当", "理论武装"]]
-  ],
-  marx: [
-    ["marx-intro", ["什么是马克思主义", "马克思主义基本特征", "人民立场", "科学性和革命性"]],
-    ["marx-1", ["物质决定意识", "唯物辩证法", "量变质变", "矛盾", "辩证否定"]],
-    ["marx-2", ["实践", "认识", "真理", "感性认识", "理性认识"]],
-    ["marx-3", ["社会存在", "社会意识", "生产力", "生产关系", "人民群众"]],
-    ["marx-4", ["使用价值", "价值", "具体劳动", "抽象劳动", "剩余价值", "不变资本", "可变资本"]],
-    ["marx-5", ["垄断资本主义", "经济全球化", "资本主义基本矛盾"]],
-    ["marx-6", ["科学社会主义", "社会主义发展道路", "空想社会主义"]],
-    ["marx-7", ["共产主义", "远大理想", "共同理想"]]
-  ]
-};
+const reviewedQuestionChapterRules = window.questionChapterRules || {};
 
 function reviewedQuestionChapterInfo(item, knowledge) {
   const text = `${item.question || ""}\n${item.answer || ""}\n${item.analysis || ""}`;
@@ -642,9 +576,25 @@ function reviewedQuestionChapterInfo(item, knowledge) {
   return chapter ? { id: chapter.id, title: chapter.title, automated: false, reviewed: true } : null;
 }
 
+function explicitQuestionChapterInfo(item, knowledge) {
+  const status = item.chapterAssignmentStatus;
+  if (!item.chapterId || !["verified", "candidate"].includes(status)) return null;
+  const chapter = knowledge.chapters.find((entry) => entry.id === item.chapterId);
+  if (!chapter) return null;
+  return {
+    id: chapter.id,
+    title: chapter.title,
+    automated: status === "candidate",
+    reviewed: status === "verified",
+    assignmentStatus: status
+  };
+}
+
 function questionChapterInfo(item) {
   const knowledge = knowledgeByCourse.get(item.courseId);
   if (!knowledge) return { id: "unclassified", title: "综合题集", automated: false };
+  const explicit = explicitQuestionChapterInfo(item, knowledge);
+  if (explicit) return explicit;
   const reviewed = reviewedQuestionChapterInfo(item, knowledge);
   if (reviewed) return reviewed;
   const text = `${item.question || ""}\n${item.answer || ""}\n${item.analysis || ""}`;
@@ -1065,7 +1015,7 @@ async function ensureCourseQuestionBank(courseId) {
   for (let from = 0; ; from += pageSize) {
     const { data, error } = await window.studySupabase
       .from("questions")
-      .select("question_type, question_order, payload")
+      .select("question_type, question_order, payload, chapter_id, chapter_assignment_status")
       .eq("course_id", courseId)
       .order("question_type")
       .order("question_order")
@@ -1074,8 +1024,13 @@ async function ensureCourseQuestionBank(courseId) {
     rows.push(...data);
     if (data.length < pageSize) break;
   }
-  const choices = rows.filter((row) => row.question_type === "choice").map((row) => row.payload);
-  const essays = rows.filter((row) => row.question_type === "essay").map((row) => row.payload);
+  const withChapterAssignment = (row) => ({
+    ...row.payload,
+    chapterId: row.chapter_id || undefined,
+    chapterAssignmentStatus: row.chapter_assignment_status || undefined
+  });
+  const choices = rows.filter((row) => row.question_type === "choice").map(withChapterAssignment);
+  const essays = rows.filter((row) => row.question_type === "essay").map(withChapterAssignment);
   if (choices.length !== catalog.choice_count || essays.length !== catalog.essay_count) {
     throw new Error("Question bank response does not match its catalog version.");
   }
@@ -2284,7 +2239,7 @@ function renderQuestion(item) {
       <div class="question-head">
         <div class="question-meta">
           <span class="type-pill">${questionTypeLabel(item)}${item.index ? ` ${item.index}` : ""}</span>
-          <span class="question-chapter-pill" title="${item.chapterInfo.reviewed ? "按编辑规则人工核对的章节定位" : item.chapterInfo.automated ? "根据题干关键词自动归类，可结合教材目录复核" : "未能可靠定位到单一章节"}">${item.chapterInfo.reviewed ? "核对章节：" : item.chapterInfo.automated ? "章节定位：" : "题集归类："}${escapeHtml(item.chapterInfo.title)}</span>
+          <span class="question-chapter-pill" title="${item.chapterInfo.reviewed ? "人工核验的章节定位" : item.chapterInfo.assignmentStatus === "candidate" ? "候选章节定位，仍需人工复核" : item.chapterInfo.automated ? "根据题干关键词自动归类，可结合教材目录复核" : "未能可靠定位到单一章节"}">${item.chapterInfo.reviewed ? "核对章节：" : item.chapterInfo.assignmentStatus === "candidate" ? "候选章节：" : item.chapterInfo.automated ? "章节定位：" : "题集归类："}${escapeHtml(item.chapterInfo.title)}</span>
           <span class="question-source-pill">${escapeHtml(item.sourceLabel)}</span>
           ${verificationStatusLabel(item.auditStatus) ? `<span class="verification-status">${verificationStatusLabel(item.auditStatus)}</span>` : ""}
           ${status ? `<span class="study-status">${status}</span>` : ""}
@@ -2672,12 +2627,23 @@ function renderStructuredChapter(course, chapter, index) {
           ${section.points.map((item) => renderKnowledgePoint(course, chapter, item)).join("")}
         </section>
       `).join("")}
+      ${renderChapterMemoryOutline(chapter)}
       <div class="chapter-map compact-map" aria-label="${escapeHtml(chapter.title)}知识图谱">
         <strong>本章知识图谱</strong>
         <span>${points.map((item) => escapeHtml(item.title)).join(" · ")}</span>
       </div>
       ${renderChapterExamPractice(chapter)}
       ${renderKnowledgeSources(points)}
+    </section>
+  `;
+}
+
+function renderChapterMemoryOutline(chapter) {
+  if (!chapter.memoryOutline?.length) return "";
+  return `
+    <section class="knowledge-section chapter-memory-outline">
+      <h4>背诵主线</h4>
+      <ol class="knowledge-section__list">${chapter.memoryOutline.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ol>
     </section>
   `;
 }
@@ -2703,7 +2669,9 @@ function renderChapterExamPractice(chapter) {
 function renderKnowledgeSources(points) {
   const sources = [];
   for (const item of points) {
-    const value = `${item.source.book}（${item.source.edition}），${item.source.chapter}；${item.source.verification}${item.source.page ? `，第 ${item.source.page} 页` : ""}`;
+    const section = item.source.section ? `，${item.source.section}` : "";
+    const page = item.source.page ? `，教材第 ${item.source.page} 页` : "";
+    const value = `${item.source.book}（${item.source.edition}），${item.source.chapter}${section}；${item.source.verification}${page}`;
     if (!sources.includes(value)) sources.push(value);
   }
   return `<section class="knowledge-section content-sources"><h4 class="knowledge-section__title">内容来源</h4><ul class="knowledge-section__list">${sources.map((value) => `<li>${escapeHtml(value)}</li>`).join("")}</ul></section>`;
@@ -2714,7 +2682,8 @@ function renderKnowledgePoint(course, chapter, item) {
   const mastered = studyProgress.mastery[progressId] === "mastered";
   const list = (label, values) => values?.length ? `<div class="knowledge-block"><strong>${label}</strong><ul>${values.map((value) => `<li>${escapeHtml(value)}</li>`).join("")}</ul></div>` : "";
   const comparison = item.distinctions?.length ? `<div class="knowledge-block comparison-block"><strong>对比</strong><ul>${item.distinctions.map((value) => `<li><b>${escapeHtml(value.left)}</b>：${escapeHtml(value.right)}</li>`).join("")}</ul></div>` : "";
-  const quotation = item.quotation ? `<blockquote class="knowledge-quotation">“${escapeHtml(item.quotation.text)}”<cite>${escapeHtml(item.source.book)}（${escapeHtml(item.source.edition)}），${escapeHtml(item.source.chapter)}，第 ${escapeHtml(item.quotation.sourcePage)} 页</cite></blockquote>` : "";
+  const quoteSection = item.source.section ? `，${escapeHtml(item.source.section)}` : "";
+  const quotation = item.quotation ? `<blockquote class="knowledge-quotation">“${escapeHtml(item.quotation.text)}”<cite>${escapeHtml(item.source.book)}（${escapeHtml(item.source.edition)}），${escapeHtml(item.source.chapter)}${quoteSection}，教材第 ${escapeHtml(item.quotation.sourcePage)} 页</cite></blockquote>` : "";
   return `
     <article class="knowledge-card knowledge-${item.importance}">
       <div class="knowledge-card-head"><div><span class="importance-tag importance-${item.importance}">${escapeHtml(item.importance)}</span><h5>${escapeHtml(item.title)}</h5></div><button type="button" class="knowledge-mastered ${mastered ? "active" : ""}" data-knowledge-mastered="${progressId}">${mastered ? "已掌握" : "标记已掌握"}</button></div>

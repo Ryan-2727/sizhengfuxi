@@ -4,3 +4,4 @@ dist/
 .env.local
 .env.*.local
 data/question-bank-source/
+tmp/

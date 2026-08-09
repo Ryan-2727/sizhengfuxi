@@ -18,19 +18,32 @@ if (!dryRun && (!url || !serviceRoleKey)) {
 const replace = process.argv.includes("--replace");
 const supabase = dryRun ? null : createClient(url, serviceRoleKey, { auth: { persistSession: false } });
 const { courses } = loadQuestionBank();
+
+function chapterAssignment(payload) {
+  const chapterId = String(payload?.chapterId || "").trim();
+  const status = chapterId && ["candidate", "verified"].includes(payload?.chapterAssignmentStatus)
+    ? payload.chapterAssignmentStatus
+    : "unclassified";
+  return {
+    chapter_id: status === "unclassified" ? null : chapterId,
+    chapter_assignment_status: status,
+    chapter_assignment_reference: payload?.chapterAssignmentReference || null
+  };
+}
+
+function questionRow(courseId, questionType, questionOrder, payload) {
+  return {
+    course_id: courseId,
+    question_type: questionType,
+    question_order: questionOrder,
+    payload,
+    ...chapterAssignment(payload)
+  };
+}
+
 const rows = courses.flatMap((course) => [
-  ...course.choices.map((payload, index) => ({
-    course_id: course.id,
-    question_type: "choice",
-    question_order: index + 1,
-    payload
-  })),
-  ...course.essays.map((payload, index) => ({
-    course_id: course.id,
-    question_type: "essay",
-    question_order: index + 1,
-    payload
-  }))
+  ...course.choices.map((payload, index) => questionRow(course.id, "choice", index + 1, payload)),
+  ...course.essays.map((payload, index) => questionRow(course.id, "essay", index + 1, payload))
 ]);
 
 function stableJson(value) {
@@ -44,8 +57,8 @@ function stableJson(value) {
 function catalogRows() {
   return courses.map((course) => {
     const payload = [
-      ...course.choices.map((item, index) => ({ question_type: "choice", question_order: index + 1, payload: item })),
-      ...course.essays.map((item, index) => ({ question_type: "essay", question_order: index + 1, payload: item }))
+      ...course.choices.map((item, index) => ({ question_type: "choice", question_order: index + 1, payload: item, ...chapterAssignment(item) })),
+      ...course.essays.map((item, index) => ({ question_type: "essay", question_order: index + 1, payload: item, ...chapterAssignment(item) }))
     ];
     return {
       course_id: course.id,
@@ -77,7 +90,7 @@ async function readCourseQuestions(courseId, questionType) {
   for (let from = 0; ; from += 1000) {
     const { data, error } = await supabase
       .from("questions")
-      .select("id, course_id, question_type, question_order, payload")
+      .select("id, course_id, question_type, question_order, payload, chapter_id, chapter_assignment_status, chapter_assignment_reference")
       .eq("course_id", courseId)
       .eq("question_type", questionType)
       .order("question_order", { ascending: true })
@@ -106,7 +119,14 @@ async function updateCatalogFromDatabase() {
     ]);
     const payload = [...choices, ...essays]
       .sort((left, right) => left.question_type.localeCompare(right.question_type) || left.question_order - right.question_order)
-      .map((item) => ({ question_type: item.question_type, question_order: item.question_order, payload: item.payload }));
+      .map((item) => ({
+        question_type: item.question_type,
+        question_order: item.question_order,
+        payload: item.payload,
+        chapter_id: item.chapter_id,
+        chapter_assignment_status: item.chapter_assignment_status,
+        chapter_assignment_reference: item.chapter_assignment_reference
+      }));
     const row = {
       course_id: course.id,
       choice_count: choices.length,
@@ -141,7 +161,7 @@ async function appendCuratedQuestions() {
         }
         order += 1;
         existingKeys.add(questionKey(payload));
-        rowsToInsert.push({ course_id: course.id, question_type: questionType, question_order: order, payload });
+        rowsToInsert.push(questionRow(course.id, questionType, order, payload));
       }
       if (rowsToInsert.length) {
         const { error } = await supabase.from("questions").insert(rowsToInsert);
@@ -175,7 +195,7 @@ async function syncCuratedQuestions() {
           continue;
         }
         if (stableJson(current.payload) === stableJson(payload)) continue;
-        const { error } = await supabase.from("questions").update({ payload }).eq("id", current.id);
+        const { error } = await supabase.from("questions").update({ payload, ...chapterAssignment(payload) }).eq("id", current.id);
         if (error) throw error;
         updated += 1;
       }
@@ -199,7 +219,7 @@ async function main() {
     return;
   }
   if (catalogOnly) {
-    await updateCatalog();
+    await updateCatalogFromDatabase();
     console.log("Updated question bank catalog without changing question rows.");
     return;
   }
