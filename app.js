@@ -518,6 +518,21 @@ function isCampusPath() {
   return location.pathname.replace(/\/+$/, "") === "/campus";
 }
 
+function billingRoute() {
+  const path = location.pathname.replace(/\/+$/, "") || "/";
+  if (path === "/buy") return { name: "buy" };
+  if (path === "/admin/orders") return { name: "admin" };
+  const pay = path.match(/^\/pay\/([^/]+)$/);
+  if (pay) return { name: "pay", orderNo: pay[1] };
+  const order = path.match(/^\/order\/([^/]+)$/);
+  if (order) return { name: "order", orderNo: order[1] };
+  return null;
+}
+
+function isBillingPath() {
+  return Boolean(billingRoute());
+}
+
 function captureCampusSource() {
   const source = new URLSearchParams(location.search).get("from");
   if (!CAMPUS_SOURCES.has(source) || typeof localStorage === "undefined") return;
@@ -670,6 +685,10 @@ const els = {
   signOutBtn: document.querySelector("#signOutBtn"),
   homeView: document.querySelector("#homeView"),
   courseView: document.querySelector("#courseView"),
+  buyView: document.querySelector("#buyView"),
+  payView: document.querySelector("#payView"),
+  orderView: document.querySelector("#orderView"),
+  adminOrdersView: document.querySelector("#adminOrdersView"),
   courseGrid: document.querySelector("#courseGrid"),
   sideTitle: document.querySelector("#sideTitle"),
   chapterNav: document.querySelector("#chapterNav"),
@@ -695,6 +714,8 @@ document.querySelector("#backBtn").addEventListener("click", showHome);
 document.querySelector("#randomBtn").addEventListener("click", showRandom);
 document.querySelector("#homePreviewBtn").addEventListener("click", startCampusPreview);
 document.querySelector("#campusPreviewBtn").addEventListener("click", startCampusPreview);
+document.querySelector("#homeBuyBtn").addEventListener("click", () => navigateTo("/buy"));
+document.querySelector("#campusBuyBtn").addEventListener("click", () => navigateTo("/buy"));
 document.querySelectorAll("[data-start-preview]").forEach((button) => button.addEventListener("click", startCampusPreview));
 document.querySelector("#memberLoginBtn").addEventListener("click", showPublicLogin);
 document.querySelector("#campusLoginBtn").addEventListener("click", showPublicLogin);
@@ -718,6 +739,12 @@ els.changeEmailBtn.addEventListener("click", () => {
   els.emailInput.focus();
 });
 els.signOutBtn.addEventListener("click", signOut);
+document.querySelector("#buyForm").addEventListener("submit", createPurchaseOrder);
+document.querySelector("#payBackBtn").addEventListener("click", () => navigateTo("/"));
+document.querySelectorAll("[data-payment-method]").forEach((button) => button.addEventListener("click", () => choosePaymentMethod(button.dataset.paymentMethod)));
+document.querySelector("#paymentForm").addEventListener("submit", submitPaymentReference);
+document.querySelector("#adminOrderReloadBtn").addEventListener("click", () => { void loadAdminOrders(); });
+document.querySelector("#adminOrderStatus").addEventListener("change", () => { void loadAdminOrders(); });
 document.addEventListener("click", (event) => {
   const button = event.target.closest("[data-knowledge-mastered]");
   if (!button) return;
@@ -732,6 +759,10 @@ document.addEventListener("click", (event) => {
 captureCampusSource();
 bootstrap();
 window.addEventListener("popstate", () => {
+  if (isBillingPath()) {
+    void initPublicRoute();
+    return;
+  }
   if (sessionState.memberValidated) {
     void initRoute();
     return;
@@ -790,6 +821,10 @@ function showAuth({ message = "请输入已开通会员的邮箱，获取登录�
   els.campusView.hidden = true;
   els.homeView.hidden = true;
   els.courseView.hidden = true;
+  els.buyView.hidden = true;
+  els.payView.hidden = true;
+  els.orderView.hidden = true;
+  els.adminOrdersView.hidden = true;
   els.authView.hidden = false;
   els.authDescription.textContent = message;
   els.requestOtpForm.hidden = signedIn;
@@ -813,6 +848,10 @@ function showCampusLanding({ updateHistory = false } = {}) {
   els.authView.hidden = true;
   els.homeView.hidden = true;
   els.courseView.hidden = true;
+  els.buyView.hidden = true;
+  els.payView.hidden = true;
+  els.orderView.hidden = true;
+  els.adminOrdersView.hidden = true;
   els.campusView.hidden = false;
   setPageMetadata();
   if (updateHistory) history.pushState("", document.title, `/campus${location.search}`);
@@ -835,12 +874,12 @@ function showLockedContent() {
       <span class="type-pill">完整版本</span>
       <h2>免费体验已结束</h2>
       <p>完整版本可继续使用全部章节、题库、错题复习和大题内容。</p>
-      <button class="primary-cta" type="button" data-login-full>登录 / 开通完整版本</button>
+      <button class="primary-cta" type="button" data-login-full>¥9.90 开通会员</button>
     </div>
   `;
   els.dialogBody.querySelector("[data-login-full]").addEventListener("click", () => {
     els.dialog.close();
-    showPublicLogin();
+    navigateTo("/buy");
   });
   if (!els.dialog.open) els.dialog.showModal();
 }
@@ -934,12 +973,22 @@ async function signOut() {
   pendingEmail = "";
   els.emailInput.value = "";
   els.otpInput.value = "";
-  if (isCampusPath()) showCampusLanding();
+  if (isBillingPath()) await initPublicRoute();
+  else if (isCampusPath()) showCampusLanding();
   else showAuth();
 }
 
 async function bootstrap() {
   const supabase = window.studySupabase;
+  if (isBillingPath()) {
+    if (supabase) {
+      supabase.auth.onAuthStateChange((event) => {
+        if (event === "SIGNED_OUT" && isBillingPath()) void initPublicRoute();
+      });
+    }
+    await initPublicRoute();
+    return;
+  }
   if (!supabase) {
     if (isCampusPath() && location.hash === "#preview") startCampusPreview({ updateHistory: false });
     else if (isCampusPath()) showCampusLanding();
@@ -960,6 +1009,325 @@ async function bootstrap() {
     return;
   }
   await startMemberSession();
+}
+
+function hideAllMainViews() {
+  els.authView.hidden = true;
+  els.campusView.hidden = true;
+  els.homeView.hidden = true;
+  els.courseView.hidden = true;
+  els.buyView.hidden = true;
+  els.payView.hidden = true;
+  els.orderView.hidden = true;
+  els.adminOrdersView.hidden = true;
+  els.appHeader.hidden = true;
+}
+
+function navigateTo(path) {
+  history.pushState("", document.title, path);
+  if (isBillingPath()) {
+    void initPublicRoute();
+    return;
+  }
+  if (isCampusPath()) {
+    showCampusLanding();
+    return;
+  }
+  void currentSession().then((session) => {
+    if (session) return startMemberSession();
+    showAuth();
+  });
+}
+
+async function initPublicRoute() {
+  const route = billingRoute();
+  if (!route) return;
+  if (route.name === "buy") await showBuyPage();
+  else if (route.name === "pay") await showPaymentPage(route.orderNo);
+  else if (route.name === "order") await showOrderPage(route.orderNo);
+  else if (route.name === "admin") await showAdminOrdersPage();
+}
+
+function billingConfig() {
+  return window.billingConfig;
+}
+
+function setBillingMessage(element, message, state = "") {
+  element.textContent = message;
+  if (state) element.dataset.state = state;
+  else delete element.dataset.state;
+}
+
+async function currentSession() {
+  const supabase = window.studySupabase;
+  if (!supabase) return null;
+  const { data } = await supabase.auth.getSession();
+  return data.session || null;
+}
+
+async function currentMembership() {
+  const session = await currentSession();
+  if (!session || !window.studySupabase) return null;
+  const { data, error } = await window.studySupabase.from("memberships").select("status, expires_at").eq("user_id", session.user.id).maybeSingle();
+  if (error || !data || data.status !== "active" || Date.parse(data.expires_at) <= Date.now()) return null;
+  return data;
+}
+
+async function apiRequest(path, options = {}) {
+  const session = await currentSession();
+  const headers = new Headers(options.headers || {});
+  headers.set("content-type", "application/json");
+  if (session?.access_token) headers.set("authorization", `Bearer ${session.access_token}`);
+  const response = await fetch(path, { ...options, headers });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "请求失败，请稍后重试。");
+  return data;
+}
+
+function routeToken() {
+  return new URLSearchParams(location.search).get("token") || sessionStorage.getItem(`sizheng-order-token:${billingRoute()?.orderNo}`) || "";
+}
+
+function saveOrderToken(orderNo, token) {
+  if (token) sessionStorage.setItem(`sizheng-order-token:${orderNo}`, token);
+}
+
+function paymentOrderUrl(orderNo, token) {
+  const encoded = token ? `?token=${encodeURIComponent(token)}` : "";
+  return `/pay/${encodeURIComponent(orderNo)}${encoded}`;
+}
+
+function orderStatusUrl(orderNo, token) {
+  const encoded = token ? `?token=${encodeURIComponent(token)}` : "";
+  return `/order/${encodeURIComponent(orderNo)}${encoded}`;
+}
+
+async function showBuyPage() {
+  hideAllMainViews();
+  els.buyView.hidden = false;
+  delete document.body.dataset.accessMode;
+  const config = billingConfig();
+  document.querySelector("#buyPrice").textContent = `${config.membershipPriceLabel()} / ${config.MEMBERSHIP_DAYS} 天`;
+  document.querySelector("#buySubmitBtn").textContent = `${config.membershipPriceLabel()} 开通 ${config.MEMBERSHIP_DAYS} 天会员`;
+  setBillingMessage(document.querySelector("#buyMessage"), "");
+  const session = await currentSession();
+  if (session?.user?.email) document.querySelector("#buyEmail").value = session.user.email.toLowerCase();
+  const membership = await currentMembership();
+  if (membership) setBillingMessage(document.querySelector("#buyMessage"), `当前会员有效，续费后将在 ${formatDateTime(membership.expires_at)} 的基础上增加 ${config.MEMBERSHIP_DAYS} 天。`);
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+async function createPurchaseOrder(event) {
+  event.preventDefault();
+  const input = document.querySelector("#buyEmail");
+  const button = document.querySelector("#buySubmitBtn");
+  const message = document.querySelector("#buyMessage");
+  const email = input.value.trim().toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    setBillingMessage(message, "请输入有效的邮箱地址。", "error");
+    input.focus();
+    return;
+  }
+  button.disabled = true;
+  button.textContent = "正在创建订单…";
+  setBillingMessage(message, "");
+  try {
+    const data = await apiRequest("/api/orders", { method: "POST", body: JSON.stringify({ email }) });
+    if (data.reused) {
+      const token = sessionStorage.getItem(`sizheng-order-token:${data.order_no}`);
+      setBillingMessage(message, "你已有一笔未完成订单。", "");
+      const continueButton = document.createElement("button");
+      continueButton.type = "button";
+      continueButton.className = "text-action";
+      continueButton.textContent = "继续处理订单";
+      continueButton.addEventListener("click", () => navigateTo(token ? paymentOrderUrl(data.order_no, token) : orderStatusUrl(data.order_no, "")));
+      message.append(" ", continueButton);
+      return;
+    }
+    saveOrderToken(data.order_no, data.access_token);
+    navigateTo(paymentOrderUrl(data.order_no, data.access_token));
+  } catch (error) {
+    setBillingMessage(message, error.message || "无法创建订单。", "error");
+  } finally {
+    button.disabled = false;
+    const config = billingConfig();
+    button.textContent = `${config.membershipPriceLabel()} 开通 ${config.MEMBERSHIP_DAYS} 天会员`;
+  }
+}
+
+async function fetchOrder(orderNo) {
+  const token = routeToken();
+  const query = token ? `?token=${encodeURIComponent(token)}` : "";
+  const data = await apiRequest(`/api/orders/${encodeURIComponent(orderNo)}${query}`);
+  return { order: data.order, token };
+}
+
+function renderOrderSummary(order) {
+  const config = billingConfig();
+  return `
+    <dl><dt>订单号</dt><dd>${escapeHtml(order.order_no)}</dd><dt>开通邮箱</dt><dd>${escapeHtml(order.email)}</dd><dt>购买内容</dt><dd>${config.MEMBERSHIP_DAYS} 天完整版会员</dd><dt>应付</dt><dd><strong>${config.membershipPriceLabel()}</strong></dd></dl>`;
+}
+
+let selectedPaymentMethod = "";
+
+async function showPaymentPage(orderNo) {
+  hideAllMainViews();
+  els.payView.hidden = false;
+  setBillingMessage(document.querySelector("#paymentMessage"), "");
+  try {
+    const { order } = await fetchOrder(orderNo);
+    if (order.status === "pending_review" || order.status === "approved") {
+      navigateTo(orderStatusUrl(orderNo, routeToken()));
+      return;
+    }
+    document.querySelector("#payOrderSummary").innerHTML = renderOrderSummary(order);
+    selectedPaymentMethod = order.payment_method || "";
+    document.querySelector("#paymentReference").value = order.payment_reference || "";
+    renderPaymentChoice();
+  } catch (error) {
+    document.querySelector("#payOrderSummary").innerHTML = `<p class="billing-error">${escapeHtml(error.message || "无法读取订单。")}</p>`;
+    document.querySelector("#paymentQrArea").innerHTML = "";
+    document.querySelector("#paymentForm").hidden = true;
+  }
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+function choosePaymentMethod(method) {
+  selectedPaymentMethod = method;
+  renderPaymentChoice();
+}
+
+function renderPaymentChoice() {
+  const config = billingConfig();
+  document.querySelectorAll("[data-payment-method]").forEach((button) => button.classList.toggle("is-selected", button.dataset.paymentMethod === selectedPaymentMethod));
+  const area = document.querySelector("#paymentQrArea");
+  const form = document.querySelector("#paymentForm");
+  if (!selectedPaymentMethod) {
+    area.innerHTML = "<p>请选择付款方式后显示收款码。</p>";
+    form.hidden = true;
+    return;
+  }
+  const label = selectedPaymentMethod === "alipay" ? "支付宝" : "微信支付";
+  const source = selectedPaymentMethod === "alipay" ? "/payment/alipay-qr.jpg" : "/payment/wechat-qr.jpg";
+  area.innerHTML = `<img src="${source}" alt="${label}收款码"><p>请支付：<strong>${config.membershipPriceLabel()}</strong></p><p>扫码完成付款后，请返回本页面填写支付订单号后 6 位。</p><p>付款后需要管理员核对，确认后系统自动开通 ${config.MEMBERSHIP_DAYS} 天会员。</p>`;
+  form.hidden = false;
+}
+
+async function submitPaymentReference(event) {
+  event.preventDefault();
+  const route = billingRoute();
+  if (!route?.orderNo || !selectedPaymentMethod) return;
+  const reference = document.querySelector("#paymentReference").value.trim();
+  const button = document.querySelector("#paymentSubmitBtn");
+  const message = document.querySelector("#paymentMessage");
+  if (!/^[A-Za-z0-9]{6}$/.test(reference)) {
+    setBillingMessage(message, "请填写支付订单号后 6 位（字母或数字）。", "error");
+    return;
+  }
+  button.disabled = true;
+  button.textContent = "正在提交…";
+  try {
+    const data = await apiRequest(`/api/orders/${encodeURIComponent(route.orderNo)}/payment`, {
+      method: "POST",
+      body: JSON.stringify({ payment_method: selectedPaymentMethod, payment_reference: reference, access_token: routeToken() })
+    });
+    saveOrderToken(route.orderNo, routeToken());
+    navigateTo(orderStatusUrl(data.order.order_no, routeToken()));
+  } catch (error) {
+    setBillingMessage(message, error.message || "无法提交付款信息。", "error");
+  } finally {
+    button.disabled = false;
+    button.textContent = "我已付款，提交审核";
+  }
+}
+
+function formatDateTime(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : date.toLocaleString("zh-CN", { hour12: false });
+}
+
+function orderStatusText(status) {
+  return ({ pending_payment: "等待付款", pending_review: "付款信息已提交，等待管理员核对", approved: "会员已开通", rejected: "付款信息暂未通过核对" })[status] || status;
+}
+
+async function showOrderPage(orderNo) {
+  hideAllMainViews();
+  els.orderView.hidden = false;
+  const content = document.querySelector("#orderStatusContent");
+  content.innerHTML = "<p>正在读取订单…</p>";
+  try {
+    const { order, token } = await fetchOrder(orderNo);
+    const config = billingConfig();
+    const actions = order.status === "pending_payment"
+      ? `<button class="primary-cta" type="button" data-resume-payment>继续付款</button>`
+      : order.status === "rejected"
+        ? `<p>暂未核对到对应付款，请检查付款方式和订单号后 6 位后重新提交。</p><button class="primary-cta" type="button" data-resume-payment>重新提交付款信息</button>`
+        : order.status === "approved"
+          ? `<p>本次增加 ${config.MEMBERSHIP_DAYS} 天会员。</p><button class="primary-cta" type="button" data-go-login>去登录</button>`
+          : `<p>付款信息已提交，等待核对。核对通过后系统会为该邮箱增加 ${config.MEMBERSHIP_DAYS} 天会员。</p>`;
+    content.innerHTML = `<p class="public-kicker">订单状态</p><h1>${escapeHtml(orderStatusText(order.status))}</h1>${renderOrderSummary(order)}<dl><dt>付款方式</dt><dd>${escapeHtml(order.payment_method === "alipay" ? "支付宝" : order.payment_method === "wechat" ? "微信支付" : "未选择")}</dd><dt>支付订单号后 6 位</dt><dd>${escapeHtml(order.payment_reference || "未提交")}</dd><dt>提交时间</dt><dd>${escapeHtml(order.submitted_at ? formatDateTime(order.submitted_at) : "未提交")}</dd></dl>${order.review_note ? `<p class="billing-note">审核说明：${escapeHtml(order.review_note)}</p>` : ""}<div class="billing-actions">${actions}</div>`;
+    content.querySelector("[data-resume-payment]")?.addEventListener("click", () => navigateTo(paymentOrderUrl(order.order_no, token)));
+    content.querySelector("[data-go-login]")?.addEventListener("click", () => { navigateTo("/"); requestAnimationFrame(showPublicLogin); });
+  } catch (error) {
+    content.innerHTML = `<h1>无法读取订单</h1><p class="billing-error">${escapeHtml(error.message || "订单不存在或无权查看。")}</p><button class="secondary-cta" type="button" data-go-buy>返回购买页</button>`;
+    content.querySelector("[data-go-buy]")?.addEventListener("click", () => navigateTo("/buy"));
+  }
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+async function showAdminOrdersPage() {
+  hideAllMainViews();
+  els.adminOrdersView.hidden = false;
+  await loadAdminOrders();
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+async function loadAdminOrders() {
+  const message = document.querySelector("#adminOrderMessage");
+  const list = document.querySelector("#adminOrderList");
+  const status = document.querySelector("#adminOrderStatus").value;
+  const query = document.querySelector("#adminOrderQuery").value.trim();
+  setBillingMessage(message, "正在加载订单…");
+  list.innerHTML = "";
+  try {
+    const data = await apiRequest(`/api/admin/orders?status=${encodeURIComponent(status)}&q=${encodeURIComponent(query)}`);
+    setBillingMessage(message, data.orders.length ? "" : "没有符合条件的订单。");
+    list.innerHTML = data.orders.map((order) => `<article class="admin-order"><div><strong>${escapeHtml(order.order_no)}</strong><span>${escapeHtml(orderStatusText(order.status))}</span></div><dl><dt>邮箱</dt><dd>${escapeHtml(order.email)}</dd><dt>金额</dt><dd>¥${Number(order.amount).toFixed(2)} / ${order.membership_days} 天</dd><dt>付款</dt><dd>${escapeHtml(order.payment_method === "alipay" ? "支付宝" : order.payment_method === "wechat" ? "微信支付" : "未提交")} ${escapeHtml(order.payment_reference || "")}</dd><dt>创建</dt><dd>${escapeHtml(formatDateTime(order.created_at))}</dd><dt>提交</dt><dd>${escapeHtml(order.submitted_at ? formatDateTime(order.submitted_at) : "未提交")}</dd></dl>${order.reviewed_by ? `<p>审核人：${escapeHtml(order.reviewed_by)} ${escapeHtml(formatDateTime(order.reviewed_at))}</p>` : ""}${order.review_note ? `<p>审核说明：${escapeHtml(order.review_note)}</p>` : ""}${order.status === "pending_review" ? `<div class="billing-actions"><button class="primary-cta" type="button" data-approve-order="${escapeHtml(order.order_no)}">确认付款并开通</button><button class="secondary-cta" type="button" data-reject-order="${escapeHtml(order.order_no)}">拒绝</button></div>` : ""}</article>`).join("");
+    list.querySelectorAll("[data-approve-order]").forEach((button) => button.addEventListener("click", () => { void approveOrder(button); }));
+    list.querySelectorAll("[data-reject-order]").forEach((button) => button.addEventListener("click", () => { void rejectOrder(button); }));
+  } catch (error) {
+    setBillingMessage(message, error.message || "无法读取订单。", "error");
+  }
+}
+
+async function approveOrder(button) {
+  button.disabled = true;
+  button.textContent = "正在开通…";
+  try {
+    const data = await apiRequest(`/api/admin/orders/${encodeURIComponent(button.dataset.approveOrder)}/approve`, { method: "POST", body: "{}" });
+    setBillingMessage(document.querySelector("#adminOrderMessage"), data.already_processed ? "该订单已经处理。" : `会员已开通，有效期至：${formatDateTime(data.expires_at)}`);
+    await loadAdminOrders();
+  } catch (error) {
+    setBillingMessage(document.querySelector("#adminOrderMessage"), error.message || "无法开通会员。", "error");
+    button.disabled = false;
+    button.textContent = "确认付款并开通";
+  }
+}
+
+async function rejectOrder(button) {
+  const note = window.prompt("审核说明（可选，最多 500 字）：", "") ?? null;
+  if (note === null) return;
+  button.disabled = true;
+  button.textContent = "正在拒绝…";
+  try {
+    await apiRequest(`/api/admin/orders/${encodeURIComponent(button.dataset.rejectOrder)}/reject`, { method: "POST", body: JSON.stringify({ review_note: note }) });
+    setBillingMessage(document.querySelector("#adminOrderMessage"), "订单已拒绝。");
+    await loadAdminOrders();
+  } catch (error) {
+    setBillingMessage(document.querySelector("#adminOrderMessage"), error.message || "无法拒绝订单。", "error");
+    button.disabled = false;
+    button.textContent = "拒绝";
+  }
 }
 
 async function startMemberSession() {

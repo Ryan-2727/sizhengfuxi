@@ -23,6 +23,8 @@ Open the Supabase SQL editor and run every file in `supabase/migrations/` in fil
 -- supabase/migrations/202608080004_question_chapter_assignments.sql
 -- Immutable editorial quality, revisions and publication RLS:
 -- supabase/migrations/202608090005_question_editorial_quality.sql
+-- Manual payment orders and atomic membership approval:
+-- supabase/migrations/202608090006_purchase_orders.sql
 ```
 
 The migrations create `memberships`, `questions`, `question_bank_catalog`, `question_quality`, `question_revisions`, and `question_quality_events`, enable RLS on every business table, grant no browser write permissions, and permit catalog and published-question reads only through `public.is_active_member()`.
@@ -128,14 +130,37 @@ Set the project build settings:
 - Build output directory: `dist`
 - Node.js version: `22` or later
 
-Set only these build-time environment variables in Cloudflare Pages:
+Set these environment variables in **Cloudflare Pages > Settings > Environment variables** for both Production and Preview as appropriate:
 
 ```text
 SUPABASE_URL=https://your-project-ref.supabase.co
 SUPABASE_ANON_KEY=your-anon-or-publishable-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+ADMIN_EMAILS=admin1@example.com,admin2@example.com
 ```
 
-Do not configure `SUPABASE_SERVICE_ROLE_KEY` in Cloudflare Pages. Vite inserts only the two browser-safe variables above into the built client.
+`SUPABASE_URL` and `SUPABASE_ANON_KEY` are build-time browser-safe values. `SUPABASE_SERVICE_ROLE_KEY` and `ADMIN_EMAILS` are read only by Cloudflare Pages Functions at runtime. Do not use a `VITE_` prefix for either server-only value, do not put them in `.env` committed to Git, and do not expose them in browser code. Vite inserts only the two browser-safe values above into the built client.
+
+## 7. Manual payment membership
+
+After running `supabase/migrations/202608090006_purchase_orders.sql`, the public paths are `/buy`, `/pay/:orderNo`, and `/order/:orderNo`. Existing `assets/alipay.jpg` and `assets/wechat.jpg` are deployed as:
+
+```text
+public/payment/alipay-qr.jpg
+public/payment/wechat-qr.jpg
+```
+
+Replace only those two files if the real collection codes change. Do not generate placeholder QR codes.
+
+Set `ADMIN_EMAILS` to the comma-separated email address(es) that can use `/admin/orders`. Each administrator must first log in through the existing email OTP flow. The browser sends only that existing session token; Cloudflare verifies the token and compares its email with `ADMIN_EMAILS` server-side.
+
+Payment flow: a buyer creates one `pending_payment` order for `¥9.90 / 30 days`, submits a payment method and the last six payment-order characters, then the order becomes `pending_review`. An administrator checks the actual payment and selects **确认付款并开通**. Only then does the protected server function create or reuse the Supabase Auth user for that order email. The SQL function locks the order, adds 30 days to a current active expiry or starts from database `now()` when new/expired, then marks the order approved. Repeating approval for the same order returns `already_processed` and does not add time again.
+
+Run this verification before deployment:
+
+```powershell
+npm run verify:payments
+```
 
 ## 6. Required acceptance checks after deployment
 

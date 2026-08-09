@@ -2462,3 +2462,78 @@ dialog::backdrop {
     padding: 18px;
   }
 }
+
+/* Manual-payment membership flow. Kept separate from course panels so the
+   existing study layout and member workflow remain unchanged. */
+.billing-view {
+  min-height: calc(100vh - 88px);
+  padding: 64px 0;
+  background: #f6f8fb;
+}
+
+.billing-card {
+  width: min(calc(100% - 32px), 760px);
+  padding: 38px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 14px 38px rgb(15 23 42 / 7%);
+}
+
+.billing-back {
+  display: inline-block;
+  margin-bottom: 30px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #38506f;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.billing-card h1 { margin: 0 0 8px; color: #172033; font-size: 32px; }
+.billing-subtitle { margin: 0; color: var(--muted); font-size: 18px; }
+.billing-benefits { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 24px; margin: 28px 0; padding: 0; list-style: none; color: #273a55; }
+.billing-benefits li::before { margin-right: 8px; color: #2f7d4a; content: "✓"; }
+.billing-price { margin: 24px 0; color: #b42318; font-size: 30px; font-weight: 800; }
+.billing-form { display: grid; gap: 10px; max-width: 520px; }
+.billing-form label { font-weight: 700; color: #273a55; }
+.billing-form input, .admin-order-controls input, .admin-order-controls select { min-height: 46px; border: 1px solid #cbd5e1; border-radius: 7px; padding: 10px 12px; color: #172033; font: inherit; }
+.billing-form p { margin: 0 0 8px; color: var(--muted); line-height: 1.6; }
+.billing-message { min-height: 22px; color: #38506f; line-height: 1.5; }
+.billing-message[data-state="error"], .billing-error { color: #b42318; }
+.billing-message .text-action { margin-left: 8px; }
+.order-summary { margin: 28px 0 22px; }
+.order-summary dl, .admin-order dl, #orderStatusContent dl { display: grid; grid-template-columns: minmax(120px, 180px) minmax(0, 1fr); gap: 10px 20px; margin: 0; }
+.order-summary dt, .admin-order dt, #orderStatusContent dt { color: var(--muted); }
+.order-summary dd, .admin-order dd, #orderStatusContent dd { margin: 0; overflow-wrap: anywhere; color: #172033; }
+.payment-methods, .billing-actions, .admin-order-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.payment-method { min-width: 130px; min-height: 48px; border: 1px solid #cbd5e1; border-radius: 7px; background: #fff; color: #273a55; font: inherit; cursor: pointer; }
+.payment-method.is-selected { border-color: #1f6feb; background: #eff6ff; color: #1555a3; font-weight: 700; }
+.payment-qr-area { margin: 22px 0; padding: 24px; border: 1px solid var(--line); border-radius: 8px; background: #f8fafc; text-align: center; }
+.payment-qr-area img { display: block; width: min(100%, 300px); margin: 0 auto 18px; border-radius: 4px; background: #fff; }
+.payment-qr-area p { max-width: 430px; margin: 8px auto; color: #475569; line-height: 1.6; text-align: left; }
+.payment-qr-area p:first-of-type { color: #172033; font-size: 18px; text-align: center; }
+.billing-note { padding: 12px 14px; border-left: 3px solid #c2410c; background: #fff7ed; color: #7c2d12; }
+.billing-actions { margin-top: 22px; }
+.admin-orders-view .billing-card { width: min(calc(100% - 32px), 1060px); }
+.admin-order-controls { margin: 24px 0 16px; }
+.admin-order-controls input { flex: 1 1 260px; }
+.admin-order-controls select { min-width: 120px; }
+.admin-order-list { display: grid; gap: 14px; }
+.admin-order { padding: 18px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+.admin-order > div:first-child { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-bottom: 14px; color: #172033; }
+.admin-order > div:first-child span { color: #38506f; font-size: 14px; }
+.admin-order > p { margin: 12px 0 0; color: var(--muted); font-size: 14px; }
+
+@media (max-width: 760px) {
+  .billing-view { padding: 24px 0 42px; }
+  .billing-card { width: min(calc(100% - 24px), 760px); padding: 24px 18px; }
+  .billing-card h1 { font-size: 28px; }
+  .billing-benefits { grid-template-columns: 1fr; }
+  .order-summary dl, .admin-order dl, #orderStatusContent dl { grid-template-columns: 1fr; gap: 3px; }
+  .order-summary dd, .admin-order dd, #orderStatusContent dd { margin-bottom: 10px; }
+  .payment-methods .payment-method, .billing-actions button, .admin-order-controls > * { width: 100%; }
+  .payment-qr-area { padding: 16px; }
+}

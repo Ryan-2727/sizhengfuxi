@@ -20,6 +20,7 @@ npm run verify:lazy-cache
 npm run verify:knowledge
 npm run verify:navigation
 npm run verify:campus
+npm run verify:payments
 npm run verify:analysis
 npm run verify:payloads
 npm run verify:editorial-migration
@@ -72,6 +73,14 @@ npm run member:add -- student@example.com 30
 `member:add` limits the site to 300 active, unexpired members. At capacity it refuses the new activation before creating an Auth user and directs the administrator to check Supabase Usage.
 
 完整的 Supabase、Cloudflare Pages、SMTP、RLS 与会员管理操作见 [SUPABASE_DEPLOYMENT.md](SUPABASE_DEPLOYMENT.md)。
+
+## 30 天会员订单
+
+会员订单固定为 `¥9.90 / 30 天`。购买页面为 `/buy`，付款和订单状态页面使用不可预测的订单号与首次创建时的访问令牌；登录后的用户也只能读取自己邮箱的订单。付款提交只会把订单推进到 `pending_review`，不会开通会员。
+
+管理员在 `/admin/orders` 人工核对支付宝或微信实际到账后，再点击“确认付款并开通”。该操作由 Cloudflare Pages Function 调用受限 Supabase RPC：同一订单只处理一次；未过期会员在原 `expires_at` 基础上增加 30 天，过期或新会员从服务器当前时间增加 30 天。
+
+部署时除浏览器所需的 `SUPABASE_URL`、`SUPABASE_ANON_KEY` 外，还要在 Cloudflare Pages runtime 设置 `SUPABASE_SERVICE_ROLE_KEY` 和服务器端 `ADMIN_EMAILS`。二者不能使用 `VITE_` 前缀，也不能提交到仓库。收款码位于 `public/payment/alipay-qr.jpg` 与 `public/payment/wechat-qr.jpg`。
 
 ## 维护说明
 

@@ -36,6 +36,7 @@
         <p class="public-support">支持五门大学思政课程，先免费体验实际内容，再决定是否登录完整版本。</p>
         <div class="public-actions">
           <button class="primary-cta" id="homePreviewBtn" type="button">免费体验</button>
+          <button class="secondary-cta" id="homeBuyBtn" type="button">¥9.90 开通30天会员</button>
           <button class="secondary-cta" id="memberLoginBtn" type="button">会员登录</button>
         </div>
         <div class="public-course-names" aria-label="支持的课程">
@@ -77,6 +78,7 @@
           <p class="public-subtitle">章节重点｜题库刷题｜错题复习｜大题背诵</p>
           <div class="public-actions">
             <button class="primary-cta" id="campusPreviewBtn" type="button">免费体验</button>
+            <button class="secondary-cta" id="campusBuyBtn" type="button">¥9.90 开通30天会员</button>
             <button class="secondary-cta" id="campusLoginBtn" type="button">已有账号，登录</button>
           </div>
         </div>
@@ -144,6 +146,68 @@
         <section id="questions" class="panel"></section>
         <section id="sources" class="panel"></section>
       </article>
+    </section>
+
+    <section id="buyView" class="billing-view" hidden>
+      <div class="billing-card public-shell">
+        <a class="billing-back" href="/">返回首页</a>
+        <p class="public-kicker">完整版会员</p>
+        <h1>开通完整版</h1>
+        <p class="billing-subtitle">30 天完整会员</p>
+        <ul class="billing-benefits">
+          <li>五门思政课程</li><li>全部章节</li><li>完整题库</li><li>错题复习</li><li>随机刷题</li><li>大题背诵</li><li>会员有效期内后续内容更新</li>
+        </ul>
+        <div class="billing-price" id="buyPrice"></div>
+        <form id="buyForm" class="billing-form">
+          <label for="buyEmail">登录邮箱</label>
+          <input id="buyEmail" type="email" autocomplete="email" required placeholder="name@example.com">
+          <p>请输入之后用于接收验证码并登录的邮箱。</p>
+          <button id="buySubmitBtn" class="primary-cta" type="submit"></button>
+          <div id="buyMessage" class="billing-message" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+    </section>
+
+    <section id="payView" class="billing-view" hidden>
+      <div class="billing-card public-shell">
+        <button class="billing-back" id="payBackBtn" type="button">返回首页</button>
+        <p class="public-kicker">付款信息</p>
+        <h1>扫码付款</h1>
+        <div id="payOrderSummary" class="order-summary"></div>
+        <div class="payment-methods" role="group" aria-label="付款方式">
+          <button class="payment-method" type="button" data-payment-method="alipay">支付宝</button>
+          <button class="payment-method" type="button" data-payment-method="wechat">微信支付</button>
+        </div>
+        <div id="paymentQrArea" class="payment-qr-area"></div>
+        <form id="paymentForm" class="billing-form" hidden>
+          <label for="paymentReference">支付订单号后 6 位</label>
+          <input id="paymentReference" type="text" inputmode="text" autocomplete="off" maxlength="6" pattern="[A-Za-z0-9]{6}" required placeholder="例如 382914">
+          <button id="paymentSubmitBtn" class="primary-cta" type="submit">我已付款，提交审核</button>
+          <div id="paymentMessage" class="billing-message" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+    </section>
+
+    <section id="orderView" class="billing-view" hidden>
+      <div class="billing-card public-shell">
+        <a class="billing-back" href="/">返回首页</a>
+        <div id="orderStatusContent"></div>
+      </div>
+    </section>
+
+    <section id="adminOrdersView" class="billing-view admin-orders-view" hidden>
+      <div class="billing-card public-shell">
+        <a class="billing-back" href="/">返回首页</a>
+        <p class="public-kicker">管理员</p>
+        <h1>订单审核</h1>
+        <div class="admin-order-controls">
+          <select id="adminOrderStatus" aria-label="订单状态筛选"><option value="pending_review">待审核</option><option value="approved">已开通</option><option value="rejected">已拒绝</option><option value="all">全部</option></select>
+          <input id="adminOrderQuery" type="search" placeholder="邮箱或网站订单号">
+          <button id="adminOrderReloadBtn" class="secondary-cta" type="button">刷新</button>
+        </div>
+        <div id="adminOrderMessage" class="billing-message" role="status" aria-live="polite"></div>
+        <div id="adminOrderList" class="admin-order-list"></div>
+      </div>
     </section>
   </main>
   <footer class="site-disclaimer"><p>本网站为大学思想政治理论课程学习辅助工具，内容以知识梳理、复习提示和自主总结为主，不替代正式教材及课堂教学。教材名称及章节结构以正版教材为准。部分内容可能因教材修订、学校教学安排或考试范围不同而变化，请结合任课教师要求使用。</p><button class="text-action" type="button" data-open-feedback>发现错误 / 功能建议</button></footer>
