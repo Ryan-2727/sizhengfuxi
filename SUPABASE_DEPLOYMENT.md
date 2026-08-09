@@ -21,11 +21,17 @@ Open the Supabase SQL editor and run every file in `supabase/migrations/` in fil
 -- supabase/migrations/202608050003_question_bank_catalog.sql
 -- Question chapter metadata:
 -- supabase/migrations/202608080004_question_chapter_assignments.sql
+-- Immutable editorial quality, revisions and publication RLS:
+-- supabase/migrations/202608090005_question_editorial_quality.sql
 ```
 
-The migrations create `memberships`, `questions`, and `question_bank_catalog`, enable RLS on every business table, grant no browser write permissions, and permit catalog and question reads only through `public.is_active_member()`.
+The migrations create `memberships`, `questions`, `question_bank_catalog`, `question_quality`, `question_revisions`, and `question_quality_events`, enable RLS on every business table, grant no browser write permissions, and permit catalog and published-question reads only through `public.is_active_member()`.
 
 The fourth migration adds chapter metadata to `questions`. It does not alter question stems, answers, analyses, order, or RLS. `verified` is reserved for editorially checked assignments; `candidate` is a visible, non-final rule result.
+
+The fifth migration seeds one quality row per existing question, makes `questions.payload` immutable, and changes question RLS so active members can read only `publication_status = 'published'` rows. Current display corrections live in `question_revisions`; normal authenticated users cannot write quality, revisions, or audit events.
+
+Run the fifth migration before deploying the matching frontend. The new frontend requires `question_quality` and reads current revisions before writing a course to IndexedDB.
 
 ## 3. Local environment and question import
 
@@ -47,11 +53,7 @@ For an existing project whose `questions` table is already populated, create the
 npm run import:questions -- --catalog-only
 ```
 
-The importer refuses to overwrite an existing question table. To intentionally replace it after reviewing the source data:
-
-```powershell
-npm run import:questions -- --replace
-```
+The importer refuses to overwrite an existing question table. `--replace` is disabled after the immutable editorial migration; preserve existing rows and use the append or revision workflows below.
 
 To add only the repository's curated supplement without changing or deleting existing question rows, use:
 
@@ -61,11 +63,28 @@ npm run import:questions -- --append-curated
 
 This mode checks question stems for duplicates, appends only missing curated questions at the end of each course and question type, then recalculates catalog counts and hashes from the database.
 
-When a reviewed correction affects only the curated supplement, sync it without touching the original question-bank rows:
+When a reviewed correction affects only the curated supplement, create a display revision without touching `questions.payload`:
 
 ```powershell
 npm run import:questions -- --sync-curated
 ```
+
+After the fifth migration, generate and verify the full editorial manifest. The first command writes only to the Git-ignored local source directory; the second and third commands are read-only:
+
+```powershell
+npm run verify:payloads
+npm run questions:audit-quality
+npm run verify:editorial-quality
+npm run questions:sync-quality
+```
+
+Review `data/question-bank-source/editorial-quality-report.json`, then explicitly apply the manifest with the local service-role key:
+
+```powershell
+npm run questions:sync-quality -- --apply
+```
+
+The apply command verifies every database payload hash before writing, creates or reuses non-destructive revisions, updates publication/source/chapter quality metadata, and refreshes `question_bank_catalog`. It never updates `questions.payload`. Exact answer-equivalent duplicates may be hidden and linked to a canonical row; reviewed cross-course or malformed source records use `hidden_review`; semantic near-duplicates and low-confidence chapter matches remain review candidates.
 
 After running the fourth migration, review the local candidate report first. The write mode changes only rows that are still `unclassified`; it never changes `verified` assignments or question content. It also recalculates `question_bank_catalog` so browser caches refresh their chapter labels.
 
@@ -128,3 +147,5 @@ Do not configure `SUPABASE_SERVICE_ROLE_KEY` in Cloudflare Pages. Vite inserts o
 6. In the Supabase API docs or SQL editor, test an anon `select` against `public.questions`; it must return no rows because of RLS.
 7. Run `npm run build` and `node scripts/verify-production-build.js` before every production deployment.
 8. Run `npm run verify:lazy-cache`; it verifies account isolation, version invalidation, logout cache deletion, and the lazy-loading contract.
+9. Open one course containing a current revision and confirm the displayed answer/analysis matches the revision while the original database payload remains unchanged.
+10. Confirm a hidden duplicate returns no row through the authenticated `questions` API and that its removal changes the course catalog count/hash.

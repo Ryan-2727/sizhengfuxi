@@ -20,6 +20,10 @@ npm run verify:lazy-cache
 npm run verify:knowledge
 npm run verify:navigation
 npm run verify:analysis
+npm run verify:payloads
+npm run verify:editorial-migration
+npm run verify:editorial-quality
+npm run verify:quality-sync
 # Requires local SUPABASE_SERVICE_ROLE_KEY; reads only.
 npm run verify:database
 npm run build
@@ -50,8 +54,15 @@ node scripts/import-question-bank.js --dry-run
 # 设置 SUPABASE_URL 和 SUPABASE_SERVICE_ROLE_KEY 后导入
 npm run import:questions
 
-# 仅同步“精选补充题/用户提供真题”的答案、解析或题型修正，不改动原题库行
+# 仅同步“精选补充题/用户提供真题”的展示修订，不改动 questions.payload
 npm run import:questions -- --sync-curated
+
+# 生成不写数据库的全量质量清单与审计报告
+npm run questions:audit-quality
+
+# 先只读预览；执行 202608090005 migration 后才显式应用
+npm run questions:sync-quality
+npm run questions:sync-quality -- --apply
 
 # 首个会员，30 天有效
 npm run member:add -- student@example.com 30
@@ -67,8 +78,14 @@ npm run member:add -- student@example.com 30
 
 题库内容更新后执行导入脚本。脚本会为每门课程计算稳定 SHA-256 内容哈希，并且只在内容实际变化时更新目录版本；旧版本缓存会自然失效。
 
+原始 `questions.payload` 现在由数据库触发器保护，不允许直接更新。题目答案、解析、题型或展示题干的审校结果写入 `question_revisions`，当前发布状态、来源和修订指针写入 `question_quality`；确定的重复题只标记为隐藏并关联主版本，跨课程错放或源文残缺的题目进入 `hidden_review` 人工队列，均不删除原始记录。已有题库禁止使用 `--replace`，新增题使用 `--append-curated`，修正使用 `--sync-curated` 或 `questions:sync-quality -- --apply`。
+
+`npm run questions:audit-quality` 会在被 Git 忽略的 `data/question-bank-source/` 中生成全量清单和摘要报告。自动章节归类只能写为 `candidate`；低置信度归类和语义近重复继续进入人工队列。高风险限定词但缺少教材、教师答案或权威来源的题目会标记为 `needs_manual_review`，不会冒充已核验。
+
 章节归类元数据同样参与版本哈希。候选或已核验章节发生变化时，重新打开该课程会下载带有新章节标签的题目，不会误用旧缓存。
 
 已存在题目但尚未创建目录表记录的项目，可运行 `npm run import:questions -- --catalog-only`，该命令不会改写任何题目行。
 
 题目页会在浏览器渲染时补齐过短的答案解析：选择题保留原解析并补充正确选项定位和记忆提示，大题保留原解析并补充作答组织与检查提示。该处理不修改题干、答案、题型、题目顺序或 Supabase 题库数据；可运行 `npm run verify:analysis` 复核这一约束。左侧“题集”折叠导航的静态契约可通过 `npm run verify:navigation` 检查。
+
+五门课程共 55 章，每章至少包含 8 个结构化知识点。章节综合卡基于本章已有教材小节、已核验页码范围和原知识点生成，并通过 `derivedFrom` 保留追溯关系；不会新增无法核实的教材引文或页码。

@@ -1,7 +1,8 @@
 const { createClient } = require("@supabase/supabase-js");
-const { createHash } = require("crypto");
 const { loadQuestionBank } = require("./lib/load-question-bank");
 const { loadLocalEnv } = require("./lib/load-local-env");
+const { sha256, sourceMetadata, stableJson } = require("./lib/editorial-quality");
+const { updateQuestionBankCatalog } = require("./lib/question-catalog");
 
 loadLocalEnv(require("path").resolve(__dirname, ".."));
 
@@ -46,14 +47,6 @@ const rows = courses.flatMap((course) => [
   ...course.essays.map((payload, index) => questionRow(course.id, "essay", index + 1, payload))
 ]);
 
-function stableJson(value) {
-  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
-  if (value && typeof value === "object") {
-    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
-  }
-  return JSON.stringify(value);
-}
-
 function catalogRows() {
   return courses.map((course) => {
     const payload = [
@@ -64,25 +57,9 @@ function catalogRows() {
       course_id: course.id,
       choice_count: course.choices.length,
       essay_count: course.essays.length,
-      content_hash: createHash("sha256").update(stableJson(payload)).digest("hex")
+      content_hash: sha256(stableJson(payload))
     };
   });
-}
-
-async function updateCatalog() {
-  for (const row of catalogRows()) {
-    const { data: existing, error: readError } = await supabase
-      .from("question_bank_catalog")
-      .select("content_hash")
-      .eq("course_id", row.course_id)
-      .maybeSingle();
-    if (readError) throw readError;
-    if (existing?.content_hash === row.content_hash) continue;
-    const { error } = await supabase
-      .from("question_bank_catalog")
-      .upsert({ ...row, updated_at: new Date().toISOString() }, { onConflict: "course_id" });
-    if (error) throw error;
-  }
 }
 
 async function readCourseQuestions(courseId, questionType) {
@@ -112,31 +89,34 @@ function isCuratedAddition(payload) {
 }
 
 async function updateCatalogFromDatabase() {
-  for (const course of courses) {
-    const [choices, essays] = await Promise.all([
-      readCourseQuestions(course.id, "choice"),
-      readCourseQuestions(course.id, "essay")
-    ]);
-    const payload = [...choices, ...essays]
-      .sort((left, right) => left.question_type.localeCompare(right.question_type) || left.question_order - right.question_order)
-      .map((item) => ({
-        question_type: item.question_type,
-        question_order: item.question_order,
-        payload: item.payload,
-        chapter_id: item.chapter_id,
-        chapter_assignment_status: item.chapter_assignment_status,
-        chapter_assignment_reference: item.chapter_assignment_reference
-      }));
-    const row = {
-      course_id: course.id,
-      choice_count: choices.length,
-      essay_count: essays.length,
-      content_hash: createHash("sha256").update(stableJson(payload)).digest("hex"),
-      updated_at: new Date().toISOString()
-    };
-    const { error } = await supabase.from("question_bank_catalog").upsert(row, { onConflict: "course_id" });
-    if (error) throw error;
-  }
+  const summary = await updateQuestionBankCatalog(supabase, courses.map((course) => course.id));
+  console.table(summary.map(({ course_id, choice_count, essay_count, changed }) => ({ course_id, choice_count, essay_count, changed })));
+}
+
+function applyRevision(payload, revision) {
+  const next = { ...payload };
+  if (revision?.display_question) next.question = revision.display_question;
+  if (revision?.display_answer) next.answer = revision.display_answer;
+  if (revision?.display_analysis) next.analysis = revision.display_analysis;
+  if (revision?.correct_answer_override) next.correctAnswer = revision.correct_answer_override;
+  if (revision?.question_type_override) next.questionType = revision.question_type_override;
+  return next;
+}
+
+function curatedRevision(current, desired) {
+  const revision = {
+    display_question: current.question === desired.question ? null : desired.question,
+    display_answer: current.answer === desired.answer ? null : desired.answer,
+    display_analysis: current.analysis === desired.analysis ? null : desired.analysis,
+    correct_answer_override: current.correctAnswer === desired.correctAnswer ? null : desired.correctAnswer,
+    question_type_override: current.questionType === desired.questionType ? null : desired.questionType,
+    scoring_points: [],
+    keywords: [],
+    common_mistakes: [],
+    revision_note: "Reviewed curated-source synchronization",
+    verification_reference: desired.verificationReference || null
+  };
+  return Object.values(revision).some((value, index) => index < 5 && value) ? revision : null;
 }
 
 async function appendCuratedQuestions() {
@@ -194,9 +174,51 @@ async function syncCuratedQuestions() {
           skipped += 1;
           continue;
         }
-        if (stableJson(current.payload) === stableJson(payload)) continue;
-        const { error } = await supabase.from("questions").update({ payload, ...chapterAssignment(payload) }).eq("id", current.id);
-        if (error) throw error;
+        const { data: quality, error: qualityError } = await supabase
+          .from("question_quality")
+          .select("current_revision_id")
+          .eq("question_id", current.id)
+          .single();
+        if (qualityError) throw qualityError;
+        let activeRevision = null;
+        if (quality.current_revision_id) {
+          const { data, error } = await supabase
+            .from("question_revisions")
+            .select("display_question, display_answer, display_analysis, correct_answer_override, question_type_override")
+            .eq("id", quality.current_revision_id)
+            .single();
+          if (error) throw error;
+          activeRevision = data;
+        }
+        const revision = curatedRevision(applyRevision(current.payload, activeRevision), payload);
+        if (!revision) continue;
+        const { data: latest, error: latestError } = await supabase
+          .from("question_revisions")
+          .select("revision_no")
+          .eq("question_id", current.id)
+          .order("revision_no", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (latestError) throw latestError;
+        const { data: inserted, error: revisionError } = await supabase
+          .from("question_revisions")
+          .insert({ question_id: current.id, revision_no: (latest?.revision_no || 0) + 1, ...revision })
+          .select("id")
+          .single();
+        if (revisionError) throw revisionError;
+        const source = sourceMetadata(payload);
+        const { error: updateError } = await supabase
+          .from("question_quality")
+          .update({
+            current_revision_id: inserted.id,
+            review_status: source.verificationStatus === "pending" ? "structural_checked" : "source_verified",
+            verification_status: source.verificationStatus,
+            source_kind: source.sourceKind,
+            source_title: source.sourceTitle,
+            verification_reference: source.verificationReference
+          })
+          .eq("question_id", current.id);
+        if (updateError) throw updateError;
         updated += 1;
       }
     }
@@ -204,7 +226,7 @@ async function syncCuratedQuestions() {
   }
   await updateCatalogFromDatabase();
   console.table(summary);
-  console.log("Synced curated question quality without changing original question rows.");
+  console.log("Synced curated display revisions without changing questions.payload.");
 }
 
 async function main() {
@@ -235,18 +257,17 @@ async function main() {
     .from("questions")
     .select("id", { count: "exact", head: true });
   if (countError) throw countError;
-  if (count && !replace) {
-    throw new Error(`questions already contains ${count} rows. Re-run with --replace to intentionally replace it.`);
-  }
-  if (replace) {
-    const { error } = await supabase.from("questions").delete().not("id", "is", null);
-    if (error) throw error;
+  if (count) {
+    const hint = replace
+      ? "--replace is disabled because original question rows are immutable. Use --append-curated or --sync-curated."
+      : "Use --append-curated, --sync-curated, or --catalog-only instead.";
+    throw new Error(`questions already contains ${count} rows. ${hint}`);
   }
   for (let index = 0; index < rows.length; index += 500) {
     const { error } = await supabase.from("questions").insert(rows.slice(index, index + 500));
     if (error) throw error;
   }
-  await updateCatalog();
+  await updateCatalogFromDatabase();
   const summary = courses.map((course) => ({
     course: course.id,
     choices: course.choices.length,

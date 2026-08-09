@@ -1018,7 +1018,7 @@ async function ensureCourseQuestionBank(courseId) {
   for (let from = 0; ; from += pageSize) {
     const { data, error } = await window.studySupabase
       .from("questions")
-      .select("question_type, question_order, payload, chapter_id, chapter_assignment_status")
+      .select("id, question_type, question_order, payload, chapter_id, chapter_assignment_status")
       .eq("course_id", courseId)
       .order("question_type")
       .order("question_order")
@@ -1027,8 +1027,9 @@ async function ensureCourseQuestionBank(courseId) {
     rows.push(...data);
     if (data.length < pageSize) break;
   }
+  const qualityByQuestion = await loadQuestionQuality(rows);
   const withChapterAssignment = (row) => ({
-    ...row.payload,
+    ...applyQuestionRevision(row.payload, qualityByQuestion.get(row.id)),
     chapterId: row.chapter_id || undefined,
     chapterAssignmentStatus: row.chapter_assignment_status || undefined
   });
@@ -1046,6 +1047,64 @@ async function ensureCourseQuestionBank(courseId) {
   });
   hydrateCourseQuestionBank(course, choices, essays);
   return course;
+}
+
+async function loadQuestionQuality(rows) {
+  const qualityRows = [];
+  const questionIds = rows.map((row) => row.id).filter(Boolean);
+  for (let index = 0; index < questionIds.length; index += 100) {
+    const { data, error } = await window.studySupabase
+      .from("question_quality")
+      .select("question_id, publication_status, review_status, verification_status, source_kind, source_title, source_edition, source_chapter, source_page, source_url, verification_reference, current_revision_id")
+      .in("question_id", questionIds.slice(index, index + 100));
+    if (error) throw error;
+    qualityRows.push(...data);
+  }
+  if (qualityRows.length !== questionIds.length) {
+    throw new Error("Published question quality metadata is incomplete.");
+  }
+  const revisionIds = [...new Set(qualityRows.map((row) => row.current_revision_id).filter(Boolean))];
+  const revisions = [];
+  for (let index = 0; index < revisionIds.length; index += 100) {
+    const { data, error } = await window.studySupabase
+      .from("question_revisions")
+      .select("id, display_question, display_answer, display_analysis, correct_answer_override, question_type_override, scoring_points, keywords, common_mistakes, verification_reference")
+      .in("id", revisionIds.slice(index, index + 100));
+    if (error) throw error;
+    revisions.push(...data);
+  }
+  const revisionById = new Map(revisions.map((row) => [row.id, row]));
+  return new Map(qualityRows.map((row) => [row.question_id, {
+    ...row,
+    revision: row.current_revision_id ? revisionById.get(row.current_revision_id) : null
+  }]));
+}
+
+function applyQuestionRevision(payload, quality) {
+  const revision = quality?.revision;
+  const merged = { ...payload };
+  if (revision?.display_question) merged.question = revision.display_question;
+  if (revision?.display_answer) merged.answer = revision.display_answer;
+  if (revision?.display_analysis) merged.analysis = revision.display_analysis;
+  if (revision?.correct_answer_override) merged.correctAnswer = revision.correct_answer_override;
+  if (revision?.question_type_override) merged.questionType = revision.question_type_override;
+  if (Array.isArray(revision?.scoring_points) && revision.scoring_points.length) merged.editorialScoringPoints = revision.scoring_points;
+  if (Array.isArray(revision?.keywords) && revision.keywords.length) merged.editorialKeywords = revision.keywords;
+  if (Array.isArray(revision?.common_mistakes) && revision.common_mistakes.length) merged.editorialCommonMistakes = revision.common_mistakes;
+  if (quality?.verification_status && quality.verification_status !== "pending") merged.auditStatus = quality.verification_status;
+  if (quality?.verification_reference || revision?.verification_reference) {
+    merged.verificationReference = revision?.verification_reference || quality.verification_reference;
+  }
+  merged.editorialReviewStatus = quality?.review_status || "unreviewed";
+  merged.editorialSource = quality ? {
+    kind: quality.source_kind,
+    title: quality.source_title,
+    edition: quality.source_edition,
+    chapter: quality.source_chapter,
+    page: quality.source_page,
+    url: quality.source_url
+  } : null;
+  return merged;
 }
 
 function jumpToCourseTop() {
@@ -2368,6 +2427,11 @@ function essayAnalysisPoints(item) {
 }
 
 function essayScoringRows(item) {
+  if (Array.isArray(item.editorialScoringPoints) && item.editorialScoringPoints.length) {
+    return item.editorialScoringPoints.slice(0, 8).map((point) => typeof point === "string"
+      ? { criterion: point, evidence: point }
+      : { criterion: point.criterion || point.evidence || "得分点", evidence: point.evidence || point.criterion || "" });
+  }
   const segments = essayAnswerSegments(essayAnswerContent(item));
   const analysisPoints = essayAnalysisPoints(item);
   return segments.slice(0, 6).map((segment, index) => ({
@@ -2377,6 +2441,7 @@ function essayScoringRows(item) {
 }
 
 function essayKeywords(item) {
+  if (Array.isArray(item.editorialKeywords) && item.editorialKeywords.length) return item.editorialKeywords.slice(0, 8);
   const text = essayAnswerContent(item);
   const pools = {
     history: ["社会性质", "主要矛盾", "历史背景", "领导力量", "统一战线", "武装斗争", "党的建设", "历史意义", "经验教训"],
@@ -2392,6 +2457,9 @@ function essayKeywords(item) {
 }
 
 function essayLossWarning(item) {
+  if (Array.isArray(item.editorialCommonMistakes) && item.editorialCommonMistakes.length) {
+    return item.editorialCommonMistakes.join("；");
+  }
   return {
     history: "只写事件结论，不交代背景、主体、历史作用与局限；或把不同历史阶段的意义混写。",
     morality: "只表态不解释概念依据，实践要求停留在口号，未落到大学生的具体行动。",

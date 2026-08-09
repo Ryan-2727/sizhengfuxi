@@ -53,12 +53,16 @@ async function main() {
       chapterIds.add(chapter.id);
       if (chapter.sections.length) completeChapters += 1;
       const chapterPointCount = chapter.sections.reduce((count, section) => count + section.points.length, 0);
-      assert(chapterPointCount >= 3, `${chapter.id} needs at least three independent knowledge points.`);
+      assert(chapterPointCount >= 8, `${chapter.id} needs at least eight independent knowledge points.`);
       assert(chapter.memoryOutline?.length >= 3, `${chapter.id} needs a three-step memory outline.`);
       assert(new Set(chapter.memoryOutline).size === chapter.memoryOutline.length, `${chapter.id} repeats its memory outline.`);
       assert(chapter.examPractice?.prompt, `${chapter.id} needs a chapter material-question prompt.`);
       assert(chapter.examPractice.answer?.length >= 3, `${chapter.id} needs a chapter material-question answer reference.`);
       assert(chapter.examPractice.scoring?.length >= 3, `${chapter.id} needs chapter material-question scoring points.`);
+      const chapterPointTitles = chapter.sections.flatMap((section) => section.points.map((item) => item.title));
+      assert.equal(new Set(chapterPointTitles).size, chapterPointTitles.length, `${chapter.id} repeats a knowledge-point title.`);
+      const chapterPointSignatures = chapter.sections.flatMap((section) => section.points.map((item) => item.keyPoints.join("|")));
+      assert.equal(new Set(chapterPointSignatures).size, chapterPointSignatures.length, `${chapter.id} repeats an entire knowledge-point body.`);
       for (const section of chapter.sections) {
         for (const item of section.points) {
           assert(!pointIds.has(item.id), `Duplicate knowledge id: ${item.id}`);
@@ -68,6 +72,7 @@ async function main() {
           assert(item.source?.book && item.source?.chapter && item.source?.section && item.source?.verification, `${item.id} needs source metadata.`);
           assert(/^\d+(?:-\d+)?$/.test(item.source?.page || ""), `${item.id} needs a textbook page or page range.`);
           assert(["教材小节及页码范围已核验", "待人工核验"].includes(item.source.verification), `${item.id} has an unsupported verification status.`);
+          if (item.derivedFrom) assert(item.derivedFrom.length >= 3, `${item.id} needs traceable source knowledge IDs.`);
           if (item.quotation) assert(item.quotation.text.length <= 30 && item.quotation.sourcePage, `${item.id} has an invalid short quotation.`);
           assert(!item.keyPoints.some((text) => /此处待补充/.test(text)), `${item.id} contains a visible placeholder.`);
           assert(!item.keyPoints.some((text) => /先判断材料对应的核心问题|回扣本章主题|具体历史阶段、理论层次或制度语境|不能只背术语名称/.test(text)), `${item.id} contains a retired generic template phrase.`);

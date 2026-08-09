@@ -15,6 +15,12 @@
     "verify:coverage": "node scripts/verify-question-coverage.js",
     "verify:analysis": "node scripts/verify-analysis-quality.js",
     "verify:navigation": "node scripts/verify-question-navigation.js",
+    "verify:payloads": "node scripts/verify-original-question-payloads.js",
+    "verify:editorial-migration": "node scripts/verify-editorial-quality-migration.js",
+    "verify:editorial-quality": "node scripts/verify-editorial-quality.js",
+    "questions:audit-quality": "node scripts/audit-editorial-quality.js",
+    "questions:sync-quality": "node scripts/sync-question-quality.js",
+    "verify:quality-sync": "node scripts/verify-question-quality-sync.js",
     "questions:chapters": "node scripts/assign-question-chapters.js",
     "verify:database": "node scripts/verify-supabase-question-bank.js"
   },

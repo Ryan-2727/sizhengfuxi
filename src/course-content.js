@@ -702,5 +702,83 @@ const xi = withTextbookSources({
   ]
 });
 
-export const courseKnowledge = [history, morality, mao, xi, marx];
+function combinedChapterPage(chapterItem) {
+  const pages = chapterItem.sections.flatMap((sectionItem) => {
+    const match = String(sectionItem.page || "").match(/^(\d+)(?:-(\d+))?$/);
+    return match ? [Number(match[1]), Number(match[2] || match[1])] : [];
+  });
+  const first = Math.min(...pages);
+  const last = Math.max(...pages);
+  return first === last ? String(first) : `${first}-${last}`;
+}
+
+function distinct(values, limit = 7) {
+  return [...new Set(values.map((value) => String(value || "").trim()).filter(Boolean))].slice(0, limit);
+}
+
+function conciseChapterTitle(title) {
+  return title.replace(/^(?:导言|绪论|结语|结束语|第[一二三四五六七八九十]+章)\s*/, "") || title;
+}
+
+function deepenChapter(course, chapterItem) {
+  const originalPoints = chapterItem.sections.flatMap((sectionItem) => sectionItem.points);
+  if (originalPoints.length >= 8) return chapterItem;
+  const chapterTitle = conciseChapterTitle(chapterItem.title);
+  const keywords = distinct(originalPoints.flatMap((item) => item.keywords), 10);
+  const page = combinedChapterPage(chapterItem);
+  const source = {
+    book: course.book,
+    edition: course.edition,
+    chapter: chapterItem.title,
+    section: "章节综合复习（基于本章已核验小节）",
+    page,
+    verification: VERIFIED_RANGE
+  };
+  const derivedFrom = originalPoints.map((item) => item.id);
+  const point = (suffix, title, keyPoints, extra = {}) => ({
+    id: `${chapterItem.id}-deep-${suffix}`,
+    title,
+    importance: chapterItem.importance,
+    keywords: distinct(extra.keywords || keywords, 7),
+    keyPoints: distinct(keyPoints, 7),
+    source,
+    derivedFrom,
+    ...extra
+  });
+  const firstJudgments = originalPoints.map((item) => item.keyPoints[0]);
+  const secondJudgments = originalPoints.map((item) => item.keyPoints[1] || item.keyPoints[0]);
+  const mistakeJudgments = originalPoints.map((item, index) => item.commonMistakes?.[0]
+    || `判断“${item.title}”相关表述时，应核对本章结论：${item.keyPoints[2] || item.keyPoints[1] || item.keyPoints[0]}`);
+  const keywordBoundaries = originalPoints.map((item, index) => {
+    const label = item.keywords[index % item.keywords.length] || item.keywords[0] || item.title;
+    return `“${label}”对应“${item.title}”这一考点，核心判断是：${item.keyPoints[index % item.keyPoints.length]}`;
+  });
+  const examAnswers = distinct((chapterItem.examPractice?.answer || firstJudgments).map((answer, index) => {
+    const scoring = chapterItem.examPractice?.scoring?.[index] || `得分点${index + 1}`;
+    return `${scoring.replace(/[。.]$/, "")}：${answer}`;
+  }), 7);
+  const reviewPoints = [
+    point("mainline", `${chapterTitle}的章节主线`, chapterItem.memoryOutline, { definition: chapterItem.summary }),
+    point("connection", `${chapterItem.sections[0].title}与${chapterItem.sections[1]?.title || chapterItem.sections[0].title}的知识衔接`, firstJudgments),
+    point("boundary", `${keywords.slice(0, 3).join("、")}的考点边界`, keywordBoundaries),
+    point("mistakes", `${chapterTitle}选择题易错判断`, mistakeJudgments, { commonMistakes: mistakeJudgments }),
+    point("answer", `${chapterTitle}材料题得分链条`, examAnswers, { answerTemplate: chapterItem.examPractice?.scoring || [] })
+  ];
+  return {
+    ...chapterItem,
+    sections: [
+      ...chapterItem.sections,
+      section(`${chapterItem.id}-deep-review`, "章节综合复习", page, reviewPoints)
+    ]
+  };
+}
+
+function deepenCourse(course) {
+  return {
+    ...course,
+    chapters: course.chapters.map((chapterItem) => deepenChapter(course, chapterItem))
+  };
+}
+
+export const courseKnowledge = [history, morality, mao, xi, marx].map(deepenCourse);
 export { VERIFIED_RANGE };

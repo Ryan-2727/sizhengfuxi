@@ -30,6 +30,10 @@ async function main() {
   assert(ensure.includes("const pageSize = 100"), "question downloads must use 100-row pages");
   assert(ensure.includes('.eq("course_id", courseId)'), "question downloads must be course scoped");
   assert(ensure.includes("putCourseQuestionCache"), "first course downloads must be cached");
+  assert(ensure.includes("loadQuestionQuality(rows)"), "published questions must load quality metadata before caching");
+  assert(app.includes('from("question_quality")'), "question quality metadata must come from Supabase");
+  assert(app.includes('from("question_revisions")'), "current editorial revisions must come from Supabase");
+  assert(ensure.indexOf("loadQuestionQuality(rows)") < ensure.indexOf("putCourseQuestionCache"), "quality overlays must be applied before IndexedDB caching");
   assert(app.includes('from("question_bank_catalog")'), "startup must load the catalog");
   assert(!app.includes("loadQuestionBankFromSupabase"), "startup must not use the old full-bank loader");
   assert(/function cleanAnalysisText\(/.test(app), "choice analysis rendering must include its text-cleaning helper");

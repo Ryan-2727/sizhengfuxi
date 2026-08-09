@@ -1,9 +1,9 @@
 const path = require("path");
 const { createClient } = require("@supabase/supabase-js");
-const { createHash } = require("crypto");
 const { pathToFileURL } = require("url");
 const { loadQuestionBank } = require("./lib/load-question-bank");
 const { loadLocalEnv } = require("./lib/load-local-env");
+const { updateQuestionBankCatalog } = require("./lib/question-catalog");
 
 loadLocalEnv(path.resolve(__dirname, ".."));
 
@@ -11,14 +11,6 @@ const apply = process.argv.includes("--apply-candidates");
 const url = process.env.SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const courseIds = ["history", "morality", "mao", "xi", "marx"];
-
-function stableJson(value) {
-  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
-  if (value && typeof value === "object") {
-    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
-  }
-  return JSON.stringify(value);
-}
 
 function classifyQuestion(item, courseId, rules) {
   const text = `${item.question || ""}\n${item.answer || ""}\n${item.analysis || ""}`;
@@ -78,50 +70,8 @@ async function applyCandidates(supabase, rules) {
     }
     report.push({ course: courseId, scanned: rows.length, candidates: candidates.length, stillUnclassified: rows.length - candidates.length });
   }
-  await refreshCatalog(supabase);
+  await updateQuestionBankCatalog(supabase, courseIds);
   console.table(report);
-}
-
-async function refreshCatalog(supabase) {
-  for (const courseId of courseIds) {
-    const rows = [];
-    for (let from = 0; ; from += 1000) {
-      const { data, error } = await supabase
-        .from("questions")
-        .select("question_type, question_order, payload, chapter_id, chapter_assignment_status, chapter_assignment_reference")
-        .eq("course_id", courseId)
-        .order("question_type")
-        .order("question_order")
-        .range(from, from + 999);
-      if (error) throw error;
-      rows.push(...data);
-      if (data.length < 1000) break;
-    }
-    const ordered = rows.map((row) => ({
-      question_type: row.question_type,
-      question_order: row.question_order,
-      payload: row.payload,
-      chapter_id: row.chapter_id,
-      chapter_assignment_status: row.chapter_assignment_status,
-      chapter_assignment_reference: row.chapter_assignment_reference
-    }));
-    const contentHash = createHash("sha256").update(stableJson(ordered)).digest("hex");
-    const { data: existing, error: readError } = await supabase
-      .from("question_bank_catalog")
-      .select("content_hash")
-      .eq("course_id", courseId)
-      .maybeSingle();
-    if (readError) throw readError;
-    if (existing?.content_hash === contentHash) continue;
-    const { error } = await supabase.from("question_bank_catalog").upsert({
-      course_id: courseId,
-      choice_count: rows.filter((row) => row.question_type === "choice").length,
-      essay_count: rows.filter((row) => row.question_type === "essay").length,
-      content_hash: contentHash,
-      updated_at: new Date().toISOString()
-    }, { onConflict: "course_id" });
-    if (error) throw error;
-  }
 }
 
 async function main() {
