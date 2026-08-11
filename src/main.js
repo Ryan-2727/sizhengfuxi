@@ -6,6 +6,7 @@ import { campusPreview } from "./campus-preview.js";
 import * as studyTools from "./study-tools.js";
 import { runConcurrentBatches } from "./concurrent-batches.js";
 import { MEMBERSHIP_DAYS, MEMBERSHIP_PLAN, MEMBERSHIP_PRICE, membershipPriceLabel } from "./billing-config.js";
+import { mountTurnstile, resetTurnstile, turnstileToken } from "./turnstile.js";
 import {
   deleteCourseQuestionCache,
   deleteUserQuestionCaches,
@@ -21,6 +22,7 @@ window.campusPreview = campusPreview;
 window.studyTools = studyTools;
 window.questionBankLoader = { runConcurrentBatches };
 window.billingConfig = { MEMBERSHIP_DAYS, MEMBERSHIP_PLAN, MEMBERSHIP_PRICE, membershipPriceLabel };
+window.turnstileChallenge = { mountTurnstile, resetTurnstile, turnstileToken };
 window.questionBankCache = {
   deleteCourseQuestionCache,
   deleteUserQuestionCaches,

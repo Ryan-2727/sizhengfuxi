@@ -1,4 +1,5 @@
 const VERIFIED_RANGE = "教材小节及页码范围已核验";
+const CONTENT_UPDATED_AT = "2026-08-11";
 
 const knowledge = (id, title, importance, keywords, keyPoints, extra = {}) => ({
   id,
@@ -776,6 +777,11 @@ function deepenChapter(course, chapterItem) {
 function deepenCourse(course) {
   return {
     ...course,
+    contentUpdatedAt: CONTENT_UPDATED_AT,
+    contentVerification: {
+      knowledge: VERIFIED_RANGE,
+      questions: "题库持续审校，核验状态以题目标签为准"
+    },
     chapters: course.chapters.map((chapterItem) => deepenChapter(course, chapterItem))
   };
 }

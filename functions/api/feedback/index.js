@@ -1,4 +1,5 @@
 import { apiError, json, readJson, requestUser, serviceClient } from "../../_shared/billing.js";
+import { consumeRequestLimit, publicRequestError, verifyTurnstile } from "../../_shared/public-request.js";
 
 const FEEDBACK_TYPES = new Set(["题目错误", "知识点错误", "网站 Bug", "功能建议", "其他"]);
 
@@ -11,7 +12,11 @@ function cleanContext(value) {
   return {
     course: cleanText(value.course, 160),
     chapter: cleanText(value.chapter, 200),
+    courseId: cleanText(value.courseId, 80),
     questionId: cleanText(value.questionId, 120),
+    questionDatabaseId: cleanText(value.questionDatabaseId, 80),
+    currentRevisionId: cleanText(value.currentRevisionId, 80),
+    catalogHash: cleanText(value.catalogHash, 80),
     question: cleanText(value.question, 500)
   };
 }
@@ -66,13 +71,20 @@ export async function onRequestPost({ request, env }) {
     const pageUrl = cleanPageUrl(payload.page_url);
     if (!FEEDBACK_TYPES.has(type)) return apiError("请选择有效的问题类型。", 400);
     if (content.length < 5) return apiError("请至少填写 5 个字的反馈内容。", 400);
+    await verifyTurnstile({ request, env, token: payload.turnstile_token, action: "feedback" });
+    await consumeRequestLimit({ request, env, action: "feedback", windowSeconds: 3600, limit: 20 });
     const user = await requestUser(request, env);
     const service = serviceClient(env);
+    const context = cleanContext(payload.context);
     const { data, error } = await service.from("feedback").insert({
       type,
       content,
       contact,
-      context: cleanContext(payload.context),
+      context,
+      question_ref: context.questionId || null,
+      question_database_id: /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(context.questionDatabaseId)
+        ? context.questionDatabaseId
+        : null,
       page_url: pageUrl,
       user_id: user?.id || null,
       user_email: user?.email || null
@@ -87,6 +99,7 @@ export async function onRequestPost({ request, env }) {
     return json({ accepted: true, feedback_no: data.feedback_no, notified }, 201);
   } catch (error) {
     console.error("Feedback submission failed.", error);
-    return apiError("暂时无法提交反馈，请稍后重试。", 500);
+    const response = publicRequestError(error, "暂时无法提交反馈，请稍后重试。", 500);
+    return apiError(response.message, response.status);
   }
 }

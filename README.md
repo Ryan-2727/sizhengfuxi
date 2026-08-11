@@ -29,6 +29,8 @@ npm run verify:editorial-quality
 npm run verify:editorial-sample
 npm run verify:quality-sync
 npm run verify:study-tools
+npm run verify:hardening
+npm run content:qa
 # Requires local SUPABASE_SERVICE_ROLE_KEY; reads only.
 npm run verify:database
 npm run build
@@ -136,3 +138,9 @@ https://sizhengfuxi.pages.dev/campus?from=friend
 当前没有为渠道统计新增数据库表，也不收集姓名、学号或手机号。Cloudflare Pages 中可在项目的 `Analytics & Logs` 中启用 Web Analytics，用于查看 `/campus` 的访问量、来源站点、设备和地区趋势；Cloudflare 可能不会把查询参数作为独立页面维度，因此 `from` 的精确分渠道汇总不作为当前 MVP 的可靠指标。分享按钮始终复制 `?from=friend`，不会继续传播访客原始来源。
 
 反馈入口会直接把问题类型、反馈正文、当前页面和可选题目上下文写入 Supabase 私有反馈表，不要求用户注册 GitHub。管理员在 `/admin/feedback` 查看并处理反馈；GitHub Issues 仅保留为公开技术讨论入口。普通浏览器角色不能直接读写反馈表，提交和管理均经过 Cloudflare Pages Functions。配置 Resend 后，新反馈会同时发送邮件提醒；邮件失败不影响反馈入库。
+
+公开订单与反馈提交使用 Cloudflare Turnstile，并通过服务端原子计数限制提交频率；数据库只保存不可逆请求指纹，不保存原始 IP。购买说明、人工审核、会员期限、内容范围、隐私和异常订单处理规则集中展示在公开 `/terms` 页面。管理员导航显示待审核订单和未处理反馈数量。
+
+五门课程卡片和课程页显示站内内容更新时间与核验状态。知识点核验沿用教材小节和页码范围，题目核验以每道题的质量标签为准，避免把“持续审校”误写成“全部已核验”。题目纠错只有在对应题目已有当前修订版本后才能标记为已修正，并记录修订 ID 与课程题库哈希。
+
+内容发布前运行 `npm run content:qa`，汇总报告写入 `tmp/content-qa-report.json`。数据库变更前可在本机设置服务密钥后运行 `npm run backup:supabase`；备份写入 Git 忽略的 `backups/`，包含账号映射、会员、订单、反馈、题库和修订记录，必须私下保管。完整配置和迁移顺序见 `SUPABASE_DEPLOYMENT.md`。

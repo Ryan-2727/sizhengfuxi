@@ -166,6 +166,7 @@
           <label for="buyEmail">登录邮箱</label>
           <input id="buyEmail" type="email" autocomplete="email" required placeholder="name@example.com">
           <p>请输入之后用于接收验证码并登录的邮箱。</p>
+          <div id="buyTurnstile" class="turnstile-slot" aria-label="人机验证"></div>
           <button id="buySubmitBtn" class="primary-cta" type="submit"></button>
           <div id="buyMessage" class="billing-message" role="status" aria-live="polite"></div>
         </form>
@@ -177,6 +178,7 @@
             <li>登录邮箱是会员身份，请确认填写正确；本站仅使用开通所需的邮箱和订单核对信息。</li>
             <li>本站是课程学习辅助工具，具体考试范围以任课教师要求为准。</li>
           </ul>
+          <a class="text-action" href="/terms">查看会员服务、退款与隐私说明</a>
         </aside>
       </div>
     </section>
@@ -198,6 +200,7 @@
           <button id="paymentSubmitBtn" class="primary-cta" type="submit">我已付款，提交审核</button>
           <div id="paymentMessage" class="billing-message" role="status" aria-live="polite"></div>
         </form>
+        <p class="billing-policy-link"><a href="/terms">会员服务、退款与隐私说明</a></p>
       </div>
     </section>
 
@@ -214,8 +217,8 @@
         <p class="public-kicker">管理员</p>
         <h1>订单审核</h1>
         <nav class="admin-section-nav" aria-label="管理员功能">
-          <a class="is-active" href="/admin/orders">订单审核</a>
-          <a href="/admin/feedback">用户反馈</a>
+          <a class="is-active" href="/admin/orders">订单审核 <span class="admin-count" data-admin-order-count>–</span></a>
+          <a href="/admin/feedback">用户反馈 <span class="admin-count" data-admin-feedback-count>–</span></a>
         </nav>
         <div class="admin-order-controls">
           <select id="adminOrderStatus" aria-label="订单状态筛选"><option value="pending_review">待审核</option><option value="approved">已开通</option><option value="rejected">已拒绝</option><option value="all">全部</option></select>
@@ -233,8 +236,8 @@
         <p class="public-kicker">管理员</p>
         <h1>用户反馈</h1>
         <nav class="admin-section-nav" aria-label="管理员功能">
-          <a href="/admin/orders">订单审核</a>
-          <a class="is-active" href="/admin/feedback">用户反馈</a>
+          <a href="/admin/orders">订单审核 <span class="admin-count" data-admin-order-count>–</span></a>
+          <a class="is-active" href="/admin/feedback">用户反馈 <span class="admin-count" data-admin-feedback-count>–</span></a>
         </nav>
         <div class="admin-order-controls">
           <select id="adminFeedbackStatus" aria-label="反馈状态筛选"><option value="new">未处理</option><option value="reviewing">处理中</option><option value="resolved">已解决</option><option value="ignored">已忽略</option><option value="all">全部</option></select>
@@ -245,8 +248,56 @@
         <div id="adminFeedbackList" class="admin-order-list"></div>
       </div>
     </section>
+
+    <section id="termsView" class="billing-view terms-view" hidden>
+      <div class="billing-card public-shell">
+        <a class="billing-back" href="/">返回首页</a>
+        <p class="public-kicker">服务说明</p>
+        <h1>会员服务、退款与隐私说明</h1>
+        <p class="terms-updated">更新日期：2026 年 8 月 11 日</p>
+
+        <section>
+          <h2>会员服务</h2>
+          <ul>
+            <li>完整版会员价格为 ¥9.90，有效期固定为 30 天。</li>
+            <li>付款由管理员人工核对；核对通过后，系统才为下单邮箱增加 30 天会员。</li>
+            <li>会员未过期时续费，新增 30 天从原到期时间继续累加；新会员或已过期会员从审核通过时开始计算。</li>
+            <li>会员通过下单邮箱接收验证码并登录，不提供密码、手机号或第三方账号登录。</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>退款与异常订单</h2>
+          <ul>
+            <li>重复付款、金额错误、邮箱填写错误或长时间未处理，请通过站内反馈提交网站订单号和情况说明。</li>
+            <li>管理员根据实际收款记录和会员开通状态处理；未核对到付款时不会开通会员。</li>
+            <li>数字内容已开通后的退款需结合实际使用情况处理，本站不会以“必过”“押题”等理由拒绝合理核查。</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>内容范围</h2>
+          <p>本站是大学思想政治理论课程学习辅助工具，提供自主整理的知识梳理、题库练习和复习工具，不是学校或教材出版社官方网站，不承诺考试范围、成绩或命中题目。教材版本、学校教学安排和任课教师要求可能不同，请以正版教材和课堂要求为准。</p>
+        </section>
+
+        <section>
+          <h2>隐私与本地学习数据</h2>
+          <ul>
+            <li>会员服务使用邮箱、订单核对信息和会员到期时间；反馈联系方式为选填。</li>
+            <li>错题、收藏和学习进度主要保存在当前浏览器；题库缓存按会员账号保存在 IndexedDB，退出登录时删除。</li>
+            <li>本站不要求填写姓名、学号或手机号，不出售个人信息。</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>联系与纠错</h2>
+          <p>订单问题、题目错误、知识点错误或功能建议均可通过站内“发现错误 / 功能建议”提交，联系方式可以不填写。</p>
+          <button class="text-action" type="button" data-open-feedback>提交站内反馈</button>
+        </section>
+      </div>
+    </section>
   </main>
-  <footer class="site-disclaimer"><p>本网站为大学思想政治理论课程学习辅助工具，内容以知识梳理、复习提示和自主总结为主，不替代正式教材及课堂教学。教材名称及章节结构以正版教材为准。部分内容可能因教材修订、学校教学安排或考试范围不同而变化，请结合任课教师要求使用。</p><button class="text-action" type="button" data-open-feedback>发现错误 / 功能建议</button></footer>
+  <footer class="site-disclaimer"><p>本网站为大学思想政治理论课程学习辅助工具，内容以知识梳理、复习提示和自主总结为主，不替代正式教材及课堂教学。教材名称及章节结构以正版教材为准。部分内容可能因教材修订、学校教学安排或考试范围不同而变化，请结合任课教师要求使用。</p><div><a class="text-action" href="/terms">会员服务与隐私说明</a><button class="text-action" type="button" data-open-feedback>发现错误 / 功能建议</button></div></footer>
 
   <dialog id="quizDialog">
     <form method="dialog">
@@ -277,6 +328,7 @@
         <label for="feedbackContact">可选联系方式</label>
         <input id="feedbackContact" type="text" autocomplete="off" maxlength="200" placeholder="邮箱、QQ 等，选填">
         <div class="feedback-honeypot" aria-hidden="true"><label for="feedbackWebsite">网站</label><input id="feedbackWebsite" type="text" tabindex="-1" autocomplete="off"></div>
+        <div id="feedbackTurnstile" class="turnstile-slot" aria-label="人机验证"></div>
         <button id="feedbackSubmitBtn" class="primary-cta" type="submit">提交反馈</button>
         <div id="feedbackMessage" class="billing-message" role="status" aria-live="polite"></div>
         <a class="feedback-github-link" href="https://github.com/Ryan-2727/sizhengfuxi/issues" target="_blank" rel="noopener noreferrer">也可在 GitHub 公开讨论技术问题</a>

@@ -26,9 +26,12 @@
     "questions:audit-quality": "node scripts/audit-editorial-quality.js",
     "questions:textbook-evidence": "node scripts/generate-textbook-question-evidence.js",
     "questions:sync-quality": "node scripts/sync-question-quality.js",
+    "content:qa": "node scripts/run-content-qa.js",
+    "backup:supabase": "node scripts/backup-supabase.js",
     "verify:quality-sync": "node scripts/verify-question-quality-sync.js",
     "questions:chapters": "node scripts/assign-question-chapters.js",
-    "verify:database": "node scripts/verify-supabase-question-bank.js"
+    "verify:database": "node scripts/verify-supabase-question-bank.js",
+    "verify:hardening": "node scripts/verify-production-hardening.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.4"

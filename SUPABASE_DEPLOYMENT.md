@@ -29,6 +29,10 @@ Open the Supabase SQL editor and run every file in `supabase/migrations/` in fil
 -- supabase/migrations/202608110007_order_experience.sql
 -- Supabase pgcrypto schema compatibility for new question imports:
 -- supabase/migrations/202608110008_fix_question_quality_digest.sql
+-- Private feedback inbox:
+-- supabase/migrations/202608110009_user_feedback.sql
+-- Public-write rate limits and correction evidence:
+-- supabase/migrations/202608110010_production_hardening.sql
 ```
 
 The migrations create `memberships`, `questions`, `question_bank_catalog`, `question_quality`, `question_revisions`, and `question_quality_events`, enable RLS on every business table, grant no browser write permissions, and permit catalog and published-question reads only through `public.is_active_member()`.
@@ -42,6 +46,8 @@ Run the fifth migration before deploying the matching frontend. The new frontend
 Run `202608110007_order_experience.sql` before deploying the matching order-status frontend. It adds the approved order's exact `membership_expires_at` and replaces the approval RPC without changing its service-role-only permission or idempotent membership extension rules.
 
 Run `202608110008_fix_question_quality_digest.sql` before appending new questions. It only rebuilds the question-quality insert function so SHA-256 hashing resolves from Supabase's `extensions` schema; it does not replace or edit existing question rows.
+
+Run `202608110010_production_hardening.sql` after the feedback migration and before deploying the matching frontend. It creates a server-only atomic rate-limit table/RPC and adds feedback correction evidence fields. It does not modify question payloads, answers, analyses, ordering, memberships, or orders.
 
 ## 3. Local environment and question import
 
@@ -163,16 +169,20 @@ SUPABASE_URL=https://your-project-ref.supabase.co
 SUPABASE_ANON_KEY=your-anon-or-publishable-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ADMIN_EMAILS=admin1@example.com,admin2@example.com
+TURNSTILE_SITE_KEY=your-turnstile-site-key
+TURNSTILE_SECRET_KEY=your-turnstile-secret-key
 RESEND_API_KEY=re_your_api_key
 FEEDBACK_NOTIFY_EMAIL=admin@example.com
 FEEDBACK_FROM_EMAIL=feedback@your-domain.example
 ```
 
-`SUPABASE_URL` and `SUPABASE_ANON_KEY` are build-time browser-safe values. `SUPABASE_SERVICE_ROLE_KEY` and `ADMIN_EMAILS` are read only by Cloudflare Pages Functions at runtime. Do not use a `VITE_` prefix for either server-only value, do not put them in `.env` committed to Git, and do not expose them in browser code. Vite inserts only the two browser-safe values above into the built client.
+`SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `TURNSTILE_SITE_KEY` are build-time browser-safe values. `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_EMAILS`, and `TURNSTILE_SECRET_KEY` are read only by Cloudflare Pages Functions at runtime. Do not use a `VITE_` prefix for server-only values, do not put them in `.env` committed to Git, and do not expose them in browser code. Vite inserts only the three browser-safe values above into the built client.
+
+Create one Turnstile widget in **Cloudflare Dashboard > Turnstile** and allow the production Pages hostname plus any preview hostname you actually use. Set `TURNSTILE_SITE_KEY` as plain text and `TURNSTILE_SECRET_KEY` as an encrypted secret in both Production and Preview. The browser receives only the site key. The secret is used only by Pages Functions. Order creation is limited to 5 attempts per IP/email per hour and feedback to 20 attempts per IP per hour; only a one-way request fingerprint is stored.
 
 The three feedback email variables are optional and server-only. `RESEND_API_KEY` authenticates Resend, `FEEDBACK_NOTIFY_EMAIL` accepts one or more comma-separated recipients, and `FEEDBACK_FROM_EMAIL` must use a sender domain verified in Resend. Without all three variables, feedback is still stored and visible in the admin inbox, but no email is sent.
 
-## 7. Manual payment membership
+## 6. Manual payment membership
 
 After running `supabase/migrations/202608090006_purchase_orders.sql` and `supabase/migrations/202608110007_order_experience.sql`, the public paths are `/buy`, `/pay/:orderNo`, and `/order/:orderNo`. Existing `assets/alipay.jpg` and `assets/wechat.jpg` are deployed as:
 
@@ -195,7 +205,7 @@ Run this verification before deployment:
 npm run verify:payments
 ```
 
-## 8. User feedback inbox
+## 7. User feedback inbox
 
 Run `supabase/migrations/202608110009_user_feedback.sql` in the Supabase SQL Editor after all earlier migrations. It creates the private `feedback` table, enables RLS, removes all direct `anon` and `authenticated` access, and grants access only to the service role used by Pages Functions.
 
@@ -209,7 +219,27 @@ Run this verification before deployment:
 npm run verify:feedback
 ```
 
-## 6. Required acceptance checks after deployment
+When a report concerns a question, the inbox records the stable question ID. Marking it `待修正` sends the associated quality record to manual review. Marking it `已修正` is allowed only after a current immutable question revision exists, and records both the revision ID and current course catalog hash. This prevents a feedback item from being closed as fixed without a traceable published correction.
+
+## 8. Content QA and private backups
+
+Run the aggregate content checks before a content release. The command reuses the existing audit and verification scripts and writes a Git-ignored summary to `tmp/content-qa-report.json`:
+
+```powershell
+npm run content:qa
+```
+
+Create a private JSON backup before migrations, bulk question imports, or quality syncs:
+
+```powershell
+$env:SUPABASE_URL = "https://your-project-ref.supabase.co"
+$env:SUPABASE_SERVICE_ROLE_KEY = "your-service-role-key"
+npm run backup:supabase
+```
+
+The backup includes memberships, orders, feedback, questions, catalog, editorial quality/revisions/events, and a minimal Auth user identity map. It writes SHA-256 checksums to `backups/<timestamp>/manifest.json`. The entire `backups/` directory is ignored by Git and must be stored privately because it contains account and business data. Restore is intentionally a reviewed manual operation; do not blindly import a backup over production.
+
+## 9. Required acceptance checks after deployment
 
 1. An unsigned browser only sees the email OTP screen.
 2. An unknown email is rejected because the client sends `shouldCreateUser: false`.

@@ -8,6 +8,7 @@ const assert = (condition, message) => {
 };
 
 const migration = read("supabase/migrations/202608110009_user_feedback.sql");
+const hardeningMigration = read("supabase/migrations/202608110010_production_hardening.sql");
 const submitApi = read("functions/api/feedback/index.js");
 const adminListApi = read("functions/api/admin/feedback/index.js");
 const adminUpdateApi = read("functions/api/admin/feedback/[feedbackNo].js");
@@ -29,4 +30,6 @@ assert(/apiRequest\("\/api\/feedback"/.test(app), "browser feedback form must us
 assert(!/issues\/new/.test(app), "primary feedback submission must not redirect to GitHub.");
 assert(/\/admin\/feedback/.test(app) && /id="adminFeedbackView"/.test(html), "admin feedback inbox is missing.");
 assert(/id="feedbackWebsite"/.test(html), "feedback honeypot is missing.");
+assert(/verifyTurnstile/.test(submitApi) && /consumeRequestLimit/.test(submitApi), "feedback anti-abuse checks are missing.");
+assert(/question_database_id/.test(hardeningMigration) && /resolved_revision_id/.test(hardeningMigration), "feedback correction evidence migration is missing.");
 console.log("Feedback flow static contract passed.");

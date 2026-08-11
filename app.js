@@ -126,6 +126,8 @@ for (const course of courses) {
   if (!knowledge) continue;
   course.edition = knowledge.edition;
   course.isbn = knowledge.isbn;
+  course.contentUpdatedAt = knowledge.contentUpdatedAt;
+  course.contentVerification = knowledge.contentVerification;
   course.knowledge = knowledge;
   course.chapters = knowledge.chapters.map((chapter) => [chapter.title, chapter.summary]);
 }
@@ -530,6 +532,7 @@ function isCampusPath() {
 function billingRoute() {
   const path = location.pathname.replace(/\/+$/, "") || "/";
   if (path === "/buy") return { name: "buy" };
+  if (path === "/terms") return { name: "terms" };
   if (path === "/admin/orders") return { name: "admin" };
   if (path === "/admin/feedback") return { name: "adminFeedback" };
   const pay = path.match(/^\/pay\/([^/]+)$/);
@@ -727,6 +730,7 @@ const els = {
   orderView: document.querySelector("#orderView"),
   adminOrdersView: document.querySelector("#adminOrdersView"),
   adminFeedbackView: document.querySelector("#adminFeedbackView"),
+  termsView: document.querySelector("#termsView"),
   courseGrid: document.querySelector("#courseGrid"),
   sideTitle: document.querySelector("#sideTitle"),
   chapterNav: document.querySelector("#chapterNav"),
@@ -893,6 +897,7 @@ function showAuth({ message = "请输入已开通会员的邮箱，获取登录�
   els.orderView.hidden = true;
   els.adminOrdersView.hidden = true;
   els.adminFeedbackView.hidden = true;
+  els.termsView.hidden = true;
   els.authView.hidden = false;
   els.authDescription.textContent = message;
   els.requestOtpForm.hidden = signedIn;
@@ -922,6 +927,7 @@ function showCampusLanding({ updateHistory = false } = {}) {
   els.orderView.hidden = true;
   els.adminOrdersView.hidden = true;
   els.adminFeedbackView.hidden = true;
+  els.termsView.hidden = true;
   els.campusView.hidden = false;
   setPageMetadata();
   if (updateHistory) history.pushState("", document.title, `/campus${location.search}`);
@@ -965,12 +971,18 @@ async function submitFeedback(event) {
   const content = document.querySelector("#feedbackContent").value.trim();
   const contact = document.querySelector("#feedbackContact").value.trim();
   const button = document.querySelector("#feedbackSubmitBtn");
+  const turnstileElement = document.querySelector("#feedbackTurnstile");
+  const turnstileToken = window.turnstileChallenge?.turnstileToken(turnstileElement) || "";
   if (content.length < 5) {
     setBillingMessage(els.feedbackMessage, "请至少填写 5 个字的反馈内容。", "error");
     return;
   }
   if (Date.now() < feedbackCooldownUntil) {
     setBillingMessage(els.feedbackMessage, "反馈已提交，请稍后再试。", "error");
+    return;
+  }
+  if (!turnstileToken) {
+    setBillingMessage(els.feedbackMessage, "请先完成人机验证。", "error");
     return;
   }
   button.disabled = true;
@@ -984,6 +996,7 @@ async function submitFeedback(event) {
         content,
         contact,
         website: document.querySelector("#feedbackWebsite").value,
+        turnstile_token: turnstileToken,
         context: feedbackContext,
         page_url: location.href
       })
@@ -996,6 +1009,7 @@ async function submitFeedback(event) {
   } catch (error) {
     setBillingMessage(els.feedbackMessage, error.message || "暂时无法提交反馈，请稍后重试。", "error");
   } finally {
+    window.turnstileChallenge?.resetTurnstile(turnstileElement);
     button.disabled = false;
     button.textContent = "提交反馈";
   }
@@ -1012,6 +1026,8 @@ function openFeedbackDialog(context = null) {
   }
   if (context) document.querySelector("#feedbackType").value = "题目错误";
   els.feedbackDialog.showModal();
+  void window.turnstileChallenge?.mountTurnstile(document.querySelector("#feedbackTurnstile"), "feedback")
+    .catch((error) => setBillingMessage(els.feedbackMessage, error.message, "error"));
 }
 
 async function requestOtp(event) {
@@ -1116,6 +1132,7 @@ function hideAllMainViews() {
   els.orderView.hidden = true;
   els.adminOrdersView.hidden = true;
   els.adminFeedbackView.hidden = true;
+  els.termsView.hidden = true;
   els.appHeader.hidden = true;
 }
 
@@ -1139,10 +1156,27 @@ async function initPublicRoute() {
   const route = billingRoute();
   if (!route) return;
   if (route.name === "buy") await showBuyPage();
+  else if (route.name === "terms") showTermsPage();
   else if (route.name === "pay") await showPaymentPage(route.orderNo);
   else if (route.name === "order") await showOrderPage(route.orderNo);
   else if (route.name === "admin") await showAdminOrdersPage();
   else if (route.name === "adminFeedback") await showAdminFeedbackPage();
+}
+
+function showTermsPage() {
+  hideAllMainViews();
+  els.termsView.hidden = false;
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+async function loadAdminSummary() {
+  try {
+    const data = await apiRequest("/api/admin/summary");
+    document.querySelectorAll("[data-admin-order-count]").forEach((element) => { element.textContent = String(data.pending_orders); });
+    document.querySelectorAll("[data-admin-feedback-count]").forEach((element) => { element.textContent = String(data.open_feedback); });
+  } catch {
+    document.querySelectorAll("[data-admin-order-count], [data-admin-feedback-count]").forEach((element) => { element.textContent = "–"; });
+  }
 }
 
 function billingConfig() {
@@ -1294,6 +1328,11 @@ async function showBuyPage() {
   if (session?.user?.email) document.querySelector("#buyEmail").value = session.user.email.toLowerCase();
   const membership = await currentMembership();
   if (membership) setBillingMessage(document.querySelector("#buyMessage"), `当前会员有效，续费后将在 ${formatDateTime(membership.expires_at)} 的基础上增加 ${config.MEMBERSHIP_DAYS} 天。`);
+  try {
+    await window.turnstileChallenge?.mountTurnstile(document.querySelector("#buyTurnstile"), "create_order");
+  } catch (error) {
+    setBillingMessage(document.querySelector("#buyMessage"), error.message, "error");
+  }
   await renderRecentOrderResume();
   window.scrollTo({ top: 0, behavior: "auto" });
 }
@@ -1324,16 +1363,22 @@ async function createPurchaseOrder(event) {
   const button = document.querySelector("#buySubmitBtn");
   const message = document.querySelector("#buyMessage");
   const email = input.value.trim().toLowerCase();
+  const turnstileElement = document.querySelector("#buyTurnstile");
+  const turnstileToken = window.turnstileChallenge?.turnstileToken(turnstileElement) || "";
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
     setBillingMessage(message, "请输入有效的邮箱地址。", "error");
     input.focus();
+    return;
+  }
+  if (!turnstileToken) {
+    setBillingMessage(message, "请先完成人机验证。", "error");
     return;
   }
   button.disabled = true;
   button.textContent = "正在创建订单…";
   setBillingMessage(message, "");
   try {
-    const data = await apiRequest("/api/orders", { method: "POST", body: JSON.stringify({ email }) });
+    const data = await apiRequest("/api/orders", { method: "POST", body: JSON.stringify({ email, turnstile_token: turnstileToken }) });
     if (data.reused) {
       const token = storedOrderToken(data.order_no);
       setBillingMessage(message, "你已有一笔未完成订单。", "");
@@ -1350,6 +1395,7 @@ async function createPurchaseOrder(event) {
   } catch (error) {
     setBillingMessage(message, error.message || "无法创建订单。", "error");
   } finally {
+    window.turnstileChallenge?.resetTurnstile(turnstileElement);
     button.disabled = false;
     const config = billingConfig();
     button.textContent = `${config.membershipPriceLabel()} 开通 ${config.MEMBERSHIP_DAYS} 天会员`;
@@ -1506,7 +1552,7 @@ async function showOrderPage(orderNo, options = {}) {
 async function showAdminOrdersPage() {
   hideAllMainViews();
   els.adminOrdersView.hidden = false;
-  await loadAdminOrders();
+  await Promise.all([loadAdminOrders(), loadAdminSummary()]);
   window.scrollTo({ top: 0, behavior: "auto" });
 }
 
@@ -1526,6 +1572,7 @@ async function loadAdminOrders() {
     }).join("");
     list.querySelectorAll("[data-approve-order]").forEach((button) => button.addEventListener("click", () => { void approveOrder(button); }));
     list.querySelectorAll("[data-reject-order]").forEach((button) => button.addEventListener("click", () => { void rejectOrder(button); }));
+    void loadAdminSummary();
   } catch (error) {
     setBillingMessage(message, error.message || "无法读取订单。", "error");
   }
@@ -1575,10 +1622,14 @@ function feedbackStatusText(status) {
   return ({ new: "未处理", reviewing: "处理中", resolved: "已解决", ignored: "已忽略" })[status] || status;
 }
 
+function feedbackResolutionText(kind) {
+  return ({ fixed: "已修正", no_change: "无需修改", needs_review: "待核验" })[kind] || "";
+}
+
 async function showAdminFeedbackPage() {
   hideAllMainViews();
   els.adminFeedbackView.hidden = false;
-  await loadAdminFeedback();
+  await Promise.all([loadAdminFeedback(), loadAdminSummary()]);
   window.scrollTo({ top: 0, behavior: "auto" });
 }
 
@@ -1601,13 +1652,18 @@ async function loadAdminFeedback() {
         context.question ? `<dt>题干摘要</dt><dd>${escapeHtml(context.question)}</dd>` : ""
       ].join("");
       const actions = item.status === "new"
-        ? `<button class="secondary-cta" type="button" data-feedback-status="reviewing">开始处理</button><button class="primary-cta" type="button" data-feedback-status="resolved">标记已解决</button><button class="secondary-cta" type="button" data-feedback-status="ignored">忽略</button>`
+        ? `<button class="secondary-cta" type="button" data-feedback-status="reviewing">开始处理</button><button class="secondary-cta" type="button" data-feedback-status="reviewing" data-feedback-resolution="needs_review">转入待核验</button><button class="primary-cta" type="button" data-feedback-status="resolved" data-feedback-resolution="fixed">确认已修正</button><button class="secondary-cta" type="button" data-feedback-status="resolved" data-feedback-resolution="no_change">无需修改</button><button class="secondary-cta" type="button" data-feedback-status="ignored">忽略</button>`
         : item.status === "reviewing"
-          ? `<button class="primary-cta" type="button" data-feedback-status="resolved">标记已解决</button><button class="secondary-cta" type="button" data-feedback-status="ignored">忽略</button>`
+          ? `<button class="secondary-cta" type="button" data-feedback-status="reviewing" data-feedback-resolution="needs_review">保持待核验</button><button class="primary-cta" type="button" data-feedback-status="resolved" data-feedback-resolution="fixed">确认已修正</button><button class="secondary-cta" type="button" data-feedback-status="resolved" data-feedback-resolution="no_change">无需修改</button><button class="secondary-cta" type="button" data-feedback-status="ignored">忽略</button>`
           : `<button class="secondary-cta" type="button" data-feedback-status="new">重新打开</button>`;
-      return `<article class="admin-order admin-feedback" data-feedback-no="${escapeHtml(item.feedback_no)}"><div><strong>${escapeHtml(item.feedback_no)}</strong><span>${escapeHtml(feedbackStatusText(item.status))}</span></div><p class="admin-feedback-type">${escapeHtml(item.type)}</p><p class="admin-feedback-content">${escapeHtml(item.content)}</p><dl><dt>提交时间</dt><dd>${escapeHtml(formatDateTime(item.created_at))}</dd><dt>登录邮箱</dt><dd>${escapeHtml(item.user_email || "匿名用户")}</dd><dt>联系方式</dt><dd>${escapeHtml(item.contact || "未填写")}</dd><dt>页面</dt><dd>${item.page_url ? `<a href="${escapeHtml(item.page_url)}" target="_blank" rel="noopener noreferrer">打开反馈页面</a>` : "未记录"}</dd>${contextRows}</dl>${item.reviewed_by ? `<p>处理人：${escapeHtml(item.reviewed_by)} ${escapeHtml(item.reviewed_at ? formatDateTime(item.reviewed_at) : "")}</p>` : ""}${item.review_note ? `<p>处理备注：${escapeHtml(item.review_note)}</p>` : ""}<div class="billing-actions">${actions}</div></article>`;
+      const resolution = item.resolution_kind ? `<p class="admin-feedback-resolution">处理结论：${escapeHtml(feedbackResolutionText(item.resolution_kind))}</p>` : "";
+      const correctionEvidence = item.resolved_revision_id
+        ? `<p>修订记录：${escapeHtml(item.resolved_revision_id)}${item.resolved_catalog_hash ? ` · 题库版本 ${escapeHtml(item.resolved_catalog_hash.slice(0, 12))}` : ""}</p>`
+        : "";
+      return `<article class="admin-order admin-feedback" data-feedback-no="${escapeHtml(item.feedback_no)}"><div><strong>${escapeHtml(item.feedback_no)}</strong><span>${escapeHtml(feedbackStatusText(item.status))}</span></div><p class="admin-feedback-type">${escapeHtml(item.type)}</p><p class="admin-feedback-content">${escapeHtml(item.content)}</p>${resolution}<dl><dt>提交时间</dt><dd>${escapeHtml(formatDateTime(item.created_at))}</dd><dt>登录邮箱</dt><dd>${escapeHtml(item.user_email || "匿名用户")}</dd><dt>联系方式</dt><dd>${escapeHtml(item.contact || "未填写")}</dd><dt>页面</dt><dd>${item.page_url ? `<a href="${escapeHtml(item.page_url)}" target="_blank" rel="noopener noreferrer">打开反馈页面</a>` : "未记录"}</dd>${contextRows}</dl>${item.reviewed_by ? `<p>处理人：${escapeHtml(item.reviewed_by)} ${escapeHtml(item.reviewed_at ? formatDateTime(item.reviewed_at) : "")}</p>` : ""}${item.review_note ? `<p>处理备注：${escapeHtml(item.review_note)}</p>` : ""}${correctionEvidence}<div class="billing-actions">${actions}</div></article>`;
     }).join("");
     list.querySelectorAll("[data-feedback-status]").forEach((button) => button.addEventListener("click", () => { void updateFeedbackStatus(button); }));
+    void loadAdminSummary();
   } catch (error) {
     setBillingMessage(message, error.message || "无法读取反馈。", "error");
   }
@@ -1617,17 +1673,22 @@ async function updateFeedbackStatus(button) {
   const card = button.closest("[data-feedback-no]");
   const feedbackNo = card?.dataset.feedbackNo;
   const status = button.dataset.feedbackStatus;
+  const resolutionKind = button.dataset.feedbackResolution || null;
   if (!feedbackNo || !status) return;
-  const reviewNote = status === "resolved" || status === "ignored"
-    ? window.prompt("处理备注（可选，最多 1000 字）：", "")
+  const reviewNote = resolutionKind || status === "ignored"
+    ? window.prompt(resolutionKind ? "请填写核验或修正依据（必填，最多 1000 字）：" : "处理备注（可选，最多 1000 字）：", "")
     : "";
   if (reviewNote === null) return;
+  if (resolutionKind && reviewNote.trim().length < 5) {
+    setBillingMessage(document.querySelector("#adminFeedbackMessage"), "处理结论必须填写至少 5 个字的依据。", "error");
+    return;
+  }
   button.disabled = true;
   button.textContent = "正在保存…";
   try {
     await apiRequest(`/api/admin/feedback/${encodeURIComponent(feedbackNo)}`, {
       method: "PATCH",
-      body: JSON.stringify({ status, review_note: reviewNote })
+      body: JSON.stringify({ status, resolution_kind: resolutionKind, review_note: reviewNote })
     });
     await loadAdminFeedback();
     setBillingMessage(document.querySelector("#adminFeedbackMessage"), `反馈 ${feedbackNo} 已更新为“${feedbackStatusText(status)}”。`, "success");
@@ -1770,6 +1831,7 @@ function renderHome() {
           <span class="badge">${course.short}</span>
           <h2>${course.name}</h2>
           <p>${course.summary}</p>
+          <p class="course-content-status">内容更新 ${escapeHtml(course.contentUpdatedAt || "待记录")} · ${escapeHtml(course.contentVerification?.knowledge || "持续核验")}</p>
           <p class="course-local-progress">本机进度：已练 ${progress.attempted} · 错题 ${progress.wrong} · 已掌握 ${progress.mastered}</p>
           <div class="stats">
             <span class="stat"><strong>${textbookChapterCount(course)}</strong><span>教材章</span></span>
@@ -2065,11 +2127,17 @@ async function loadCourseQuestionBank({ course, catalog, userId, sessionVersion,
   const rows = pageRows.flat();
   assertSession();
   const qualityByQuestion = await loadQuestionQuality(rows, { assertSession, report });
-  const withChapterAssignment = (row) => ({
-    ...applyQuestionRevision(row.payload, qualityByQuestion.get(row.id)),
-    chapterId: row.chapter_id || undefined,
-    chapterAssignmentStatus: row.chapter_assignment_status || undefined
-  });
+  const withChapterAssignment = (row) => {
+    const quality = qualityByQuestion.get(row.id);
+    return {
+      ...applyQuestionRevision(row.payload, quality),
+      chapterId: row.chapter_id || undefined,
+      chapterAssignmentStatus: row.chapter_assignment_status || undefined,
+      databaseQuestionId: row.id,
+      currentRevisionId: quality?.current_revision_id || undefined,
+      catalogContentHash: catalog.content_hash
+    };
+  };
   const choices = rows.filter((row) => row.question_type === "choice").map(withChapterAssignment);
   const essays = rows.filter((row) => row.question_type === "essay").map(withChapterAssignment);
   if (choices.length !== catalog.choice_count || essays.length !== catalog.essay_count) {
@@ -2206,6 +2274,7 @@ function renderCourse() {
       <p class="eyebrow">${course.short}</p>
       <h1>${course.name}</h1>
       <p class="edition-line">教材：${escapeHtml(course.edition || "版本待人工核验")} · ISBN：${escapeHtml(course.isbn || "待人工核验")}</p>
+      <p class="content-version-line">内容更新 ${escapeHtml(course.contentUpdatedAt || "待记录")} · ${escapeHtml(course.contentVerification?.knowledge || "持续核验")} · ${escapeHtml(course.contentVerification?.questions || "题库持续审校")}</p>
       <p>${course.summary}</p>
     </div>
     <div class="hero-note">
@@ -2281,6 +2350,7 @@ function renderPreviewCourse(course) {
       <p class="eyebrow">免费体验 · ${escapeHtml(course.short)}</p>
       <h1>${escapeHtml(course.name)}</h1>
       <p class="edition-line">教材：${escapeHtml(course.edition || "2023年版")} · ISBN：${escapeHtml(course.isbn || "978-7-04-059901-5")}</p>
+      <p class="content-version-line">内容更新 ${escapeHtml(course.contentUpdatedAt || "待记录")} · ${escapeHtml(course.contentVerification?.knowledge || "持续核验")}</p>
       <p>当前开放第一章知识点、${preview.choices.length} 道选择题和 ${preview.essays.length} 道大题，可以完整体验作答、答案解析、收藏和复习标记。</p>
     </div>
     <div class="hero-note preview-note">
@@ -2560,8 +2630,12 @@ function openQuestionFeedback(button) {
   if (!item) return;
   openFeedbackDialog({
     course: getCourseById(item.courseId)?.name || item.courseId,
+    courseId: item.courseId,
     chapter: item.chapterInfo.title,
     questionId: item.questionId,
+    questionDatabaseId: item.databaseQuestionId,
+    currentRevisionId: item.currentRevisionId,
+    catalogHash: item.catalogContentHash,
     question: choiceStem(item.question).slice(0, 180)
   });
 }

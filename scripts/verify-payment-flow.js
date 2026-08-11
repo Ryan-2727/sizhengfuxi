@@ -49,4 +49,6 @@ assert(/window\.confirm/.test(app) && /data-order-reference/.test(app), "approva
 assert(/复制私人查询链接/.test(app) && /私人查询链接包含订单访问凭证/.test(app), "private order-link copying needs an explicit warning.");
 assert(/支付订单号后 6 位在哪里找/.test(app) && /交易单号/.test(app), "payment reference guidance is missing.");
 assert(/id="recentOrderResume"/.test(html), "the buy page must expose recent-order recovery.");
+assert(/verifyTurnstile/.test(orderApi) && /consumeRequestLimit/.test(orderApi), "order creation anti-abuse checks are missing.");
+assert(/id="termsView"/.test(html) && /href="\/terms"/.test(html), "purchase terms must be publicly accessible.");
 console.log("Payment membership static contract passed.");

@@ -5,4 +5,5 @@ dist/
 .env.*.local
 data/question-bank-source/
 tmp/
+backups/
 .superpowers/
