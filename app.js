@@ -1831,7 +1831,6 @@ function renderHome() {
           <span class="badge">${course.short}</span>
           <h2>${course.name}</h2>
           <p>${course.summary}</p>
-          <p class="course-content-status">内容更新 ${escapeHtml(course.contentUpdatedAt || "待记录")} · ${escapeHtml(course.contentVerification?.knowledge || "持续核验")}</p>
           <p class="course-local-progress">本机进度：已练 ${progress.attempted} · 错题 ${progress.wrong} · 已掌握 ${progress.mastered}</p>
           <div class="stats">
             <span class="stat"><strong>${textbookChapterCount(course)}</strong><span>教材章</span></span>

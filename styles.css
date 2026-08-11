@@ -2477,15 +2477,10 @@ dialog::backdrop {
   max-width: 100%;
 }
 
-.course-content-status,
 .content-version-line {
   color: #5b6472;
   font-size: 0.86rem;
   line-height: 1.55;
-}
-
-.course-content-status {
-  margin-top: auto;
 }
 
 .admin-count {
