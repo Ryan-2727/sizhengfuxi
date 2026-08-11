@@ -505,6 +505,9 @@ const state = {
 };
 
 const CAMPUS_SOURCE_KEY = "sizheng-campus-source-v1";
+const ORDER_ACCESS_STORAGE_KEY = "sizheng-order-access-v1";
+const ORDER_ACCESS_MAX_AGE_MS = 60 * 24 * 60 * 60 * 1_000;
+const ORDER_STATUS_POLL_MS = 20_000;
 const CAMPUS_SOURCES = new Set(["qq", "wechat", "forum", "wall", "xhs", "douyin", "friend"]);
 const CAMPUS_SHARE_URL = "https://sizhengfuxi.pages.dev/campus?from=friend";
 const DEFAULT_META = {
@@ -551,7 +554,7 @@ function setPageMetadata(meta = DEFAULT_META) {
 }
 
 function loadStudyProgress() {
-  const empty = { favorites: {}, wrong: {}, mastery: {}, attempts: {} };
+  const empty = { favorites: {}, wrong: {}, mastery: {}, attempts: {}, recent: null };
   if (typeof localStorage === "undefined") return empty;
   try {
     const saved = JSON.parse(localStorage.getItem(STUDY_STORAGE_KEY) || "null");
@@ -559,7 +562,8 @@ function loadStudyProgress() {
       favorites: saved?.favorites || {},
       wrong: saved?.wrong || {},
       mastery: saved?.mastery || {},
-      attempts: saved?.attempts || {}
+      attempts: saved?.attempts || {},
+      recent: saved?.recent || null
     };
   } catch {
     return empty;
@@ -597,6 +601,31 @@ function registerQuestion(item) {
   };
   questionLookup.set(questionId, registered);
   return registered;
+}
+
+function recordRecentStudy(courseId, chapterIndex = 0) {
+  const course = getCourseById(courseId);
+  if (!course) return;
+  const safeIndex = Math.max(0, Math.min(Number(chapterIndex) || 0, course.chapters.length - 1));
+  studyProgress.recent = { courseId, chapterIndex: safeIndex, updatedAt: Date.now() };
+  saveStudyProgress();
+}
+
+function recentStudyDetails() {
+  const recent = studyProgress.recent;
+  const course = getCourseById(recent?.courseId);
+  if (!course) return null;
+  const chapterIndex = Math.max(0, Math.min(Number(recent.chapterIndex) || 0, course.chapters.length - 1));
+  return { course, chapterIndex, chapterTitle: course.chapters[chapterIndex]?.[0] || "课程概览" };
+}
+
+function localCourseProgress(courseId) {
+  const belongsToCourse = (key) => key.startsWith(`${courseId}-`) || key.startsWith(`knowledge:${courseId}:`);
+  return {
+    attempted: Object.keys(studyProgress.attempts).filter(belongsToCourse).length,
+    wrong: Object.entries(studyProgress.wrong).filter(([key, active]) => active && belongsToCourse(key)).length,
+    mastered: Object.entries(studyProgress.mastery).filter(([key, value]) => value === "mastered" && belongsToCourse(key)).length
+  };
 }
 
 function questionSourceLabel(item) {
@@ -698,6 +727,8 @@ const els = {
   questions: document.querySelector("#questions"),
   sources: document.querySelector("#sources"),
   search: document.querySelector("#globalSearch"),
+  membershipStatus: document.querySelector("#membershipStatus"),
+  membershipStatusText: document.querySelector("#membershipStatusText"),
   dialog: document.querySelector("#quizDialog"),
   dialogBody: document.querySelector("#quizDialogBody"),
   feedbackDialog: document.querySelector("#feedbackDialog"),
@@ -708,6 +739,7 @@ const els = {
 let pendingEmail = "";
 let otpCooldownUntil = 0;
 let otpCooldownTimer = null;
+let orderStatusPollTimer = null;
 
 document.querySelector("#homeBtn").addEventListener("click", showHome);
 document.querySelector("#backBtn").addEventListener("click", showHome);
@@ -716,6 +748,7 @@ document.querySelector("#homePreviewBtn").addEventListener("click", startCampusP
 document.querySelector("#campusPreviewBtn").addEventListener("click", startCampusPreview);
 document.querySelector("#homeBuyBtn").addEventListener("click", () => navigateTo("/buy"));
 document.querySelector("#campusBuyBtn").addEventListener("click", () => navigateTo("/buy"));
+document.querySelector("#membershipRenewBtn").addEventListener("click", () => navigateTo("/buy"));
 document.querySelectorAll("[data-start-preview]").forEach((button) => button.addEventListener("click", startCampusPreview));
 document.querySelector("#memberLoginBtn").addEventListener("click", showPublicLogin);
 document.querySelector("#campusLoginBtn").addEventListener("click", showPublicLogin);
@@ -808,10 +841,22 @@ function clearQuestionBank() {
   });
 }
 
+function updateMembershipHeader(expiresAt = null) {
+  if (!expiresAt || Number.isNaN(Date.parse(expiresAt))) {
+    els.membershipStatus.hidden = true;
+    els.membershipStatusText.textContent = "";
+    return;
+  }
+  const date = new Date(expiresAt).toLocaleDateString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit" });
+  els.membershipStatusText.textContent = `会员至 ${date}`;
+  els.membershipStatus.hidden = false;
+}
+
 function showAuth({ message = "请输入已开通会员的邮箱，获取登录验证码。", error = false, signedIn = false } = {}) {
   sessionState.memberValidated = false;
   sessionState.userId = null;
   sessionState.preview = false;
+  updateMembershipHeader();
   clearQuestionBank();
   questionBankCatalog.clear();
   state.courseId = null;
@@ -838,6 +883,7 @@ function showCampusLanding({ updateHistory = false } = {}) {
   sessionState.memberValidated = false;
   sessionState.userId = null;
   sessionState.preview = false;
+  updateMembershipHeader();
   clearQuestionBank();
   questionBankCatalog.clear();
   state.courseId = null;
@@ -885,21 +931,7 @@ function showLockedContent() {
 }
 
 async function copyCampusLink() {
-  let copied = false;
-  try {
-    await navigator.clipboard.writeText(CAMPUS_SHARE_URL);
-    copied = true;
-  } catch {
-    const input = document.createElement("textarea");
-    input.value = CAMPUS_SHARE_URL;
-    input.setAttribute("readonly", "");
-    input.style.position = "fixed";
-    input.style.opacity = "0";
-    document.body.append(input);
-    input.select();
-    copied = document.execCommand("copy");
-    input.remove();
-  }
+  const copied = await copyText(CAMPUS_SHARE_URL);
   els.copyStatus.textContent = copied ? "链接已复制" : "复制失败，请手动复制当前网址";
 }
 
@@ -968,6 +1000,7 @@ async function signOut() {
   const userId = sessionState.userId;
   sessionState.memberValidated = false;
   sessionState.userId = null;
+  updateMembershipHeader();
   if (userId && window.questionBankCache) await window.questionBankCache.deleteUserQuestionCaches(userId);
   if (window.studySupabase) await window.studySupabase.auth.signOut();
   pendingEmail = "";
@@ -1012,6 +1045,7 @@ async function bootstrap() {
 }
 
 function hideAllMainViews() {
+  clearOrderStatusPoll();
   els.authView.hidden = true;
   els.campusView.hidden = true;
   els.homeView.hidden = true;
@@ -1084,12 +1118,95 @@ async function apiRequest(path, options = {}) {
   return data;
 }
 
-function routeToken() {
-  return new URLSearchParams(location.search).get("token") || sessionStorage.getItem(`sizheng-order-token:${billingRoute()?.orderNo}`) || "";
+function loadStoredOrderAccess() {
+  if (typeof localStorage === "undefined") return {};
+  try {
+    const stored = JSON.parse(localStorage.getItem(ORDER_ACCESS_STORAGE_KEY) || "{}");
+    const valid = {};
+    const cutoff = Date.now() - ORDER_ACCESS_MAX_AGE_MS;
+    for (const [orderNo, entry] of Object.entries(stored || {})) {
+      if (entry?.token && Number(entry.updatedAt) > cutoff) valid[orderNo] = entry;
+    }
+    if (Object.keys(valid).length !== Object.keys(stored || {}).length) {
+      localStorage.setItem(ORDER_ACCESS_STORAGE_KEY, JSON.stringify(valid));
+    }
+    return valid;
+  } catch {
+    return {};
+  }
 }
 
 function saveOrderToken(orderNo, token) {
-  if (token) sessionStorage.setItem(`sizheng-order-token:${orderNo}`, token);
+  if (!orderNo || !token) return;
+  try {
+    sessionStorage.setItem(`sizheng-order-token:${orderNo}`, token);
+  } catch {
+    // Persistent storage below is the primary recovery mechanism.
+  }
+  if (typeof localStorage === "undefined") return;
+  try {
+    const stored = loadStoredOrderAccess();
+    stored[orderNo] = { token, updatedAt: Date.now() };
+    localStorage.setItem(ORDER_ACCESS_STORAGE_KEY, JSON.stringify(stored));
+  } catch {
+    // Logged-in buyers can still access their own order without this token.
+  }
+}
+
+function storedOrderToken(orderNo) {
+  if (!orderNo) return "";
+  const persistent = loadStoredOrderAccess()[orderNo]?.token || "";
+  if (persistent) return persistent;
+  try {
+    return sessionStorage.getItem(`sizheng-order-token:${orderNo}`) || "";
+  } catch {
+    return "";
+  }
+}
+
+function routeToken(orderNo = billingRoute()?.orderNo) {
+  const queryToken = new URLSearchParams(location.search).get("token") || "";
+  if (queryToken && orderNo) saveOrderToken(orderNo, queryToken);
+  return queryToken || storedOrderToken(orderNo);
+}
+
+function mostRecentStoredOrder() {
+  return Object.entries(loadStoredOrderAccess())
+    .sort((left, right) => Number(right[1].updatedAt) - Number(left[1].updatedAt))[0] || null;
+}
+
+function clearOrderStatusPoll() {
+  if (!orderStatusPollTimer) return;
+  clearTimeout(orderStatusPollTimer);
+  orderStatusPollTimer = null;
+}
+
+function scheduleOrderStatusPoll(orderNo) {
+  clearOrderStatusPoll();
+  orderStatusPollTimer = setTimeout(() => {
+    const route = billingRoute();
+    if (route?.name === "order" && route.orderNo === orderNo) {
+      void showOrderPage(orderNo, { preserveScroll: true });
+    }
+  }, ORDER_STATUS_POLL_MS);
+}
+
+async function copyText(value) {
+  try {
+    await navigator.clipboard.writeText(value);
+    return true;
+  } catch {
+    const input = document.createElement("textarea");
+    input.value = value;
+    input.setAttribute("readonly", "");
+    input.style.position = "fixed";
+    input.style.opacity = "0";
+    document.body.append(input);
+    input.select();
+    const copied = document.execCommand("copy");
+    input.remove();
+    return copied;
+  }
 }
 
 function paymentOrderUrl(orderNo, token) {
@@ -1114,7 +1231,28 @@ async function showBuyPage() {
   if (session?.user?.email) document.querySelector("#buyEmail").value = session.user.email.toLowerCase();
   const membership = await currentMembership();
   if (membership) setBillingMessage(document.querySelector("#buyMessage"), `当前会员有效，续费后将在 ${formatDateTime(membership.expires_at)} 的基础上增加 ${config.MEMBERSHIP_DAYS} 天。`);
+  await renderRecentOrderResume();
   window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+async function renderRecentOrderResume() {
+  const container = document.querySelector("#recentOrderResume");
+  const recent = mostRecentStoredOrder();
+  container.hidden = true;
+  container.innerHTML = "";
+  if (!recent) return;
+  const [orderNo, entry] = recent;
+  try {
+    const { order } = await fetchOrder(orderNo, entry.token);
+    const destination = order.status === "pending_payment"
+      ? paymentOrderUrl(orderNo, entry.token)
+      : orderStatusUrl(orderNo, entry.token);
+    container.innerHTML = `<div><strong>最近订单</strong><span>${escapeHtml(orderNo)} · ${escapeHtml(orderStatusText(order.status))}</span></div><button class="secondary-cta" type="button" data-resume-recent-order>继续处理</button>`;
+    container.querySelector("[data-resume-recent-order]").addEventListener("click", () => navigateTo(destination));
+    container.hidden = false;
+  } catch {
+    // An expired token must not block creation of a new order.
+  }
 }
 
 async function createPurchaseOrder(event) {
@@ -1134,7 +1272,7 @@ async function createPurchaseOrder(event) {
   try {
     const data = await apiRequest("/api/orders", { method: "POST", body: JSON.stringify({ email }) });
     if (data.reused) {
-      const token = sessionStorage.getItem(`sizheng-order-token:${data.order_no}`);
+      const token = storedOrderToken(data.order_no);
       setBillingMessage(message, "你已有一笔未完成订单。", "");
       const continueButton = document.createElement("button");
       continueButton.type = "button";
@@ -1155,8 +1293,8 @@ async function createPurchaseOrder(event) {
   }
 }
 
-async function fetchOrder(orderNo) {
-  const token = routeToken();
+async function fetchOrder(orderNo, suppliedToken = "") {
+  const token = suppliedToken || routeToken(orderNo);
   const query = token ? `?token=${encodeURIComponent(token)}` : "";
   const data = await apiRequest(`/api/orders/${encodeURIComponent(orderNo)}${query}`);
   return { order: data.order, token };
@@ -1209,8 +1347,18 @@ function renderPaymentChoice() {
   }
   const label = selectedPaymentMethod === "alipay" ? "支付宝" : "微信支付";
   const source = selectedPaymentMethod === "alipay" ? "/payment/alipay-qr.jpg" : "/payment/wechat-qr.jpg";
-  area.innerHTML = `<img src="${source}" alt="${label}收款码"><p>请支付：<strong>${config.membershipPriceLabel()}</strong></p><p>扫码完成付款后，请返回本页面填写支付订单号后 6 位。</p><p>付款后需要管理员核对，确认后系统自动开通 ${config.MEMBERSHIP_DAYS} 天会员。</p>`;
+  const referenceSteps = selectedPaymentMethod === "alipay"
+    ? ["打开支付宝，进入“我的”", "打开“账单”并选择本次付款", "在付款详情中找到订单号，填写最后 6 位"]
+    : ["打开微信，进入“我 → 服务 → 钱包”", "打开“账单”并选择本次付款", "在账单详情中找到交易单号，填写最后 6 位"];
+  area.innerHTML = `<button class="payment-qr-button" type="button" data-enlarge-payment-qr aria-label="放大${label}收款码"><img src="${source}" alt="${label}收款码"></button><p class="payment-qr-hint">点击二维码可放大，手机端也可长按图片保存。</p><p>请支付：<strong>${config.membershipPriceLabel()}</strong></p><p>扫码完成付款后，请返回本页面填写支付订单号后 6 位。</p><div class="payment-reference-guide"><strong>支付订单号后 6 位在哪里找</strong><ol>${referenceSteps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}</ol><small>不同版本的入口名称可能略有差异，以付款详情页显示的订单号或交易单号为准。</small></div><p>付款后需要管理员核对，确认后系统自动开通 ${config.MEMBERSHIP_DAYS} 天会员。</p>`;
+  area.querySelector("[data-enlarge-payment-qr]").addEventListener("click", () => openPaymentQr(source, label));
   form.hidden = false;
+}
+
+function openPaymentQr(source, label) {
+  els.dialog.style.setProperty("--accent", selectedPaymentMethod === "alipay" ? "#1677ff" : "#07c160");
+  els.dialogBody.innerHTML = `<div class="payment-qr-dialog"><h2>${escapeHtml(label)}收款码</h2><img src="${source}" alt="${escapeHtml(label)}收款码大图"><p>请核对金额为 ${escapeHtml(billingConfig().membershipPriceLabel())}。完成付款后关闭此窗口并填写支付订单号后 6 位。</p></div>`;
+  if (!els.dialog.open) els.dialog.showModal();
 }
 
 async function submitPaymentReference(event) {
@@ -1234,7 +1382,7 @@ async function submitPaymentReference(event) {
     saveOrderToken(route.orderNo, routeToken());
     navigateTo(orderStatusUrl(data.order.order_no, routeToken()));
   } catch (error) {
-    setBillingMessage(message, error.message || "无法提交付款信息。", "error");
+    setBillingMessage(message, `${error.message || "无法提交付款信息。"} 已填写内容会保留，请检查后重新提交。`, "error");
   } finally {
     button.disabled = false;
     button.textContent = "我已付款，提交审核";
@@ -1250,7 +1398,8 @@ function orderStatusText(status) {
   return ({ pending_payment: "等待付款", pending_review: "付款信息已提交，等待管理员核对", approved: "会员已开通", rejected: "付款信息暂未通过核对" })[status] || status;
 }
 
-async function showOrderPage(orderNo) {
+async function showOrderPage(orderNo, options = {}) {
+  const previousScroll = options.preserveScroll ? window.scrollY : 0;
   hideAllMainViews();
   els.orderView.hidden = false;
   const content = document.querySelector("#orderStatusContent");
@@ -1263,16 +1412,32 @@ async function showOrderPage(orderNo) {
       : order.status === "rejected"
         ? `<p>暂未核对到对应付款，请检查付款方式和订单号后 6 位后重新提交。</p><button class="primary-cta" type="button" data-resume-payment>重新提交付款信息</button>`
         : order.status === "approved"
-          ? `<p>本次增加 ${config.MEMBERSHIP_DAYS} 天会员。</p><button class="primary-cta" type="button" data-go-login>去登录</button>`
-          : `<p>付款信息已提交，等待核对。核对通过后系统会为该邮箱增加 ${config.MEMBERSHIP_DAYS} 天会员。</p>`;
-    content.innerHTML = `<p class="public-kicker">订单状态</p><h1>${escapeHtml(orderStatusText(order.status))}</h1>${renderOrderSummary(order)}<dl><dt>付款方式</dt><dd>${escapeHtml(order.payment_method === "alipay" ? "支付宝" : order.payment_method === "wechat" ? "微信支付" : "未选择")}</dd><dt>支付订单号后 6 位</dt><dd>${escapeHtml(order.payment_reference || "未提交")}</dd><dt>提交时间</dt><dd>${escapeHtml(order.submitted_at ? formatDateTime(order.submitted_at) : "未提交")}</dd></dl>${order.review_note ? `<p class="billing-note">审核说明：${escapeHtml(order.review_note)}</p>` : ""}<div class="billing-actions">${actions}</div>`;
+          ? `<p>本次增加 ${config.MEMBERSHIP_DAYS} 天会员。</p>${order.membership_expires_at ? `<p class="membership-expiry">会员有效期至：<strong>${escapeHtml(formatDateTime(order.membership_expires_at))}</strong></p>` : ""}<button class="primary-cta" type="button" data-go-login>去登录</button>`
+          : `<p>付款信息已提交，等待核对。核对通过后系统会为该邮箱增加 ${config.MEMBERSHIP_DAYS} 天会员。</p><p class="order-auto-refresh">页面每 20 秒自动刷新审核状态。</p><button class="secondary-cta" type="button" data-refresh-order>立即刷新</button>`;
+    const privateUrl = token ? new URL(orderStatusUrl(order.order_no, token), location.origin).toString() : "";
+    const reviewNote = order.review_note
+      ? order.status === "rejected"
+        ? `<section class="rejected-review"><strong>未通过原因</strong><p>${escapeHtml(order.review_note)}</p></section>`
+        : `<p class="billing-note">审核说明：${escapeHtml(order.review_note)}</p>`
+      : "";
+    content.innerHTML = `<p class="public-kicker">订单状态</p><h1>${escapeHtml(orderStatusText(order.status))}</h1>${renderOrderSummary(order)}<div class="order-copy-actions"><button class="text-action" type="button" data-copy-order-no>复制订单号</button>${privateUrl ? `<button class="text-action" type="button" data-copy-order-link>复制私人查询链接</button>` : ""}<span data-order-copy-status role="status" aria-live="polite"></span></div>${privateUrl ? '<p class="order-private-note">私人查询链接包含订单访问凭证，请勿转发给他人。</p>' : ""}<dl><dt>付款方式</dt><dd>${escapeHtml(order.payment_method === "alipay" ? "支付宝" : order.payment_method === "wechat" ? "微信支付" : "未选择")}</dd><dt>支付订单号后 6 位</dt><dd>${escapeHtml(order.payment_reference || "未提交")}</dd><dt>提交时间</dt><dd>${escapeHtml(order.submitted_at ? formatDateTime(order.submitted_at) : "未提交")}</dd></dl>${reviewNote}<div class="billing-actions">${actions}</div>`;
     content.querySelector("[data-resume-payment]")?.addEventListener("click", () => navigateTo(paymentOrderUrl(order.order_no, token)));
     content.querySelector("[data-go-login]")?.addEventListener("click", () => { navigateTo("/"); requestAnimationFrame(showPublicLogin); });
+    content.querySelector("[data-refresh-order]")?.addEventListener("click", () => { void showOrderPage(orderNo, { preserveScroll: true }); });
+    content.querySelector("[data-copy-order-no]")?.addEventListener("click", async () => {
+      const copied = await copyText(order.order_no);
+      content.querySelector("[data-order-copy-status]").textContent = copied ? "订单号已复制" : "复制失败";
+    });
+    content.querySelector("[data-copy-order-link]")?.addEventListener("click", async () => {
+      const copied = await copyText(privateUrl);
+      content.querySelector("[data-order-copy-status]").textContent = copied ? "查询链接已复制" : "复制失败";
+    });
+    if (order.status === "pending_review") scheduleOrderStatusPoll(orderNo);
   } catch (error) {
     content.innerHTML = `<h1>无法读取订单</h1><p class="billing-error">${escapeHtml(error.message || "订单不存在或无权查看。")}</p><button class="secondary-cta" type="button" data-go-buy>返回购买页</button>`;
     content.querySelector("[data-go-buy]")?.addEventListener("click", () => navigateTo("/buy"));
   }
-  window.scrollTo({ top: 0, behavior: "auto" });
+  window.scrollTo({ top: options.preserveScroll ? previousScroll : 0, behavior: "auto" });
 }
 
 async function showAdminOrdersPage() {
@@ -1292,7 +1457,10 @@ async function loadAdminOrders() {
   try {
     const data = await apiRequest(`/api/admin/orders?status=${encodeURIComponent(status)}&q=${encodeURIComponent(query)}`);
     setBillingMessage(message, data.orders.length ? "" : "没有符合条件的订单。");
-    list.innerHTML = data.orders.map((order) => `<article class="admin-order"><div><strong>${escapeHtml(order.order_no)}</strong><span>${escapeHtml(orderStatusText(order.status))}</span></div><dl><dt>邮箱</dt><dd>${escapeHtml(order.email)}</dd><dt>金额</dt><dd>¥${Number(order.amount).toFixed(2)} / ${order.membership_days} 天</dd><dt>付款</dt><dd>${escapeHtml(order.payment_method === "alipay" ? "支付宝" : order.payment_method === "wechat" ? "微信支付" : "未提交")} ${escapeHtml(order.payment_reference || "")}</dd><dt>创建</dt><dd>${escapeHtml(formatDateTime(order.created_at))}</dd><dt>提交</dt><dd>${escapeHtml(order.submitted_at ? formatDateTime(order.submitted_at) : "未提交")}</dd></dl>${order.reviewed_by ? `<p>审核人：${escapeHtml(order.reviewed_by)} ${escapeHtml(formatDateTime(order.reviewed_at))}</p>` : ""}${order.review_note ? `<p>审核说明：${escapeHtml(order.review_note)}</p>` : ""}${order.status === "pending_review" ? `<div class="billing-actions"><button class="primary-cta" type="button" data-approve-order="${escapeHtml(order.order_no)}">确认付款并开通</button><button class="secondary-cta" type="button" data-reject-order="${escapeHtml(order.order_no)}">拒绝</button></div>` : ""}</article>`).join("");
+    list.innerHTML = data.orders.map((order) => {
+      const method = order.payment_method === "alipay" ? "支付宝" : order.payment_method === "wechat" ? "微信支付" : "未提交";
+      return `<article class="admin-order"><div><strong>${escapeHtml(order.order_no)}</strong><span>${escapeHtml(orderStatusText(order.status))}</span></div><dl><dt>邮箱</dt><dd>${escapeHtml(order.email)}</dd><dt>金额</dt><dd>¥${Number(order.amount).toFixed(2)} / ${order.membership_days} 天</dd><dt>付款</dt><dd>${escapeHtml(method)} ${escapeHtml(order.payment_reference || "")}</dd><dt>创建</dt><dd>${escapeHtml(formatDateTime(order.created_at))}</dd><dt>提交</dt><dd>${escapeHtml(order.submitted_at ? formatDateTime(order.submitted_at) : "未提交")}</dd>${order.membership_expires_at ? `<dt>会员到期</dt><dd>${escapeHtml(formatDateTime(order.membership_expires_at))}</dd>` : ""}</dl>${order.reviewed_by ? `<p>审核人：${escapeHtml(order.reviewed_by)} ${escapeHtml(formatDateTime(order.reviewed_at))}</p>` : ""}${order.review_note ? `<p>审核说明：${escapeHtml(order.review_note)}</p>` : ""}${order.status === "pending_review" ? `<div class="billing-actions"><button class="primary-cta" type="button" data-approve-order="${escapeHtml(order.order_no)}" data-order-email="${escapeHtml(order.email)}" data-order-amount="${Number(order.amount).toFixed(2)}" data-order-method="${escapeHtml(method)}" data-order-reference="${escapeHtml(order.payment_reference || "未提交")}">确认付款并开通</button><button class="secondary-cta" type="button" data-reject-order="${escapeHtml(order.order_no)}">拒绝</button></div>` : ""}</article>`;
+    }).join("");
     list.querySelectorAll("[data-approve-order]").forEach((button) => button.addEventListener("click", () => { void approveOrder(button); }));
     list.querySelectorAll("[data-reject-order]").forEach((button) => button.addEventListener("click", () => { void rejectOrder(button); }));
   } catch (error) {
@@ -1301,6 +1469,16 @@ async function loadAdminOrders() {
 }
 
 async function approveOrder(button) {
+  const confirmed = window.confirm([
+    "请确认已在实际收款记录中核对：",
+    `订单：${button.dataset.approveOrder}`,
+    `邮箱：${button.dataset.orderEmail}`,
+    `金额：¥${button.dataset.orderAmount}`,
+    `付款：${button.dataset.orderMethod}`,
+    `订单号后 6 位：${button.dataset.orderReference}`,
+    "确认后将立即增加 30 天会员，且同一订单只能处理一次。"
+  ].join("\n"));
+  if (!confirmed) return;
   button.disabled = true;
   button.textContent = "正在开通…";
   try {
@@ -1350,6 +1528,7 @@ async function startMemberSession() {
   if (!isValid) {
     sessionState.memberValidated = false;
     sessionState.userId = null;
+    updateMembershipHeader();
     showAuth({
       message: "当前账号未开通会员、已停用或已过期，无法读取题库。",
       error: true,
@@ -1370,6 +1549,7 @@ async function startMemberSession() {
   sessionState.memberValidated = true;
   sessionState.userId = user.id;
   sessionState.preview = false;
+  updateMembershipHeader(membership.expires_at);
   delete document.body.dataset.accessMode;
   els.search.hidden = false;
   els.authView.hidden = true;
@@ -1409,6 +1589,7 @@ function startCampusPreview(options = {}) {
   sessionState.memberValidated = false;
   sessionState.userId = null;
   sessionState.preview = true;
+  updateMembershipHeader();
   clearQuestionBank();
   questionBankCatalog.clear();
   hydrateCourseQuestionBank(course, preview.choices, preview.essays);
@@ -1425,6 +1606,7 @@ function startCampusPreview(options = {}) {
   state.sourceType = "all";
   state.questionNavExpanded = false;
   state.query = "";
+  recordRecentStudy(course.id, preview.chapterIndex);
   document.body.dataset.accessMode = "preview";
   els.search.value = "";
   els.search.hidden = true;
@@ -1447,20 +1629,26 @@ function renderHome() {
   const query = state.query;
   const matchedCourses = courses
     .filter((course) => searchable(course).includes(query))
-    .map((course) => `
-      <button class="course-card" style="--accent:${course.accent}" type="button" data-course="${course.id}">
-        <span class="badge">${course.short}</span>
-        <h2>${course.name}</h2>
-        <p>${course.summary}</p>
-        <div class="stats">
-          <span class="stat"><strong>${textbookChapterCount(course)}</strong><span>教材章</span></span>
-          <span class="stat"><strong>${questionCount(course.id, "choice")}</strong><span>选择题</span></span>
-          <span class="stat"><strong>${questionCount(course.id, "essay")}</strong><span>大题</span></span>
-        </div>
-      </button>
-    `).join("");
+    .map((course) => {
+      const progress = localCourseProgress(course.id);
+      return `
+        <button class="course-card" style="--accent:${course.accent}" type="button" data-course="${course.id}">
+          <span class="badge">${course.short}</span>
+          <h2>${course.name}</h2>
+          <p>${course.summary}</p>
+          <p class="course-local-progress">本机进度：已练 ${progress.attempted} · 错题 ${progress.wrong} · 已掌握 ${progress.mastered}</p>
+          <div class="stats">
+            <span class="stat"><strong>${textbookChapterCount(course)}</strong><span>教材章</span></span>
+            <span class="stat"><strong>${questionCount(course.id, "choice")}</strong><span>选择题</span></span>
+            <span class="stat"><strong>${questionCount(course.id, "essay")}</strong><span>大题</span></span>
+          </div>
+        </button>
+      `;
+    }).join("");
   const knowledgeResults = query ? findKnowledgeResults(query) : [];
-  els.courseGrid.innerHTML = `${matchedCourses}${knowledgeResults.length ? `
+  const recent = query ? null : recentStudyDetails();
+  const continueStudy = recent ? `<section class="continue-study"><div><span class="public-kicker">继续上次复习</span><strong>${escapeHtml(recent.course.name)}</strong><small>${escapeHtml(recent.chapterTitle)}</small></div><button class="secondary-cta" type="button" data-continue-study>继续学习</button></section>` : "";
+  els.courseGrid.innerHTML = `${continueStudy}${matchedCourses}${knowledgeResults.length ? `
     <section class="search-results">
       <h2>知识点搜索结果</h2>
       ${knowledgeResults.map((result) => `<button type="button" data-search-chapter="${result.courseId}:${result.chapterIndex}"><strong>${escapeHtml(result.title)}</strong><span>${escapeHtml(result.courseName)} · ${escapeHtml(result.chapterTitle)}</span><small>${escapeHtml(result.summary)}</small></button>`).join("")}
@@ -1468,9 +1656,15 @@ function renderHome() {
   document.querySelectorAll("[data-course]").forEach((card) => {
     card.addEventListener("click", () => { void showCourse(card.dataset.course); });
   });
+  document.querySelector("[data-continue-study]")?.addEventListener("click", async () => {
+    recordRecentStudy(recent.course.id, recent.chapterIndex);
+    await showCourse(recent.course.id);
+    document.querySelector(`#chapter-${recent.chapterIndex + 1}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
   document.querySelectorAll("[data-search-chapter]").forEach((button) => {
     button.addEventListener("click", async () => {
       const [courseId, chapterIndex] = button.dataset.searchChapter.split(":");
+      recordRecentStudy(courseId, Number(chapterIndex));
       await showCourse(courseId);
       document.querySelector(`#chapter-${Number(chapterIndex) + 1}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
@@ -1522,7 +1716,10 @@ function showHome() {
 
 async function showCourse(id, updateHash = true) {
   if (sessionState.preview) {
-    if (id === window.campusPreview?.courseId) renderCourse();
+    if (id === window.campusPreview?.courseId) {
+      recordRecentStudy(id, window.campusPreview.chapterIndex);
+      renderCourse();
+    }
     else showLockedContent();
     return;
   }
@@ -1531,6 +1728,8 @@ async function showCourse(id, updateHash = true) {
   state.chapterId = "all";
   state.sourceType = "all";
   state.questionNavExpanded = false;
+  const previousChapter = studyProgress.recent?.courseId === id ? studyProgress.recent.chapterIndex : 0;
+  recordRecentStudy(id, previousChapter);
   els.homeView.hidden = true;
   els.courseView.hidden = false;
   renderCourse();
@@ -1706,6 +1905,7 @@ function renderCourse() {
     return;
   }
   document.documentElement.style.setProperty("--accent", course.accent);
+  const localProgress = localCourseProgress(course.id);
   els.sideTitle.textContent = course.short;
   renderCourseNavigation(course);
   els.courseHero.innerHTML = `
@@ -1718,6 +1918,7 @@ function renderCourse() {
     <div class="hero-note">
       <h2>复习状态</h2>
       <p>本页包含 ${course.chapters.length} 个章节、${questionCount(course.id, "choice")} 道选择题、${questionCount(course.id, "essay")} 道大题。内容参考课程教材、课堂资料及可追溯的公开权威资料，并持续进行题目核验。</p>
+      <p class="hero-local-progress">本机已练 ${localProgress.attempted} 题 · 错题 ${localProgress.wrong} 题 · 已掌握 ${localProgress.mastered} 项</p>
     </div>
   `;
   els.chapters.innerHTML = `
@@ -1778,7 +1979,7 @@ function renderPreviewCourse(course) {
     <div class="hero-note preview-note">
       <span class="type-pill">无需登录</span>
       <h2>先用真实内容试一遍</h2>
-      <p>免费体验不会读取会员题库。登录有效会员后，才会通过 Supabase 权限校验加载全部课程内容。</p>
+      <p>免费体验不会读取会员题库。作答、收藏和掌握记录保存在本机，开通并登录后可继续使用；完整题库仍需通过 Supabase 会员权限校验后加载。</p>
     </div>
   `;
   els.chapters.innerHTML = `
@@ -1813,7 +2014,7 @@ function renderPreviewNavigation(course, chapter) {
   const subId = `question-nav-${course.id}`;
   els.chapterNav.innerHTML = `
     <a href="#courseHero">体验说明</a>
-    <a href="#chapter-${window.campusPreview.chapterIndex + 1}">${escapeHtml(chapter.title)}</a>
+    <a href="#chapter-${window.campusPreview.chapterIndex + 1}" data-chapter-index="${window.campusPreview.chapterIndex}">${escapeHtml(chapter.title)}</a>
     <button class="side-lock-btn" type="button" data-preview-lock>其余章节 · 已锁定</button>
     <div class="question-nav-group ${expanded ? "open" : ""}">
       <button class="question-nav-toggle" type="button" data-question-nav-toggle aria-expanded="${expanded}" aria-controls="${subId}">
@@ -1840,6 +2041,9 @@ function renderPreviewNavigation(course, chapter) {
       renderCourse();
       document.querySelector("#questions")?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
+  });
+  els.chapterNav.querySelector("[data-chapter-index]").addEventListener("click", () => {
+    recordRecentStudy(course.id, window.campusPreview.chapterIndex);
   });
   els.chapterNav.querySelector("[data-preview-lock]").addEventListener("click", showLockedContent);
   els.chapterNav.querySelector("[data-preview-login]").addEventListener("click", showPublicLogin);
@@ -3317,7 +3521,7 @@ function renderCourseNavigation(course) {
   const subId = `question-nav-${course.id}`;
   els.chapterNav.innerHTML = [
     `<a href="#courseHero">课程概览</a>`,
-    ...course.chapters.map((chapter, index) => `<a href="#chapter-${index + 1}">${navLabel(chapter[0], index)}</a>`),
+    ...course.chapters.map((chapter, index) => `<a href="#chapter-${index + 1}" data-chapter-index="${index}">${navLabel(chapter[0], index)}</a>`),
     `<div class="question-nav-group ${expanded ? "open" : ""}">
       <button class="question-nav-toggle ${questionTypeActive ? "active" : ""}" type="button" data-question-nav-toggle aria-expanded="${expanded}" aria-controls="${subId}">
         <span>题集</span><span class="question-nav-chevron" aria-hidden="true">⌄</span>
@@ -3345,6 +3549,9 @@ function renderCourseNavigation(course) {
       renderQuestions(course);
       document.querySelector("#questions")?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
+  });
+  els.chapterNav.querySelectorAll("[data-chapter-index]").forEach((link) => {
+    link.addEventListener("click", () => recordRecentStudy(course.id, Number(link.dataset.chapterIndex)));
   });
 }
 

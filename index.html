@@ -22,6 +22,10 @@
       </span>
     </button>
     <div class="top-actions">
+      <div id="membershipStatus" class="membership-status" hidden>
+        <span id="membershipStatusText"></span>
+        <button id="membershipRenewBtn" type="button">续费</button>
+      </div>
       <input id="globalSearch" type="search" placeholder="搜索课程、章节、题目">
       <button id="randomBtn" type="button">随机一题</button>
     </div>
@@ -165,6 +169,15 @@
           <button id="buySubmitBtn" class="primary-cta" type="submit"></button>
           <div id="buyMessage" class="billing-message" role="status" aria-live="polite"></div>
         </form>
+        <div id="recentOrderResume" class="recent-order-resume" hidden></div>
+        <aside class="billing-service-note" aria-label="开通说明">
+          <strong>开通说明</strong>
+          <ul>
+            <li>付款信息由管理员人工核对，通过后才开始计算会员期限。</li>
+            <li>登录邮箱是会员身份，请确认填写正确；本站仅使用开通所需的邮箱和订单核对信息。</li>
+            <li>本站是课程学习辅助工具，具体考试范围以任课教师要求为准。</li>
+          </ul>
+        </aside>
       </div>
     </section>
 

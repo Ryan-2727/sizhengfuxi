@@ -62,7 +62,8 @@ export function orderPublicView(order) {
     created_at: order.created_at,
     submitted_at: order.submitted_at,
     reviewed_at: order.reviewed_at,
-    review_note: order.review_note
+    review_note: order.review_note,
+    membership_expires_at: order.membership_expires_at || null
   };
 }
 

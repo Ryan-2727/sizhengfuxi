@@ -23,6 +23,9 @@ const assert = (condition, message) => {
   assert(/shouldCreateUser:\s*false/.test(app), "The existing no-self-registration OTP rule changed.");
   assert(/CAMPUS_SOURCES/.test(app) && /sizheng-campus-source-v1/.test(app), "Campus source attribution is missing.");
   assert(/sessionState\.preview/.test(app), "Preview access mode is missing.");
+  assert(/recent:\s*saved\?\.recent/.test(app), "Free preview and member mode must share recent-study progress.");
+  assert(/function localCourseProgress\(/.test(app), "Course-level local progress summary is missing.");
+  assert(/会员至/.test(app) && /id="membershipStatus"/.test(html), "Valid-member expiry status is missing.");
   assert(/\/\* \/index\.html 200/.test(redirects), "Cloudflare SPA fallback is missing.");
   assert(campusPreview.courseId === "history" && campusPreview.chapterId === "history-1", "Preview must stay inside the configured history chapter.");
   assert(campusPreview.choices.length === 20, "Campus preview must contain exactly 20 choice questions.");

@@ -8,7 +8,9 @@ const assert = (condition, message) => {
 };
 
 const migration = read("supabase/migrations/202608090006_purchase_orders.sql");
+const experienceMigration = read("supabase/migrations/202608110007_order_experience.sql");
 const app = read("app.js");
+const html = read("index.html");
 const orderApi = read("functions/api/orders/index.js");
 const paymentApi = read("functions/api/orders/[orderNo]/payment.js");
 const approveApi = read("functions/api/admin/orders/[orderNo]/approve.js");
@@ -30,6 +32,9 @@ assert(/membership\.expires_at \+ make_interval\(days => current_order\.membersh
 assert(/now\(\) \+ make_interval\(days => current_order\.membership_days\)/i.test(migration), "new or expired members must extend from server time.");
 assert(/update public\.orders\s+set status = 'approved'/i.test(migration), "approval must mark the order after membership handling.");
 assert(/revoke all on function public\.approve_purchase_order/i.test(migration), "approval RPC must not be browser-callable.");
+assert(/add column if not exists membership_expires_at timestamptz/i.test(experienceMigration), "approved orders must retain their exact membership expiry.");
+assert(/membership_expires_at = new_expiry/i.test(experienceMigration), "approval must persist the exact expiry on the order.");
+assert(/revoke all on function public\.approve_purchase_order\(text, text\) from public, anon, authenticated/i.test(experienceMigration), "the replacement approval RPC must remain service-only.");
 assert(/requireAdmin\(/.test(approveApi) && /SUPABASE_SERVICE_ROLE_KEY/.test(helper), "admin approval must run in a protected server function.");
 assert(/readOrderForBuyer/.test(paymentApi), "payment submission must check order ownership or access token.");
 assert(!/ensureAuthUser/.test(orderApi), "an unpaid order must not create an Auth user.");
@@ -38,4 +43,10 @@ assert(/membershipPriceLabel/.test(app) && /MEMBERSHIP_DAYS/.test(app), "browser
 assert(!/status:\s*["']approved/.test(app), "browser code must not create approved orders.");
 assert(!/from\(["']memberships["']\)\.insert|from\(["']memberships["']\)\.update/.test(app), "browser code must not write memberships.");
 assert(/\/api\/admin\/orders/.test(app), "admin UI must use protected APIs.");
+assert(/ORDER_ACCESS_STORAGE_KEY/.test(app) && /ORDER_ACCESS_MAX_AGE_MS/.test(app), "private order recovery must have bounded persistent storage.");
+assert(/scheduleOrderStatusPoll/.test(app) && /ORDER_STATUS_POLL_MS = 20_000/.test(app), "pending orders must poll without a tight request loop.");
+assert(/window\.confirm/.test(app) && /data-order-reference/.test(app), "approval must show the actual order details for confirmation.");
+assert(/复制私人查询链接/.test(app) && /私人查询链接包含订单访问凭证/.test(app), "private order-link copying needs an explicit warning.");
+assert(/支付订单号后 6 位在哪里找/.test(app) && /交易单号/.test(app), "payment reference guidance is missing.");
+assert(/id="recentOrderResume"/.test(html), "the buy page must expose recent-order recovery.");
 console.log("Payment membership static contract passed.");

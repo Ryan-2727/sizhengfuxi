@@ -78,6 +78,8 @@ npm run member:add -- student@example.com 30
 
 会员订单固定为 `¥9.90 / 30 天`。购买页面为 `/buy`，付款和订单状态页面使用不可预测的订单号与首次创建时的访问令牌；登录后的用户也只能读取自己邮箱的订单。付款提交只会把订单推进到 `pending_review`，不会开通会员。
 
+同一设备会将私人订单访问令牌保留最多 60 天，用于恢复未完成订单；待审核页面每 20 秒自动刷新。审批成功后，订单会保存并展示该笔订单实际产生的会员到期时间。部署本版本前需按顺序执行 `supabase/migrations/202608110007_order_experience.sql`。
+
 管理员在 `/admin/orders` 人工核对支付宝或微信实际到账后，再点击“确认付款并开通”。该操作由 Cloudflare Pages Function 调用受限 Supabase RPC：同一订单只处理一次；未过期会员在原 `expires_at` 基础上增加 30 天，过期或新会员从服务器当前时间增加 30 天。
 
 部署时除浏览器所需的 `SUPABASE_URL`、`SUPABASE_ANON_KEY` 外，还要在 Cloudflare Pages runtime 设置 `SUPABASE_SERVICE_ROLE_KEY` 和服务器端 `ADMIN_EMAILS`。二者不能使用 `VITE_` 前缀，也不能提交到仓库。收款码位于 `public/payment/alipay-qr.jpg` 与 `public/payment/wechat-qr.jpg`。
@@ -85,6 +87,8 @@ npm run member:add -- student@example.com 30
 ## 维护说明
 
 题库首页只从 `question_bank_catalog` 读取每门课程的题量和版本。会员进入某门课程或随机选择该课程时，浏览器才分页读取该课程的题目，并按 `user_id + course_id + content_hash` 写入 IndexedDB。每次打开网站仍会重新核验会员状态；未通过核验时不会读取缓存。退出登录会删除该账号的题库缓存。
+
+收藏、错题、作答、知识点掌握状态和最近复习位置继续保存在浏览器本地，不含完整题库。免费体验与会员模式复用这些本机记录，因此同一浏览器开通后可继续上次复习；会员首页会显示各课程的本机已练、错题和已掌握数量。
 
 题库内容更新后执行导入脚本。脚本会为每门课程计算稳定 SHA-256 内容哈希，并且只在内容实际变化时更新目录版本；旧版本缓存会自然失效。
 

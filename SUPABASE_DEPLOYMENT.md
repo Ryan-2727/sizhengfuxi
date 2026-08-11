@@ -25,6 +25,8 @@ Open the Supabase SQL editor and run every file in `supabase/migrations/` in fil
 -- supabase/migrations/202608090005_question_editorial_quality.sql
 -- Manual payment orders and atomic membership approval:
 -- supabase/migrations/202608090006_purchase_orders.sql
+-- Order recovery experience and exact approved expiry:
+-- supabase/migrations/202608110007_order_experience.sql
 ```
 
 The migrations create `memberships`, `questions`, `question_bank_catalog`, `question_quality`, `question_revisions`, and `question_quality_events`, enable RLS on every business table, grant no browser write permissions, and permit catalog and published-question reads only through `public.is_active_member()`.
@@ -34,6 +36,8 @@ The fourth migration adds chapter metadata to `questions`. It does not alter que
 The fifth migration seeds one quality row per existing question, makes `questions.payload` immutable, and changes question RLS so active members can read only `publication_status = 'published'` rows. Current display corrections live in `question_revisions`; normal authenticated users cannot write quality, revisions, or audit events.
 
 Run the fifth migration before deploying the matching frontend. The new frontend requires `question_quality` and reads current revisions before writing a course to IndexedDB.
+
+Run `202608110007_order_experience.sql` before deploying the matching order-status frontend. It adds the approved order's exact `membership_expires_at` and replaces the approval RPC without changing its service-role-only permission or idempotent membership extension rules.
 
 ## 3. Local environment and question import
 
@@ -143,7 +147,7 @@ ADMIN_EMAILS=admin1@example.com,admin2@example.com
 
 ## 7. Manual payment membership
 
-After running `supabase/migrations/202608090006_purchase_orders.sql`, the public paths are `/buy`, `/pay/:orderNo`, and `/order/:orderNo`. Existing `assets/alipay.jpg` and `assets/wechat.jpg` are deployed as:
+After running `supabase/migrations/202608090006_purchase_orders.sql` and `supabase/migrations/202608110007_order_experience.sql`, the public paths are `/buy`, `/pay/:orderNo`, and `/order/:orderNo`. Existing `assets/alipay.jpg` and `assets/wechat.jpg` are deployed as:
 
 ```text
 public/payment/alipay-qr.jpg
@@ -155,6 +159,8 @@ Replace only those two files if the real collection codes change. Do not generat
 Set `ADMIN_EMAILS` to the comma-separated email address(es) that can use `/admin/orders`. Each administrator must first log in through the existing email OTP flow. The browser sends only that existing session token; Cloudflare verifies the token and compares its email with `ADMIN_EMAILS` server-side.
 
 Payment flow: a buyer creates one `pending_payment` order for `¥9.90 / 30 days`, submits a payment method and the last six payment-order characters, then the order becomes `pending_review`. An administrator checks the actual payment and selects **确认付款并开通**. Only then does the protected server function create or reuse the Supabase Auth user for that order email. The SQL function locks the order, adds 30 days to a current active expiry or starts from database `now()` when new/expired, then marks the order approved. Repeating approval for the same order returns `already_processed` and does not add time again.
+
+The browser retains each private order access token on that device for at most 60 days so an unsigned buyer can recover an unfinished order. The status page refreshes a `pending_review` order every 20 seconds, exposes copy controls with a private-link warning, and displays the exact expiry saved by migration `202608110007` after approval.
 
 Run this verification before deployment:
 
