@@ -87,23 +87,26 @@ async function upsertQuality(supabase, rows) {
   }
 }
 
-async function updateChapterCandidates(supabase, rows) {
+async function updateChapterAssignments(supabase, rows) {
   let updated = 0;
   for (let index = 0; index < rows.length; index += 25) {
     await Promise.all(rows.slice(index, index + 25).map(async ({ state, entry }) => {
-      if (entry.chapter.status !== "candidate" || state.question.chapter_assignment_status === "verified") return;
+      if (!entry.chapter.chapterId || !["candidate", "verified"].includes(entry.chapter.status)) return;
+      if (state.question.chapter_assignment_status === "verified"
+        && (entry.chapter.status !== "verified" || state.question.chapter_id !== entry.chapter.chapterId)) return;
       if (state.question.chapter_id === entry.chapter.chapterId
-        && state.question.chapter_assignment_status === "candidate"
+        && state.question.chapter_assignment_status === entry.chapter.status
         && state.question.chapter_assignment_reference === entry.chapter.reference) return;
-      const { error } = await supabase
+      let query = supabase
         .from("questions")
         .update({
           chapter_id: entry.chapter.chapterId,
-          chapter_assignment_status: "candidate",
+          chapter_assignment_status: entry.chapter.status,
           chapter_assignment_reference: entry.chapter.reference
         })
-        .eq("id", state.question.id)
-        .neq("chapter_assignment_status", "verified");
+        .eq("id", state.question.id);
+      if (entry.chapter.status === "candidate") query = query.neq("chapter_assignment_status", "verified");
+      const { error } = await query;
       if (error) throw error;
       updated += 1;
     }));
@@ -190,7 +193,7 @@ async function applyManifest(supabase, manifest) {
     .filter(({ state, row }) => stableJson(qualityComparable(state.quality)) !== stableJson(qualityComparable(row)))
     .map(({ row }) => row);
   await upsertQuality(supabase, qualityRows);
-  const chapterUpdates = await updateChapterCandidates(supabase, pairs);
+  const chapterUpdates = await updateChapterAssignments(supabase, pairs);
   const catalog = await updateQuestionBankCatalog(supabase, DEFAULT_COURSE_IDS);
   return {
     qualityRowsChecked: qualityRowsWithState.length,

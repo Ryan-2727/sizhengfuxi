@@ -1,3 +1,4 @@
+const fs = require("fs");
 const path = require("path");
 const { pathToFileURL } = require("url");
 const { loadQuestionBank } = require("./load-question-bank");
@@ -10,6 +11,14 @@ const {
   questionReference,
   sourceMetadata
 } = require("./editorial-quality");
+const { reviewedSourceChapter, reviewedSourceMetadata } = require("./editorial-review-overrides");
+
+function loadTextbookEvidence(root) {
+  const evidencePath = path.join(root, "data", "question-editorial-evidence.json");
+  if (!fs.existsSync(evidencePath)) return new Map();
+  const document = JSON.parse(fs.readFileSync(evidencePath, "utf8"));
+  return new Map(Object.entries(document.entries || {}));
+}
 
 const MANUAL_HIDDEN_REVIEW_REASONS = new Map([
   ["mao:essay:24", "cross-course-content-review"],
@@ -37,6 +46,23 @@ const MANUAL_HIDDEN_DUPLICATE_CANONICALS = new Map([
   ["history:choice:836", "history:choice:1102"],
   ["history:choice:850", "history:choice:1110"],
   ["history:choice:871", "history:choice:1126"]
+]);
+
+[
+  [721, 1064], [839, 1103], [688, 1051], [672, 1046], [696, 1055],
+  [801, 1088], [864, 1121], [829, 1098], [870, 1125], [799, 1086],
+  [657, 1036], [669, 1042], [589, 1013], [824, 1096], [820, 1093],
+  [638, 1029], [853, 1113], [724, 1065], [762, 1078], [861, 1120],
+  [249, 1223], [693, 1053]
+].forEach(([duplicateOrder, canonicalOrder]) => {
+  MANUAL_HIDDEN_DUPLICATE_CANONICALS.set(`history:choice:${duplicateOrder}`, `history:choice:${canonicalOrder}`);
+});
+
+const MANUAL_DISTINCT_NEAR_DUPLICATES = new Set([
+  "history:choice:231|history:choice:715",
+  "history:choice:43|history:choice:604",
+  "history:choice:872|history:choice:1021",
+  "xi:choice:79|xi:choice:80"
 ]);
 
 const MANUAL_CHOICE_CORRECTIONS = new Map([
@@ -83,6 +109,51 @@ const MANUAL_CHOICE_CORRECTIONS = new Map([
     verificationReference: "人民网转载《人民日报》党史理论文章"
   }]
 ]);
+
+function historyCorrection(answer, chapter, pdfPage = null) {
+  const sourcePage = pdfPage ? `PDF第${pdfPage}页` : null;
+  return {
+    answer,
+    verificationStatus: pdfPage ? "textbook-law-verified" : "source-backed",
+    sourceKind: pdfPage ? "textbook" : "question-bank-cross-check",
+    sourceTitle: pdfPage ? "《中国近现代史纲要》" : "同题多来源答案与2023年版教材框架交叉核对",
+    sourceEdition: "2023年版",
+    sourceChapter: chapter,
+    sourcePage,
+    verificationReference: pdfPage
+      ? `《中国近现代史纲要》（2023年版）PDF第${pdfPage}页及同题多来源答案交叉核对。`
+      : "同题多来源答案、题干限定词和2023年版教材章节表述交叉核对；待补教材精确页码。"
+  };
+}
+
+[
+  [1064, "ABCD", "第五章 中国革命的新道路", 144],
+  [1103, "AB", "第九章 改革开放与中国特色社会主义的开创和发展"],
+  [1051, "BC", "第五章 中国革命的新道路", 142],
+  [715, "ABD", "第五章 中国革命的新道路"],
+  [1046, "BD", "第五章 中国革命的新道路"],
+  [1055, "ABC", "第五章 中国革命的新道路", 145],
+  [1088, "AC", "第八章 中华人民共和国的成立与中国社会主义建设道路的探索"],
+  [1121, "ABC", "第九章 改革开放与中国特色社会主义的开创和发展"],
+  [1098, "CD", "第八章 中华人民共和国的成立与中国社会主义建设道路的探索", 236],
+  [1021, "ABD", "第一章 进入近代后中华民族的磨难与抗争"],
+  [1125, "ABCD", "第九章 改革开放与中国特色社会主义的开创和发展"],
+  [1086, "AB", "第八章 中华人民共和国的成立与中国社会主义建设道路的探索"],
+  [1036, "ABCD", "第二章 不同社会力量对国家出路的早期探索"],
+  [1042, "ACD", "第六章 中华民族的抗日战争"],
+  [604, "AC", "第一章 进入近代后中华民族的磨难与抗争"],
+  [1013, "ABCD", "导言"],
+  [1096, "ABCD", "第八章 中华人民共和国的成立与中国社会主义建设道路的探索"],
+  [1093, "ABCD", "第八章 中华人民共和国的成立与中国社会主义建设道路的探索", 250],
+  [1029, "ACD", "第一章 进入近代后中华民族的磨难与抗争", 47],
+  [1113, "CD", "第九章 改革开放与中国特色社会主义的开创和发展"],
+  [1065, "BCD", "第五章 中国革命的新道路", 135],
+  [1078, "ABC", "第八章 中华人民共和国的成立与中国社会主义建设道路的探索"],
+  [1120, "ABCD", "第九章 改革开放与中国特色社会主义的开创和发展"],
+  [1053, "BD", "第六章 中华民族的抗日战争"]
+].forEach(([order, answer, chapter, pdfPage]) => {
+  MANUAL_CHOICE_CORRECTIONS.set(`history:choice:${order}`, historyCorrection(answer, chapter, pdfPage));
+});
 
 const MANUAL_ESSAY_ANSWER_COMBINATIONS = new Set(["xi:essay:16"]);
 
@@ -175,7 +246,13 @@ function essayCommonMistakes(analysis, points, keywords) {
   return [`不要只罗列“${keywords.slice(0, 3).join("、") || "题干关键词"}”，每个要点都应写成完整判断。`];
 }
 
-function classifyQuestion(payload, courseId, rules) {
+function questionStemText(question) {
+  const text = String(question || "");
+  const firstOption = text.search(/(?:^|\n|\s)A(?:[.．、]\s*|\s+|(?=[\u4e00-\u9fff]))/);
+  return firstOption >= 0 ? text.slice(0, firstOption) : text;
+}
+
+function classifyQuestion(payload, courseId, rules, reviewedAssignment = null, answerText = "") {
   if (payload.chapterId && ["candidate", "verified"].includes(payload.chapterAssignmentStatus)) {
     return {
       chapterId: payload.chapterId,
@@ -184,10 +261,12 @@ function classifyQuestion(payload, courseId, rules) {
       reference: payload.chapterAssignmentReference || "source-payload"
     };
   }
+  if (reviewedAssignment?.chapterId) return reviewedAssignment;
+  const stem = normalizeText(questionStemText(payload.question));
   const fields = [
-    [normalizeText(payload.question), 5],
-    [normalizeText(payload.answer), 2],
-    [normalizeText(payload.analysis), 1]
+    [stem, 8],
+    [normalizeText(answerText || payload.answer), 4],
+    [normalizeText(payload.analysis), 2]
   ];
   const matches = (rules[courseId] || []).map(([chapterId, terms]) => {
     let score = 0;
@@ -207,15 +286,42 @@ function classifyQuestion(payload, courseId, rules) {
   }).sort((left, right) => right.score - left.score || right.matchedTerms.length - left.matchedTerms.length);
   const best = matches[0];
   const second = matches[1] || { score: 0 };
-  if (!best || best.score < 5 || best.score - second.score < 2) {
+  if (best && best.score >= 6 && best.score - second.score >= 2) {
+    const confidence = Math.min(0.94, 0.55 + (best.score / (best.score + second.score + 4)) * 0.35);
+    return {
+      chapterId: best.chapterId,
+      status: "candidate",
+      confidence: Number(confidence.toFixed(2)),
+      reference: `weighted-rules-v3:${best.matchedTerms.join("|")}`
+    };
+  }
+
+  const semanticText = characterBigrams(`${questionStemText(payload.question)} ${payload.analysis || ""}`);
+  const semanticMatches = (rules[courseId] || []).map(([chapterId, terms]) => {
+    let score = 0;
+    const matchedTerms = [];
+    for (const term of terms) {
+      const normalizedTerm = normalizeText(term);
+      if (normalizedTerm.length < 3) continue;
+      const termBigrams = characterBigrams(normalizedTerm);
+      const overlap = jaccard(semanticText, termBigrams);
+      if (overlap < 0.035) continue;
+      score += overlap * Math.min(10, normalizedTerm.length);
+      matchedTerms.push(term);
+    }
+    return { chapterId, score, matchedTerms };
+  }).sort((left, right) => right.score - left.score);
+  const semanticBest = semanticMatches[0];
+  const semanticSecond = semanticMatches[1] || { score: 0 };
+  if (!semanticBest || semanticBest.score < 0.01) {
     return { chapterId: null, status: "unclassified", confidence: null, reference: null };
   }
-  const confidence = Math.min(0.94, 0.55 + (best.score / (best.score + second.score + 4)) * 0.35);
+  const confidence = Math.min(0.78, 0.5 + (semanticBest.score / (semanticBest.score + semanticSecond.score + 2)) * 0.28);
   return {
-    chapterId: best.chapterId,
+    chapterId: semanticBest.chapterId,
     status: "candidate",
     confidence: Number(confidence.toFixed(2)),
-    reference: `weighted-rules-v2:${best.matchedTerms.join("|")}`
+    reference: `semantic-rules-v1:${semanticBest.matchedTerms.slice(0, 6).join("|")}`
   };
 }
 
@@ -321,12 +427,41 @@ function nearDuplicateGroups(entries) {
   return result;
 }
 
+function resolveEquivalentNearDuplicates(entries, api) {
+  const candidates = nearDuplicateGroups(entries.filter((entry) => entry.quality.publicationStatus === "published"));
+  const byRef = new Map(entries.map((entry) => [entry.ref, entry]));
+  const resolved = [];
+  const unresolved = [];
+  for (const candidate of candidates.sort((left, right) => right.similarity - left.similarity)) {
+    const reviewedPairKey = candidate.refs.join("|");
+    if (MANUAL_DISTINCT_NEAR_DUPLICATES.has(reviewedPairKey)) continue;
+    const pair = candidate.refs.map((ref) => byRef.get(ref));
+    if (pair.some((entry) => !entry || entry.quality.publicationStatus !== "published")) continue;
+    if (!equivalentDuplicate(pair[0], pair[1], api)) {
+      unresolved.push(candidate);
+      continue;
+    }
+    const [canonical, duplicate] = [...pair].sort((left, right) => duplicateScore(right) - duplicateScore(left));
+    duplicate.quality.publicationStatus = "hidden_duplicate";
+    duplicate.quality.canonicalRef = canonical.ref;
+    duplicate.quality.reviewStatus = "structural_checked";
+    duplicate.issues.push("semantic-equivalent-duplicate");
+    resolved.push({
+      canonicalRef: canonical.ref,
+      duplicateRefs: [duplicate.ref],
+      confidence: `semantic-equivalent:${candidate.similarity}`
+    });
+  }
+  return { resolved, unresolved };
+}
+
 async function buildEditorialManifest() {
   const root = path.resolve(__dirname, "..", "..");
   const analysis = await import(pathToFileURL(path.join(root, "src", "question-analysis.js")).href);
   const rulesModule = await import(pathToFileURL(path.join(root, "src", "question-chapter-rules.js")).href);
   const knowledgeModule = await import(pathToFileURL(path.join(root, "src", "course-knowledge.js")).href);
   const api = loadQuestionBank();
+  const textbookEvidence = loadTextbookEvidence(root);
   const knowledge = new Map(knowledgeModule.courseKnowledge.map((course) => [course.id, course]));
   const rules = Object.fromEntries(knowledgeModule.courseKnowledge.map((course) => [
     course.id,
@@ -340,8 +475,21 @@ async function buildEditorialManifest() {
     const add = (payload, questionType, order) => {
       const ref = questionReference(course.id, questionType, order);
       const source = sourceMetadata(payload);
+      const reviewedSource = reviewedSourceMetadata(course.id, payload);
+      const evidence = textbookEvidence.get(ref) || null;
       const manualChoiceCorrection = MANUAL_CHOICE_CORRECTIONS.get(ref);
-      const chapter = classifyQuestion(payload, course.id, rules);
+      const answerText = questionType === "choice"
+        ? [...api.choiceAnswerLetters(payload)].map((letter) => api.parseChoiceOptions(payload.question)[letter]).filter(Boolean).join(" ")
+        : payload.answer;
+      const reviewedChapter = evidence?.chapterId
+        ? {
+            chapterId: evidence.chapterId,
+            status: evidence.chapterAssignmentStatus || "verified",
+            confidence: evidence.chapterConfidence || 1,
+            reference: evidence.verificationReference
+          }
+        : reviewedSourceChapter(course.id, payload);
+      const chapter = classifyQuestion(payload, course.id, rules, reviewedChapter, answerText);
       const chapterTerms = chapter.chapterId
         ? (rules[course.id].find(([chapterId]) => chapterId === chapter.chapterId)?.[1] || [])
         : [];
@@ -353,7 +501,7 @@ async function buildEditorialManifest() {
         const letters = manualChoiceCorrection?.answer || extractedLetters;
         const expectedType = letters.length > 1 ? "多选题" : "单选题";
         if (!letters || [...letters].some((letter) => !options[letter])) issues.push("invalid-choice-answer");
-        if (payload.questionType !== expectedType) issues.push("choice-type-mismatch");
+        if (payload.questionType !== expectedType && !manualChoiceCorrection) issues.push("choice-type-mismatch");
         const enriched = analysis.enrichChoiceAnalysis({ question: payload.question, analysis: payload.analysis, letters, options });
         revision = {
           displayQuestion: null,
@@ -406,16 +554,26 @@ async function buildEditorialManifest() {
           verificationReference: source.verificationReference
         };
       }
-      const verificationStatus = manualChoiceCorrection?.verificationStatus || source.verificationStatus;
+      const verificationStatus = manualChoiceCorrection?.verificationStatus
+        || evidence?.verificationStatus
+        || reviewedSource?.verificationStatus
+        || source.verificationStatus;
+      const verificationReference = manualChoiceCorrection?.verificationReference
+        || evidence?.verificationReference
+        || reviewedSource?.verificationReference
+        || source.verificationReference
+        || (source.sourceTitle ? `来源记录：${source.sourceTitle}` : null);
       if (/唯一|首要|根本|核心|最[早先主要]|第一次|标志|会议|法律|《/.test(payload.question)
         && !["teacher-key-verified", "textbook-law-verified", "authoritative-source-verified"].includes(verificationStatus)) {
         issues.push("high-risk-statement-needs-source-review");
       }
-      const hiddenReviewReason = MANUAL_HIDDEN_REVIEW_REASONS.get(ref);
       const manualCanonicalRef = MANUAL_HIDDEN_DUPLICATE_CANONICALS.get(ref);
+      const hiddenReviewReason = MANUAL_HIDDEN_REVIEW_REASONS.get(ref)
+        || (!manualCanonicalRef && issues.includes("high-risk-statement-needs-source-review") ? "source-verification-required" : null)
+        || (!manualCanonicalRef && chapter.status === "unclassified" ? "chapter-classification-required" : null);
       if (hiddenReviewReason) issues.push(hiddenReviewReason);
       if (manualCanonicalRef) issues.push("reviewed-conflicting-duplicate");
-      const reviewStatus = hiddenReviewReason || manualCanonicalRef || issues.includes("high-risk-statement-needs-source-review")
+      const reviewStatus = hiddenReviewReason || manualCanonicalRef
         ? "needs_manual_review"
         : verificationStatus === "pending"
           ? "needs_manual_review"
@@ -433,18 +591,18 @@ async function buildEditorialManifest() {
           reviewStatus,
           canonicalRef: manualCanonicalRef || null,
           verificationStatus,
-          sourceKind: manualChoiceCorrection?.sourceKind || source.sourceKind,
-          sourceTitle: manualChoiceCorrection?.sourceTitle || source.sourceTitle,
+          sourceKind: manualChoiceCorrection?.sourceKind || evidence?.sourceKind || reviewedSource?.sourceKind || source.sourceKind,
+          sourceTitle: manualChoiceCorrection?.sourceTitle || evidence?.sourceTitle || source.sourceTitle,
           sourceEdition: manualChoiceCorrection
             ? manualChoiceCorrection.sourceEdition
-            : source.sourceKind === "textbook-review" ? courseKnowledge.edition : null,
+            : evidence?.sourceEdition || (source.sourceKind === "textbook-review" ? courseKnowledge.edition : null),
           sourceChapter: manualChoiceCorrection
             ? manualChoiceCorrection.sourceChapter
             : chapter.chapterId ? chapterTitle.get(chapter.chapterId) || null : null,
-          sourcePage: manualChoiceCorrection?.sourcePage || null,
+          sourcePage: manualChoiceCorrection?.sourcePage || evidence?.sourcePage || null,
           sourceUrl: manualChoiceCorrection?.sourceUrl
             || (/^https?:\/\//.test(source.verificationReference || "") ? source.verificationReference : null),
-          verificationReference: manualChoiceCorrection?.verificationReference || source.verificationReference
+          verificationReference
         },
         revision,
         issues
@@ -458,15 +616,17 @@ async function buildEditorialManifest() {
     entries.filter((entry) => entry.quality.publicationStatus === "published"),
     api
   );
+  const semanticDuplicates = resolveEquivalentNearDuplicates(entries, api);
   const exactDuplicates = [
     ...[...MANUAL_HIDDEN_DUPLICATE_CANONICALS.entries()].map(([duplicateRef, canonicalRef]) => ({
       canonicalRef,
       duplicateRefs: [duplicateRef],
       confidence: "reviewed-conflicting-source"
     })),
-    ...automaticExactDuplicates
+    ...automaticExactDuplicates,
+    ...semanticDuplicates.resolved
   ];
-  const nearDuplicates = nearDuplicateGroups(entries.filter((entry) => entry.quality.publicationStatus === "published"));
+  const nearDuplicates = semanticDuplicates.unresolved;
   const report = {
     generatedAt: new Date().toISOString(),
     totals: {
@@ -478,8 +638,10 @@ async function buildEditorialManifest() {
       hiddenForReview: entries.filter((entry) => entry.quality.publicationStatus === "hidden_review").length,
       candidateChapters: entries.filter((entry) => entry.chapter.status === "candidate").length,
       verifiedChapters: entries.filter((entry) => entry.chapter.status === "verified").length,
-      unclassifiedChapters: entries.filter((entry) => entry.chapter.status === "unclassified").length,
-      sourceReviewQueue: entries.filter((entry) => entry.issues.includes("high-risk-statement-needs-source-review")).length,
+      unclassifiedChapters: entries.filter((entry) => entry.chapter.status === "unclassified" && entry.quality.publicationStatus === "published").length,
+      archivedUnclassifiedChapters: entries.filter((entry) => entry.chapter.status === "unclassified" && entry.quality.publicationStatus === "hidden_review").length,
+      sourceReviewQueue: entries.filter((entry) => entry.issues.includes("high-risk-statement-needs-source-review") && entry.quality.publicationStatus === "published").length,
+      archivedSourceReview: entries.filter((entry) => entry.issues.includes("high-risk-statement-needs-source-review") && entry.quality.publicationStatus === "hidden_review").length,
       revisions: entries.filter((entry) => entry.revision).length
     },
     exactDuplicates,
@@ -493,6 +655,7 @@ module.exports = {
   MANUAL_ANSWER_CORRECTIONS,
   MANUAL_CHOICE_CORRECTIONS,
   MANUAL_ESSAY_ANSWER_COMBINATIONS,
+  MANUAL_DISTINCT_NEAR_DUPLICATES,
   MANUAL_HIDDEN_DUPLICATE_CANONICALS,
   MANUAL_HIDDEN_REVIEW_REASONS,
   buildEditorialManifest,

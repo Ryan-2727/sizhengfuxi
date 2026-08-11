@@ -27,6 +27,8 @@ Open the Supabase SQL editor and run every file in `supabase/migrations/` in fil
 -- supabase/migrations/202608090006_purchase_orders.sql
 -- Order recovery experience and exact approved expiry:
 -- supabase/migrations/202608110007_order_experience.sql
+-- Supabase pgcrypto schema compatibility for new question imports:
+-- supabase/migrations/202608110008_fix_question_quality_digest.sql
 ```
 
 The migrations create `memberships`, `questions`, `question_bank_catalog`, `question_quality`, `question_revisions`, and `question_quality_events`, enable RLS on every business table, grant no browser write permissions, and permit catalog and published-question reads only through `public.is_active_member()`.
@@ -38,6 +40,8 @@ The fifth migration seeds one quality row per existing question, makes `question
 Run the fifth migration before deploying the matching frontend. The new frontend requires `question_quality` and reads current revisions before writing a course to IndexedDB.
 
 Run `202608110007_order_experience.sql` before deploying the matching order-status frontend. It adds the approved order's exact `membership_expires_at` and replaces the approval RPC without changing its service-role-only permission or idempotent membership extension rules.
+
+Run `202608110008_fix_question_quality_digest.sql` before appending new questions. It only rebuilds the question-quality insert function so SHA-256 hashing resolves from Supabase's `extensions` schema; it does not replace or edit existing question rows.
 
 ## 3. Local environment and question import
 
@@ -67,7 +71,7 @@ To add only the repository's curated supplement without changing or deleting exi
 npm run import:questions -- --append-curated
 ```
 
-This mode checks question stems for duplicates, appends only missing curated questions at the end of each course and question type, then recalculates catalog counts and hashes from the database.
+This mode checks question stems for duplicates, appends only missing curated questions at the end of each course and question type, then recalculates catalog counts and hashes from the database. It also includes the reviewed questions generated from the repository's 2023 textbook knowledge-point structure.
 
 When a reviewed correction affects only the curated supplement, create a display revision without touching `questions.payload`:
 
@@ -91,6 +95,24 @@ npm run questions:sync-quality -- --apply
 ```
 
 The apply command verifies every database payload hash before writing, creates or reuses non-destructive revisions, updates publication/source/chapter quality metadata, and refreshes `question_bank_catalog`. It never updates `questions.payload`. Exact answer-equivalent duplicates may be hidden and linked to a canonical row; reviewed cross-course or malformed source records use `hidden_review`; semantic near-duplicates and low-confidence chapter matches remain review candidates.
+
+For this content-quality release, run `202608110008_fix_question_quality_digest.sql` first. With the service-role environment available locally, deploy the content in this order:
+
+```powershell
+# 1. After running migration 202608110008, append only missing reviewed additions.
+npm run import:questions -- --append-curated
+
+# 2. Preview, then apply publication/source/chapter/revision metadata.
+npm run questions:sync-quality
+npm run questions:sync-quality -- --apply
+
+# 3. Verify published coverage and the live database.
+node scripts/verify-question-coverage.js --strict
+npm run verify:editorial-sample
+npm run verify:database
+```
+
+The quality sync refreshes `question_bank_catalog`; changed hashes invalidate only the affected per-course IndexedDB caches.
 
 After running the fourth migration, review the local candidate report first. The write mode changes only rows that are still `unclassified`; it never changes `verified` assignments or question content. It also recalculates `question_bank_catalog` so browser caches refresh their chapter labels.
 

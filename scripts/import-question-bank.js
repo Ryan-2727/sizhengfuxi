@@ -84,7 +84,9 @@ function questionKey(payload) {
 
 function isCuratedAddition(payload) {
   return typeof payload?.source === "string" && (
-    payload.source === "精选补充题" || payload.source === "用户提供真题（已核验）"
+    payload.source === "精选补充题"
+    || payload.source === "用户提供真题（已核验）"
+    || payload.source === "2023版教材结构化知识点校审"
   );
 }
 

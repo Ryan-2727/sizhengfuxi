@@ -25,7 +25,9 @@ npm run verify:analysis
 npm run verify:payloads
 npm run verify:editorial-migration
 npm run verify:editorial-quality
+npm run verify:editorial-sample
 npm run verify:quality-sync
+npm run verify:study-tools
 # Requires local SUPABASE_SERVICE_ROLE_KEY; reads only.
 npm run verify:database
 npm run build
@@ -36,7 +38,7 @@ node scripts/verify-production-build.js
 
 完整题库源数据位于本地的 `data/question-bank-source/`，仅供审计和一次性导入脚本使用。该目录被 `.gitignore` 排除，不会被 Vite 复制到 `dist/`，也不会推送到公开仓库。
 
-题库维护时运行 `npm run verify:coverage` 查看每门课距离 500 道选择题、50 道大题的缺口，同时检查每章至少 10 道选择题、2 道大题的基础覆盖和未可靠归类题量。新增题应优先投向薄弱章节，且只有题干、答案和解析可核验的题目才能用于补齐缺口。正式发布前可运行 `node scripts/verify-question-coverage.js --strict` 作为硬性门槛。
+题库维护时运行 `npm run verify:coverage` 查看实际发布题库中每门课距离 500 道选择题、50 道大题的缺口，同时检查每章至少 10 道选择题、2 道大题的基础覆盖和未可靠归类题量。该检查只统计 `publication_status = published` 的题目，不会把已隔离的重复题或待核验题算入可用数量。新增题应优先投向薄弱章节，且只有题干、答案和解析可核验的题目才能用于补齐缺口。正式发布前运行 `node scripts/verify-question-coverage.js --strict` 作为硬性门槛。
 
 题目章节归类分为三种状态：`verified` 为人工核验，`candidate` 为确定性关键词规则的候选结果，`unclassified` 为暂不归入单一章节。候选结果只用于辅助筛选，不能替代编辑核验。运行迁移后，先生成报告；确认规则适用时才写入候选元数据：
 
@@ -56,6 +58,9 @@ node scripts/import-question-bank.js --dry-run
 # 设置 SUPABASE_URL 和 SUPABASE_SERVICE_ROLE_KEY 后导入
 npm run import:questions
 
+# 已有题库只追加缺少的精选题，不删除或改写原题
+npm run import:questions -- --append-curated
+
 # 仅同步“精选补充题/用户提供真题”的展示修订，不改动 questions.payload
 npm run import:questions -- --sync-curated
 
@@ -65,6 +70,9 @@ npm run questions:audit-quality
 # 先只读预览；执行 202608090005 migration 后才显式应用
 npm run questions:sync-quality
 npm run questions:sync-quality -- --apply
+
+# 每科固定抽检 100 道选择题和 30 道大题
+npm run verify:editorial-sample
 
 # 首个会员，30 天有效
 npm run member:add -- student@example.com 30
@@ -78,7 +86,7 @@ npm run member:add -- student@example.com 30
 
 会员订单固定为 `¥9.90 / 30 天`。购买页面为 `/buy`，付款和订单状态页面使用不可预测的订单号与首次创建时的访问令牌；登录后的用户也只能读取自己邮箱的订单。付款提交只会把订单推进到 `pending_review`，不会开通会员。
 
-同一设备会将私人订单访问令牌保留最多 60 天，用于恢复未完成订单；待审核页面每 20 秒自动刷新。审批成功后，订单会保存并展示该笔订单实际产生的会员到期时间。部署本版本前需按顺序执行 `supabase/migrations/202608110007_order_experience.sql`。
+同一设备会将私人订单访问令牌保留最多 60 天，用于恢复未完成订单；待审核页面每 20 秒自动刷新。审批成功后，订单会保存并展示该笔订单实际产生的会员到期时间。部署本版本前需按顺序执行 `supabase/migrations/202608110007_order_experience.sql`。追加新题前还需执行 `supabase/migrations/202608110008_fix_question_quality_digest.sql`，以确保 Supabase 中的 SHA-256 初始化触发器能正常工作。
 
 管理员在 `/admin/orders` 人工核对支付宝或微信实际到账后，再点击“确认付款并开通”。该操作由 Cloudflare Pages Function 调用受限 Supabase RPC：同一订单只处理一次；未过期会员在原 `expires_at` 基础上增加 30 天，过期或新会员从服务器当前时间增加 30 天。
 
@@ -96,11 +104,15 @@ npm run member:add -- student@example.com 30
 
 `npm run questions:audit-quality` 会在被 Git 忽略的 `data/question-bank-source/` 中生成全量清单和摘要报告。自动章节归类只能写为 `candidate`；低置信度归类和语义近重复继续进入人工队列。高风险限定词但缺少教材、教师答案或权威来源的题目会标记为 `needs_manual_review`，不会冒充已核验。
 
+`data/question-editorial-evidence.json` 只保存从本地教材文本中得到的题目页码定位与匹配统计，不包含教材全文。需要重新生成时，先把五门课逐页文本放入 `tmp/textbooks/<course-id>.txt`，以换页符分隔 PDF 页，再运行 `npm run questions:textbook-evidence`。扫描版教材无法可靠提取文字时不会自动生成证据，必须保留人工核验状态。
+
 章节归类元数据同样参与版本哈希。候选或已核验章节发生变化时，重新打开该课程会下载带有新章节标签的题目，不会误用旧缓存。
 
 已存在题目但尚未创建目录表记录的项目，可运行 `npm run import:questions -- --catalog-only`，该命令不会改写任何题目行。
 
 题目页会在浏览器渲染时补齐过短的答案解析：选择题保留原解析并补充正确选项定位和记忆提示，大题保留原解析并补充作答组织与检查提示。该处理不修改题干、答案、题型、题目顺序或 Supabase 题库数据；可运行 `npm run verify:analysis` 复核这一约束。左侧“题集”折叠导航的静态契约可通过 `npm run verify:navigation` 检查。
+
+知识点卡片与带 `knowledgePointId` 的精选题支持双向跳转。题集还提供按章节均衡抽取的模拟卷、难度/频次/核验标签和错因分类；这些学习状态仍只保存在浏览器本地。题目上的“纠错”会把课程、章节、稳定题目标识和题干摘要附到 GitHub 反馈中，不收集学号或手机号。资料来源区显示内容更新记录，记录内容层面的实际变更，不展示虚构的用户数或通过率。
 
 五门课程共 55 章，每章至少包含 8 个结构化知识点。章节综合卡基于本章已有教材小节、已核验页码范围和原知识点生成，并通过 `derivedFrom` 保留追溯关系；不会新增无法核实的教材引文或页码。
 

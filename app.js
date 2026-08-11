@@ -500,6 +500,10 @@ const state = {
   type: "all",
   chapterId: "all",
   sourceType: "all",
+  knowledgePointId: null,
+  wrongReason: "all",
+  mockExamQuestionIds: null,
+  mockExamSummary: null,
   questionNavExpanded: false,
   query: ""
 };
@@ -554,13 +558,14 @@ function setPageMetadata(meta = DEFAULT_META) {
 }
 
 function loadStudyProgress() {
-  const empty = { favorites: {}, wrong: {}, mastery: {}, attempts: {}, recent: null };
+  const empty = { favorites: {}, wrong: {}, wrongReasons: {}, mastery: {}, attempts: {}, recent: null };
   if (typeof localStorage === "undefined") return empty;
   try {
     const saved = JSON.parse(localStorage.getItem(STUDY_STORAGE_KEY) || "null");
     return {
       favorites: saved?.favorites || {},
       wrong: saved?.wrong || {},
+      wrongReasons: saved?.wrongReasons || {},
       mastery: saved?.mastery || {},
       attempts: saved?.attempts || {},
       recent: saved?.recent || null
@@ -733,10 +738,12 @@ const els = {
   dialogBody: document.querySelector("#quizDialogBody"),
   feedbackDialog: document.querySelector("#feedbackDialog"),
   feedbackForm: document.querySelector("#feedbackForm"),
+  feedbackContext: document.querySelector("#feedbackContext"),
   copyStatus: document.querySelector("#copyCampusLinkStatus")
 };
 
 let pendingEmail = "";
+let feedbackContext = null;
 let otpCooldownUntil = 0;
 let otpCooldownTimer = null;
 let orderStatusPollTimer = null;
@@ -753,7 +760,7 @@ document.querySelectorAll("[data-start-preview]").forEach((button) => button.add
 document.querySelector("#memberLoginBtn").addEventListener("click", showPublicLogin);
 document.querySelector("#campusLoginBtn").addEventListener("click", showPublicLogin);
 document.querySelectorAll("[data-locked-content]").forEach((button) => button.addEventListener("click", showLockedContent));
-document.querySelectorAll("[data-open-feedback]").forEach((button) => button.addEventListener("click", () => els.feedbackDialog.showModal()));
+document.querySelectorAll("[data-open-feedback]").forEach((button) => button.addEventListener("click", () => openFeedbackDialog()));
 document.querySelector("#copyCampusLinkBtn").addEventListener("click", copyCampusLink);
 els.feedbackForm.addEventListener("submit", submitFeedback);
 els.search.addEventListener("input", (event) => {
@@ -779,6 +786,11 @@ document.querySelector("#paymentForm").addEventListener("submit", submitPaymentR
 document.querySelector("#adminOrderReloadBtn").addEventListener("click", () => { void loadAdminOrders(); });
 document.querySelector("#adminOrderStatus").addEventListener("change", () => { void loadAdminOrders(); });
 document.addEventListener("click", (event) => {
+  const linkedQuestionsButton = event.target.closest("[data-knowledge-questions]");
+  if (linkedQuestionsButton) {
+    void showKnowledgeQuestions(linkedQuestionsButton);
+    return;
+  }
   const button = event.target.closest("[data-knowledge-mastered]");
   if (!button) return;
   const key = button.dataset.knowledgeMastered;
@@ -944,13 +956,26 @@ function submitFeedback(event) {
   const body = [
     `问题类型：${type}`,
     `反馈内容：${content}`,
+    feedbackContext ? `题目上下文：\n课程：${feedbackContext.course}\n章节：${feedbackContext.chapter}\n题目标识：${feedbackContext.questionId}\n题干摘要：${feedbackContext.question}` : null,
     contact ? `可选联系方式：${contact}` : "可选联系方式：未填写",
     `页面：${location.href}`
-  ].join("\n\n");
+  ].filter(Boolean).join("\n\n");
   const url = new URL("https://github.com/Ryan-2727/sizhengfuxi/issues/new");
   url.searchParams.set("title", `[网站反馈] ${type}`);
   url.searchParams.set("body", body);
   window.open(url.toString(), "_blank", "noopener,noreferrer");
+}
+
+function openFeedbackDialog(context = null) {
+  feedbackContext = context;
+  if (els.feedbackContext) {
+    els.feedbackContext.hidden = !context;
+    els.feedbackContext.textContent = context
+      ? `将附带：${context.course} · ${context.chapter} · ${context.questionId}`
+      : "";
+  }
+  if (context) document.querySelector("#feedbackType").value = "题目错误";
+  els.feedbackDialog.showModal();
 }
 
 async function requestOtp(event) {
@@ -1604,6 +1629,10 @@ function startCampusPreview(options = {}) {
   state.type = "all";
   state.chapterId = "all";
   state.sourceType = "all";
+  state.knowledgePointId = null;
+  state.wrongReason = "all";
+  state.mockExamQuestionIds = null;
+  state.mockExamSummary = null;
   state.questionNavExpanded = false;
   state.query = "";
   recordRecentStudy(course.id, preview.chapterIndex);
@@ -1708,6 +1737,10 @@ function showHome() {
   state.type = "all";
   state.chapterId = "all";
   state.sourceType = "all";
+  state.knowledgePointId = null;
+  state.wrongReason = "all";
+  state.mockExamQuestionIds = null;
+  state.mockExamSummary = null;
   state.questionNavExpanded = false;
   renderHome();
   if (location.hash) history.pushState("", document.title, location.pathname + location.search);
@@ -1727,6 +1760,10 @@ async function showCourse(id, updateHash = true) {
   state.type = "all";
   state.chapterId = "all";
   state.sourceType = "all";
+  state.knowledgePointId = null;
+  state.wrongReason = "all";
+  state.mockExamQuestionIds = null;
+  state.mockExamSummary = null;
   state.questionNavExpanded = false;
   const previousChapter = studyProgress.recent?.courseId === id ? studyProgress.recent.chapterIndex : 0;
   recordRecentStudy(id, previousChapter);
@@ -1738,7 +1775,7 @@ async function showCourse(id, updateHash = true) {
   jumpToCourseTop();
   try {
     await ensureCourseQuestionBank(id);
-    if (state.courseId === id) renderQuestions(getCourse());
+    if (state.courseId === id) renderCourse();
   } catch (error) {
     console.error("Course question bank loading failed.", error);
     if (state.courseId === id) renderQuestionLoadFailure(id, error);
@@ -1957,6 +1994,20 @@ function renderCourse() {
         </div>
       `).join("")}
     </div>
+    ${renderContentChangelog(course.id)}
+  `;
+}
+
+function renderContentChangelog(courseId) {
+  const entries = (window.studyTools?.CONTENT_CHANGELOG || []).filter((entry) => entry.courses.includes(courseId));
+  if (!entries.length) return "";
+  return `
+    <section class="content-changelog">
+      <h2>内容更新记录</h2>
+      <div class="content-changelog-list">
+        ${entries.map((entry) => `<article><time datetime="${escapeHtml(entry.date)}">${escapeHtml(entry.date)}</time><div><h3>${escapeHtml(entry.title)}</h3><p>${escapeHtml(entry.detail)}</p></div></article>`).join("")}
+      </div>
+    </section>
   `;
 }
 
@@ -2058,23 +2109,30 @@ function renderQuestions(course) {
     ? [course.knowledge.chapters[window.campusPreview.chapterIndex]]
     : course.knowledge?.chapters || [];
   const sourceTypes = [...new Set(all.map((item) => item.sourceLabel))];
+  const mockExamIds = state.mockExamQuestionIds ? new Set(state.mockExamQuestionIds) : null;
   const filtered = all.filter((item) => {
     const typeOk = questionMatchesFilter(item, state.type);
     const chapterOk = state.chapterId === "all" || item.chapterInfo.id === state.chapterId;
     const sourceOk = state.sourceType === "all" || item.sourceLabel === state.sourceType;
+    const knowledgeOk = !state.knowledgePointId || item.knowledgePointId === state.knowledgePointId;
+    const wrongReasonOk = state.wrongReason === "all" || studyProgress.wrongReasons[item.questionId] === state.wrongReason;
+    const mockExamOk = !mockExamIds || mockExamIds.has(item.questionId);
     const queryOk = !state.query || `${item.question}${item.answer}${item.analysis || ""}${item.source}${item.chapterInfo.title}`.includes(state.query);
-    return typeOk && chapterOk && sourceOk && queryOk;
+    return typeOk && chapterOk && sourceOk && knowledgeOk && wrongReasonOk && mockExamOk && queryOk;
   });
   els.questions.innerHTML = `
     <div class="question-toolbar">
       <h2>题集</h2>
-      <div class="filters">
-        ${filterButton("all", "全部")}
-        ${filterButton("选择题", "选择题")}
-        ${filterButton("大题", "大题")}
-        ${filterButton("wrong", "错题本")}
-        ${filterButton("favorites", "收藏")}
-        ${filterButton("review", "需复习")}
+      <div class="question-toolbar-actions">
+        <div class="filters">
+          ${filterButton("all", "全部")}
+          ${filterButton("选择题", "选择题")}
+          ${filterButton("大题", "大题")}
+          ${filterButton("wrong", "错题本")}
+          ${filterButton("favorites", "收藏")}
+          ${filterButton("review", "需复习")}
+        </div>
+        <button class="mock-exam-btn" type="button" ${mockExamIds ? "data-exit-mock-exam" : "data-start-mock-exam"}>${mockExamIds ? "退出模拟卷" : "生成模拟卷"}</button>
       </div>
     </div>
     <div class="question-filter-selects">
@@ -2091,15 +2149,24 @@ function renderQuestions(course) {
           ${sourceTypes.map((sourceType) => `<option value="${escapeHtml(sourceType)}" ${state.sourceType === sourceType ? "selected" : ""}>${escapeHtml(sourceType)}</option>`).join("")}
         </select>
       </label>
+      ${state.type === "wrong" ? `<label>错因
+        <select data-wrong-reason-filter>
+          <option value="all">全部错因</option>
+          ${Object.entries(window.studyTools?.WRONG_REASON_LABELS || {}).map(([value, label]) => `<option value="${value}" ${state.wrongReason === value ? "selected" : ""}>${escapeHtml(label)}</option>`).join("")}
+        </select>
+      </label>` : ""}
       <span class="question-filter-count">当前 ${filtered.length} 题</span>
     </div>
+    ${mockExamIds ? `<div class="active-question-filter mock-exam-summary"><span>模拟卷：${state.mockExamSummary.choiceCount} 道选择题 + ${state.mockExamSummary.essayCount} 道大题，覆盖 ${state.mockExamSummary.chapterCount} 个章节</span><button type="button" data-regenerate-mock-exam>重新抽题</button></div>` : ""}
+    ${state.knowledgePointId ? `<div class="active-question-filter"><span>正在查看知识点“${escapeHtml(knowledgePointTitle(course, state.knowledgePointId))}”的关联题</span><button type="button" data-clear-knowledge-filter>清除筛选</button></div>` : ""}
     <div class="question-list">
       ${filtered.length ? filtered.map(renderQuestion).join("") : `<p>没有匹配的题目。</p>`}
     </div>
   `;
-  document.querySelectorAll("[data-filter]").forEach((button) => {
+  els.questions.querySelectorAll("[data-filter]").forEach((button) => {
     button.addEventListener("click", () => {
       state.type = button.dataset.filter;
+      if (state.type !== "wrong") state.wrongReason = "all";
       if (state.type === "选择题" || state.type === "大题") state.questionNavExpanded = true;
       renderCourse();
     });
@@ -2112,7 +2179,66 @@ function renderQuestions(course) {
     state.sourceType = event.target.value;
     renderCourse();
   });
+  els.questions.querySelector("[data-wrong-reason-filter]")?.addEventListener("change", (event) => {
+    state.wrongReason = event.target.value;
+    renderCourse();
+  });
+  els.questions.querySelector("[data-start-mock-exam]")?.addEventListener("click", () => startMockExam(all));
+  els.questions.querySelector("[data-regenerate-mock-exam]")?.addEventListener("click", () => startMockExam(all));
+  els.questions.querySelector("[data-exit-mock-exam]")?.addEventListener("click", exitMockExam);
+  els.questions.querySelector("[data-clear-knowledge-filter]")?.addEventListener("click", () => {
+    state.knowledgePointId = null;
+    renderCourse();
+  });
   bindQuestionInteractions(els.questions);
+}
+
+function startMockExam(items) {
+  const result = window.studyTools?.buildMockExam(items);
+  if (!result?.questionIds.length) return;
+  state.type = "all";
+  state.chapterId = "all";
+  state.sourceType = "all";
+  state.knowledgePointId = null;
+  state.wrongReason = "all";
+  state.mockExamQuestionIds = result.questionIds;
+  state.mockExamSummary = result;
+  renderCourse();
+  document.querySelector("#questions")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function exitMockExam() {
+  state.mockExamQuestionIds = null;
+  state.mockExamSummary = null;
+  renderCourse();
+}
+
+function knowledgePointTitle(course, knowledgePointId) {
+  for (const chapter of course.knowledge?.chapters || []) {
+    for (const section of chapter.sections || []) {
+      const point = section.points?.find((item) => item.id === knowledgePointId);
+      if (point) return point.title;
+    }
+  }
+  return "关联知识点";
+}
+
+async function showKnowledgeQuestions(button) {
+  const courseId = button.dataset.knowledgeCourse;
+  const chapterId = button.dataset.knowledgeChapter;
+  const knowledgePointId = button.dataset.knowledgeQuestions;
+  if (!courseId || !chapterId || !knowledgePointId) return;
+  if (!loadedCourseIds.has(courseId)) await ensureCourseQuestionBank(courseId);
+  state.courseId = courseId;
+  state.type = "all";
+  state.chapterId = chapterId;
+  state.sourceType = "all";
+  state.knowledgePointId = knowledgePointId;
+  state.wrongReason = "all";
+  state.mockExamQuestionIds = null;
+  state.mockExamSummary = null;
+  renderCourse();
+  document.querySelector("#questions")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function questionMatchesFilter(item, filter) {
@@ -2148,6 +2274,39 @@ function bindQuestionInteractions(root) {
   });
   root.querySelectorAll("[data-mastery]").forEach((button) => {
     button.addEventListener("click", () => setEssayMastery(button));
+  });
+  root.querySelectorAll("[data-wrong-reason]").forEach((select) => {
+    select.addEventListener("change", () => updateWrongReason(select));
+  });
+  root.querySelectorAll("[data-question-feedback]").forEach((button) => {
+    button.addEventListener("click", () => openQuestionFeedback(button));
+  });
+  root.querySelectorAll("[data-knowledge-link]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const target = document.getElementById(`knowledge-${button.dataset.knowledgeCourse}-${button.dataset.knowledgeLink}`);
+      target?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  });
+}
+
+function updateWrongReason(select) {
+  const card = select.closest(".question-card");
+  if (!card) return;
+  studyProgress.wrongReasons[card.dataset.questionId] = select.value;
+  saveStudyProgress();
+  const pill = card.querySelector(".wrong-reason-pill");
+  if (pill) pill.textContent = `错因：${wrongReasonLabel(select.value)}`;
+}
+
+function openQuestionFeedback(button) {
+  const card = button.closest(".question-card");
+  const item = questionLookup.get(card?.dataset.questionId);
+  if (!item) return;
+  openFeedbackDialog({
+    course: getCourseById(item.courseId)?.name || item.courseId,
+    chapter: item.chapterInfo.title,
+    questionId: item.questionId,
+    question: choiceStem(item.question).slice(0, 180)
   });
 }
 
@@ -3161,6 +3320,10 @@ function renderQuestion(item) {
   const favorite = Boolean(studyProgress.favorites[item.questionId]);
   const attempt = studyProgress.attempts[item.questionId];
   const mastery = studyProgress.mastery[item.questionId];
+  const wrongReason = studyProgress.wrongReasons[item.questionId];
+  const verificationLabel = verificationStatusLabel(item);
+  const difficulty = window.studyTools?.questionDifficulty(item) || "基础";
+  const frequency = window.studyTools?.questionFrequency(item) || "基础";
   const status = item.type === "大题"
     ? (mastery === "mastered" ? "已掌握" : mastery === "review" ? "需复习" : "")
     : (attempt?.correct ? "上次答对" : attempt ? "上次答错" : "");
@@ -3171,12 +3334,19 @@ function renderQuestion(item) {
           <span class="type-pill">${questionTypeLabel(item)}${item.index ? ` ${item.index}` : ""}</span>
           <span class="question-chapter-pill" title="${item.chapterInfo.reviewed ? "人工核验的章节定位" : item.chapterInfo.assignmentStatus === "candidate" ? "候选章节定位，仍需人工复核" : item.chapterInfo.automated ? "根据题干关键词自动归类，可结合教材目录复核" : "未能可靠定位到单一章节"}">${item.chapterInfo.reviewed ? "核对章节：" : item.chapterInfo.assignmentStatus === "candidate" ? "候选章节：" : item.chapterInfo.automated ? "章节定位：" : "题集归类："}${escapeHtml(item.chapterInfo.title)}</span>
           <span class="question-source-pill">${escapeHtml(item.sourceLabel)}</span>
-          ${verificationStatusLabel(item.auditStatus) ? `<span class="verification-status">${verificationStatusLabel(item.auditStatus)}</span>` : ""}
+          <span class="question-level-pill">难度：${escapeHtml(difficulty)}</span>
+          <span class="question-level-pill">频次：${escapeHtml(frequency)}</span>
+          ${verificationLabel ? `<span class="verification-status">${escapeHtml(verificationLabel)}</span>` : ""}
           ${status ? `<span class="study-status">${status}</span>` : ""}
+          ${wrongReason ? `<span class="wrong-reason-pill">错因：${escapeHtml(wrongReasonLabel(wrongReason))}</span>` : ""}
+          ${item.knowledgePointId ? `<button class="question-knowledge-link" type="button" data-knowledge-link="${escapeHtml(item.knowledgePointId)}" data-knowledge-course="${escapeHtml(item.courseId)}">对应知识点</button>` : ""}
         </div>
-        <button class="question-icon-btn ${favorite ? "active" : ""}" type="button" data-favorite title="${favorite ? "取消收藏" : "收藏本题"}" aria-label="${favorite ? "取消收藏" : "收藏本题"}" aria-pressed="${favorite}">
-          ${favorite ? "&#9733;" : "&#9734;"}
-        </button>
+        <div class="question-head-actions">
+          <button class="question-feedback-btn" type="button" data-question-feedback>纠错</button>
+          <button class="question-icon-btn ${favorite ? "active" : ""}" type="button" data-favorite title="${favorite ? "取消收藏" : "收藏本题"}" aria-label="${favorite ? "取消收藏" : "收藏本题"}" aria-pressed="${favorite}">
+            ${favorite ? "&#9733;" : "&#9734;"}
+          </button>
+        </div>
       </div>
       ${renderQuestionPrompt(item)}
       ${item.type === "大题" ? renderEssayControls(item) : renderChoiceControls(item)}
@@ -3185,12 +3355,23 @@ function renderQuestion(item) {
   `;
 }
 
-function verificationStatusLabel(status) {
-  return {
+function verificationStatusLabel(item) {
+  const verified = {
     "teacher-key-verified": "教师答案核验",
     "textbook-law-verified": "教材/现行法律核验",
-    "authoritative-source-verified": "权威资料核验"
-  }[status] || "";
+    "authoritative-source-verified": "权威资料核验",
+    "source-backed": "题源交叉核对"
+  }[item.auditStatus];
+  if (verified) return verified;
+  return {
+    source_verified: "来源已核验",
+    structural_checked: "结构已检查",
+    needs_manual_review: "待人工复核"
+  }[item.editorialReviewStatus] || "来源待复核";
+}
+
+function wrongReasonLabel(value) {
+  return window.studyTools?.WRONG_REASON_LABELS?.[value] || "知识盲点";
 }
 
 function renderQuestionPrompt(item) {
@@ -3218,7 +3399,17 @@ function renderChoiceControls(item) {
       <button class="answer-btn" type="button" data-answer>显示答案解析</button>
     </div>
     <p class="choice-result" data-choice-result aria-live="polite">${result}</p>
+    ${attempt && !attempt.correct ? renderWrongReasonControl(item.questionId) : ""}
   `;
+}
+
+function renderWrongReasonControl(questionId) {
+  const wrongReason = studyProgress.wrongReasons[questionId] || "knowledge-gap";
+  return `<label class="wrong-reason-control">本题错因
+    <select data-wrong-reason>
+      ${Object.entries(window.studyTools?.WRONG_REASON_LABELS || {}).filter(([value]) => value !== "essay-memory").map(([value, label]) => `<option value="${value}" ${wrongReason === value ? "selected" : ""}>${escapeHtml(label)}</option>`).join("")}
+    </select>
+  </label>`;
 }
 
 function renderEssayControls(item) {
@@ -3390,8 +3581,13 @@ function submitChoiceAnswer(button) {
   const correctAnswer = choiceAnswerLetters(item).split("").sort().join("");
   const correct = selected === correctAnswer;
   studyProgress.attempts[item.questionId] = { selected, correct, updatedAt: Date.now() };
-  if (correct) delete studyProgress.wrong[item.questionId];
-  else studyProgress.wrong[item.questionId] = true;
+  if (correct) {
+    delete studyProgress.wrong[item.questionId];
+    delete studyProgress.wrongReasons[item.questionId];
+  } else {
+    studyProgress.wrong[item.questionId] = true;
+    studyProgress.wrongReasons[item.questionId] = window.studyTools?.inferWrongReason(item, selected, correctAnswer) || "knowledge-gap";
+  }
   saveStudyProgress();
 
   card.classList.toggle("answered-correct", correct);
@@ -3402,6 +3598,16 @@ function submitChoiceAnswer(button) {
     option.classList.toggle("wrong-option", selected.includes(letter) && !correctAnswer.includes(letter));
   });
   result.textContent = correct ? "回答正确。" : "回答错误，已加入错题本。";
+  card.querySelector(".wrong-reason-control")?.remove();
+  card.querySelector(".wrong-reason-pill")?.remove();
+  if (!correct) {
+    result.insertAdjacentHTML("afterend", renderWrongReasonControl(item.questionId));
+    card.querySelector("[data-wrong-reason]")?.addEventListener("change", (event) => updateWrongReason(event.currentTarget));
+    const pill = document.createElement("span");
+    pill.className = "wrong-reason-pill";
+    pill.textContent = `错因：${wrongReasonLabel(studyProgress.wrongReasons[item.questionId])}`;
+    card.querySelector(".question-meta")?.append(pill);
+  }
 }
 
 function revealNextEssayStep(button) {
@@ -3418,8 +3624,13 @@ function setEssayMastery(button) {
   const questionId = card.dataset.questionId;
   const value = button.dataset.mastery;
   studyProgress.mastery[questionId] = value;
-  if (value === "review") studyProgress.wrong[questionId] = true;
-  else delete studyProgress.wrong[questionId];
+  if (value === "review") {
+    studyProgress.wrong[questionId] = true;
+    studyProgress.wrongReasons[questionId] = "essay-memory";
+  } else {
+    delete studyProgress.wrong[questionId];
+    delete studyProgress.wrongReasons[questionId];
+  }
   saveStudyProgress();
   card.querySelectorAll("[data-mastery]").forEach((option) => {
     option.classList.toggle("active", option.dataset.mastery === value);
@@ -3431,6 +3642,13 @@ function setEssayMastery(button) {
     card.querySelector(".question-meta").append(status);
   }
   status.textContent = value === "mastered" ? "已掌握" : "需复习";
+  card.querySelector(".wrong-reason-pill")?.remove();
+  if (value === "review") {
+    const pill = document.createElement("span");
+    pill.className = "wrong-reason-pill";
+    pill.textContent = `错因：${wrongReasonLabel("essay-memory")}`;
+    card.querySelector(".question-meta")?.append(pill);
+  }
 }
 
 function questionTypeLabel(item) {
@@ -3659,13 +3877,14 @@ function renderKnowledgeSources(points) {
 function renderKnowledgePoint(course, chapter, item) {
   const progressId = `knowledge:${course.id}:${chapter.id}:${item.id}`;
   const mastered = studyProgress.mastery[progressId] === "mastered";
+  const linkedCount = [...course.choices, ...course.essays].filter((question) => question.knowledgePointId === item.id).length;
   const list = (label, values) => values?.length ? `<div class="knowledge-block"><strong>${label}</strong><ul>${values.map((value) => `<li>${escapeHtml(value)}</li>`).join("")}</ul></div>` : "";
   const comparison = item.distinctions?.length ? `<div class="knowledge-block comparison-block"><strong>对比</strong><ul>${item.distinctions.map((value) => `<li><b>${escapeHtml(value.left)}</b>：${escapeHtml(value.right)}</li>`).join("")}</ul></div>` : "";
   const quoteSection = item.source.section ? `，${escapeHtml(item.source.section)}` : "";
   const quotation = item.quotation ? `<blockquote class="knowledge-quotation">“${escapeHtml(item.quotation.text)}”<cite>${escapeHtml(item.source.book)}（${escapeHtml(item.source.edition)}），${escapeHtml(item.source.chapter)}${quoteSection}，教材第 ${escapeHtml(item.quotation.sourcePage)} 页</cite></blockquote>` : "";
   return `
-    <article class="knowledge-card knowledge-${item.importance}">
-      <div class="knowledge-card-head"><div><span class="importance-tag importance-${item.importance}">${escapeHtml(item.importance)}</span><h5>${escapeHtml(item.title)}</h5></div><button type="button" class="knowledge-mastered ${mastered ? "active" : ""}" data-knowledge-mastered="${progressId}">${mastered ? "已掌握" : "标记已掌握"}</button></div>
+    <article class="knowledge-card knowledge-${item.importance}" id="knowledge-${escapeHtml(course.id)}-${escapeHtml(item.id)}">
+      <div class="knowledge-card-head"><div><span class="importance-tag importance-${item.importance}">${escapeHtml(item.importance)}</span><h5>${escapeHtml(item.title)}</h5></div><div class="knowledge-card-actions">${linkedCount ? `<button type="button" class="knowledge-question-link" data-knowledge-questions="${escapeHtml(item.id)}" data-knowledge-course="${escapeHtml(course.id)}" data-knowledge-chapter="${escapeHtml(chapter.id)}">关联题 ${linkedCount}</button>` : ""}<button type="button" class="knowledge-mastered ${mastered ? "active" : ""}" data-knowledge-mastered="${progressId}">${mastered ? "已掌握" : "标记已掌握"}</button></div></div>
       <div class="keyword-row">${item.keywords.map((word) => `<span>${escapeHtml(word)}</span>`).join("")}</div>
       ${list("核心内容", item.keyPoints)}
       ${list("意义与作用", item.significance)}

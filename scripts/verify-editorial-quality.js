@@ -8,12 +8,17 @@ const {
   buildEditorialManifest
 } = require("./lib/editorial-manifest");
 const { normalizeText, payloadHash } = require("./lib/editorial-quality");
+const { loadQuestionBank } = require("./lib/load-question-bank");
 
 async function main() {
   const manifest = await buildEditorialManifest();
-  assert.equal(manifest.entries.length, 3332, "Editorial manifest must cover every original question.");
+  const api = loadQuestionBank();
+  const courses = api.courses;
+  const expectedQuestions = courses.reduce((total, course) => total + course.choices.length + course.essays.length, 0);
+  const expectedEssays = courses.reduce((total, course) => total + course.essays.length, 0);
+  assert.equal(manifest.entries.length, expectedQuestions, "Editorial manifest must cover every original question.");
   assert.equal(new Set(manifest.entries.map((entry) => entry.ref)).size, manifest.entries.length, "Question references must be unique.");
-  assert.equal(manifest.report.totals.essays, 203, "All 203 essays must be audited.");
+  assert.equal(manifest.report.totals.essays, expectedEssays, "Every essay must be audited.");
 
   for (const entry of manifest.entries) {
     assert.equal(payloadHash(entry.payload), entry.originalPayloadHash, `${entry.ref} payload hash changed during audit.`);
@@ -21,8 +26,10 @@ async function main() {
     assert(["published", "hidden_duplicate", "hidden_review"].includes(entry.quality.publicationStatus), `${entry.ref} has an invalid publication status.`);
     if (entry.quality.publicationStatus === "hidden_duplicate") assert(entry.quality.canonicalRef, `${entry.ref} duplicate lacks a canonical reference.`);
     if (entry.quality.publicationStatus === "hidden_review") {
-      const reason = MANUAL_HIDDEN_REVIEW_REASONS.get(entry.ref);
-      assert(reason, `${entry.ref} is hidden for review without a reviewed reason.`);
+      const reason = MANUAL_HIDDEN_REVIEW_REASONS.get(entry.ref)
+        || (entry.issues.includes("source-verification-required") ? "source-verification-required" : null)
+        || (entry.issues.includes("chapter-classification-required") ? "chapter-classification-required" : null);
+      assert(reason, `${entry.ref} is hidden for review without a registered reason.`);
       assert(entry.issues.includes(reason), `${entry.ref} lacks its reviewed hidden-state issue.`);
       assert.equal(entry.quality.reviewStatus, "needs_manual_review", `${entry.ref} hidden review must remain in the manual queue.`);
       assert.equal(entry.quality.canonicalRef, null, `${entry.ref} hidden review must not be treated as a duplicate.`);
@@ -34,7 +41,8 @@ async function main() {
       assert((analysis.match(/[^。！？!?\n]+[。！？!?]?/g) || []).length >= 2, `${entry.ref} choice analysis remains too short.`);
       const manualChoiceCorrection = MANUAL_CHOICE_CORRECTIONS.get(entry.ref);
       if (manualChoiceCorrection) {
-        assert.equal(entry.revision.correctAnswerOverride, manualChoiceCorrection.answer, `${entry.ref} lacks its reviewed answer override.`);
+        const expectedOverride = api.choiceAnswerLetters(entry.payload) === manualChoiceCorrection.answer ? null : manualChoiceCorrection.answer;
+        assert.equal(entry.revision.correctAnswerOverride, expectedOverride, `${entry.ref} has an incorrect reviewed answer override.`);
         assert.equal(entry.revision.displayAnswer, `正确答案：${manualChoiceCorrection.answer}`, `${entry.ref} still exposes its incomplete source answer.`);
         assert.equal(entry.quality.verificationStatus, manualChoiceCorrection.verificationStatus, `${entry.ref} correction verification status drifted.`);
         assert.equal(entry.quality.verificationReference, manualChoiceCorrection.verificationReference, `${entry.ref} correction reference drifted.`);
@@ -69,14 +77,18 @@ async function main() {
       assert.equal(duplicate.quality.canonicalRef, group.canonicalRef, `${duplicateRef} canonical reference mismatch.`);
     }
   }
-  assert.equal(manifest.report.totals.hiddenForReview, MANUAL_HIDDEN_REVIEW_REASONS.size, "Reviewed hidden-question total drifted.");
+  assert.equal(manifest.report.totals.hiddenForReview, manifest.entries.filter((entry) => entry.quality.publicationStatus === "hidden_review").length, "Hidden-review total drifted.");
+  for (const [ref, reason] of MANUAL_HIDDEN_REVIEW_REASONS) {
+    const entry = manifest.entries.find((candidate) => candidate.ref === ref);
+    assert(entry && entry.issues.includes(reason), `${ref} lost its manually reviewed hidden-state reason.`);
+  }
   for (const [duplicateRef, canonicalRef] of MANUAL_HIDDEN_DUPLICATE_CANONICALS) {
     const duplicate = manifest.entries.find((entry) => entry.ref === duplicateRef);
     assert.equal(duplicate.quality.publicationStatus, "hidden_duplicate", `${duplicateRef} must remain hidden.`);
     assert.equal(duplicate.quality.canonicalRef, canonicalRef, `${duplicateRef} reviewed canonical reference drifted.`);
   }
   assert.equal(manifest.entries.filter((entry) => entry.issues.includes("reviewed-conflicting-duplicate")).length, MANUAL_HIDDEN_DUPLICATE_CANONICALS.size, "Reviewed duplicate total drifted.");
-  assert.equal(manifest.entries.filter((entry) => entry.revision.correctAnswerOverride && MANUAL_CHOICE_CORRECTIONS.has(entry.ref)).length, MANUAL_CHOICE_CORRECTIONS.size, "Manual choice correction total drifted.");
+  assert.equal(manifest.entries.filter((entry) => entry.revision.displayAnswer && MANUAL_CHOICE_CORRECTIONS.has(entry.ref)).length, MANUAL_CHOICE_CORRECTIONS.size, "Manual choice review total drifted.");
   assert.equal(manifest.entries.filter((entry) => entry.issues.includes("manual-text-correction")).length, MANUAL_ANSWER_CORRECTIONS.size, "Manual correction total drifted.");
   console.table([manifest.report.totals]);
   console.log("Editorial question quality contract passed without mutating original payloads.");

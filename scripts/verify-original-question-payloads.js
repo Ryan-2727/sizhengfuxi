@@ -15,7 +15,7 @@ const EXPECTED = {
   "marx:essay": { count: 97, hash: "c63f69a14e6b07389d226cb76712db00148a12d62471c0694c3a62e5d5125171" }
 };
 
-const { courses } = loadQuestionBank();
+const { courses } = loadQuestionBank({ includeExpansion: false });
 const actual = questionPayloadFingerprint(courses);
 
 for (const [key, expected] of Object.entries(EXPECTED)) {

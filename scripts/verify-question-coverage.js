@@ -1,28 +1,18 @@
 const path = require("path");
 const { pathToFileURL } = require("url");
 const { loadQuestionBank } = require("./lib/load-question-bank");
+const { buildEditorialManifest } = require("./lib/editorial-manifest");
 
 const strict = process.argv.includes("--strict");
 const courseMinimums = { choice: 500, essay: 50 };
 const chapterMinimums = { choice: 10, essay: 2 };
-
-function classifyQuestion(item, courseId, rules) {
-  if (item.chapterId && ["candidate", "verified"].includes(item.chapterAssignmentStatus)) return item.chapterId;
-  const text = `${item.question || ""}\n${item.answer || ""}\n${item.analysis || ""}`;
-  const matches = (rules[courseId] || []).map(([chapterId, terms]) => ({
-    chapterId,
-    score: terms.reduce((count, term) => count + (text.includes(term) ? 1 : 0), 0)
-  })).sort((left, right) => right.score - left.score);
-  const best = matches[0];
-  if (!best || best.score === 0 || (matches[1] && best.score === matches[1].score)) return null;
-  return best.chapterId;
-}
 
 async function main() {
   const root = path.resolve(__dirname, "..");
   const rulesModule = await import(pathToFileURL(path.join(root, "src", "question-chapter-rules.js")).href);
   const rules = rulesModule.reviewedQuestionChapterRules;
   const { courses } = loadQuestionBank();
+  const manifest = await buildEditorialManifest();
   const knowledgeModule = await import(pathToFileURL(path.join(root, "src", "course-knowledge.js")).href);
   const knowledgeByCourse = new Map(knowledgeModule.courseKnowledge.map((course) => [course.id, course]));
   const courseReport = [];
@@ -41,16 +31,13 @@ async function main() {
     }
 
     const counts = new Map(knowledge.chapters.map((chapter) => [chapter.id, { chapter, choice: 0, essay: 0 }]));
+    const published = manifest.entries.filter((entry) => entry.courseId === course.id && entry.quality.publicationStatus === "published");
     let unclassifiedChoices = 0;
     let unclassifiedEssays = 0;
-    for (const item of course.choices) {
-      const chapterId = classifyQuestion(item, course.id, rules);
-      if (chapterId && counts.has(chapterId)) counts.get(chapterId).choice += 1;
-      else unclassifiedChoices += 1;
-    }
-    for (const item of course.essays) {
-      const chapterId = classifyQuestion(item, course.id, rules);
-      if (chapterId && counts.has(chapterId)) counts.get(chapterId).essay += 1;
+    for (const entry of published) {
+      const chapterId = entry.chapter.chapterId;
+      if (chapterId && counts.has(chapterId)) counts.get(chapterId)[entry.questionType] += 1;
+      else if (entry.questionType === "choice") unclassifiedChoices += 1;
       else unclassifiedEssays += 1;
     }
 
@@ -69,10 +56,10 @@ async function main() {
     }
     courseReport.push({
       course: course.id,
-      choices: course.choices.length,
-      choiceGap: Math.max(0, courseMinimums.choice - course.choices.length),
-      essays: course.essays.length,
-      essayGap: Math.max(0, courseMinimums.essay - course.essays.length),
+      choices: published.filter((entry) => entry.questionType === "choice").length,
+      choiceGap: Math.max(0, courseMinimums.choice - published.filter((entry) => entry.questionType === "choice").length),
+      essays: published.filter((entry) => entry.questionType === "essay").length,
+      essayGap: Math.max(0, courseMinimums.essay - published.filter((entry) => entry.questionType === "essay").length),
       weakChoiceChapters: weakChoices.length,
       weakEssayChapters: weakEssays.length,
       unclassified: unclassifiedChoices + unclassifiedEssays
@@ -86,10 +73,10 @@ async function main() {
   }
   const incomplete = courseReport.some((row) => row.choiceGap || row.essayGap || row.weakChoiceChapters || row.weakEssayChapters);
   if (incomplete) {
-    console.log("Coverage gaps must be filled with answer-verifiable questions targeted to weak chapters.");
+    console.log("Published coverage gaps must be filled with answer-verifiable questions targeted to weak chapters.");
     if (strict) process.exitCode = 1;
   } else {
-    console.log("Question-bank total and chapter coverage targets passed.");
+    console.log("Published question-bank total and chapter coverage targets passed.");
   }
 }
 

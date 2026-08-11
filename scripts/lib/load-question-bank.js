@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
+const { appendCuratedExpansion } = require("./curated-question-expansion");
 
 const root = path.resolve(__dirname, "..", "..");
 const sourceDirectory = path.join(root, "data", "question-bank-source");
@@ -13,6 +14,7 @@ const sourceFiles = [
   "app-with-question-seed.js"
 ];
 const curatedSupplementPath = path.join(root, "scripts", "curated-question-supplement.js");
+const courseContentPath = path.join(root, "src", "course-content.js");
 
 const noop = () => {};
 const fakeElement = () => ({
@@ -30,7 +32,7 @@ const fakeElement = () => ({
   showModal: noop
 });
 
-function loadQuestionBank() {
+function loadQuestionBank(options = {}) {
   const sandbox = {
     console,
     window: { scrollTo: noop },
@@ -56,6 +58,15 @@ globalThis.__questionBankApi = {
   choiceAnalysis,
   stableQuestionId
 };`, sandbox);
+  const knowledgeSandbox = {};
+  vm.createContext(knowledgeSandbox);
+  const knowledgeSource = fs.readFileSync(courseContentPath, "utf8")
+    .replace("export const courseKnowledge =", "globalThis.courseKnowledge =")
+    .replace("export { VERIFIED_RANGE };", "");
+  vm.runInContext(knowledgeSource, knowledgeSandbox);
+  if (options.includeExpansion !== false) {
+    appendCuratedExpansion(sandbox.__questionBankApi.courses, knowledgeSandbox.courseKnowledge);
+  }
   return sandbox.__questionBankApi;
 }
 
