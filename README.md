@@ -21,6 +21,7 @@ npm run verify:knowledge
 npm run verify:navigation
 npm run verify:campus
 npm run verify:payments
+npm run verify:feedback
 npm run verify:analysis
 npm run verify:payloads
 npm run verify:editorial-migration
@@ -134,4 +135,4 @@ https://sizhengfuxi.pages.dev/campus?from=friend
 
 当前没有为渠道统计新增数据库表，也不收集姓名、学号或手机号。Cloudflare Pages 中可在项目的 `Analytics & Logs` 中启用 Web Analytics，用于查看 `/campus` 的访问量、来源站点、设备和地区趋势；Cloudflare 可能不会把查询参数作为独立页面维度，因此 `from` 的精确分渠道汇总不作为当前 MVP 的可靠指标。分享按钮始终复制 `?from=friend`，不会继续传播访客原始来源。
 
-反馈入口会打开仓库的 GitHub Issues 新建页面，并预填问题类型、反馈正文和当前页面。联系方式为选填，不需要额外后端配置。
+反馈入口会直接把问题类型、反馈正文、当前页面和可选题目上下文写入 Supabase 私有反馈表，不要求用户注册 GitHub。管理员在 `/admin/feedback` 查看并处理反馈；GitHub Issues 仅保留为公开技术讨论入口。普通浏览器角色不能直接读写反馈表，提交和管理均经过 Cloudflare Pages Functions。配置 Resend 后，新反馈会同时发送邮件提醒；邮件失败不影响反馈入库。

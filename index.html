@@ -213,6 +213,10 @@
         <a class="billing-back" href="/">返回首页</a>
         <p class="public-kicker">管理员</p>
         <h1>订单审核</h1>
+        <nav class="admin-section-nav" aria-label="管理员功能">
+          <a class="is-active" href="/admin/orders">订单审核</a>
+          <a href="/admin/feedback">用户反馈</a>
+        </nav>
         <div class="admin-order-controls">
           <select id="adminOrderStatus" aria-label="订单状态筛选"><option value="pending_review">待审核</option><option value="approved">已开通</option><option value="rejected">已拒绝</option><option value="all">全部</option></select>
           <input id="adminOrderQuery" type="search" placeholder="邮箱或网站订单号">
@@ -220,6 +224,25 @@
         </div>
         <div id="adminOrderMessage" class="billing-message" role="status" aria-live="polite"></div>
         <div id="adminOrderList" class="admin-order-list"></div>
+      </div>
+    </section>
+
+    <section id="adminFeedbackView" class="billing-view admin-orders-view" hidden>
+      <div class="billing-card public-shell">
+        <a class="billing-back" href="/">返回首页</a>
+        <p class="public-kicker">管理员</p>
+        <h1>用户反馈</h1>
+        <nav class="admin-section-nav" aria-label="管理员功能">
+          <a href="/admin/orders">订单审核</a>
+          <a class="is-active" href="/admin/feedback">用户反馈</a>
+        </nav>
+        <div class="admin-order-controls">
+          <select id="adminFeedbackStatus" aria-label="反馈状态筛选"><option value="new">未处理</option><option value="reviewing">处理中</option><option value="resolved">已解决</option><option value="ignored">已忽略</option><option value="all">全部</option></select>
+          <input id="adminFeedbackQuery" type="search" placeholder="编号、内容、邮箱或联系方式">
+          <button id="adminFeedbackReloadBtn" class="secondary-cta" type="button">刷新</button>
+        </div>
+        <div id="adminFeedbackMessage" class="billing-message" role="status" aria-live="polite"></div>
+        <div id="adminFeedbackList" class="admin-order-list"></div>
       </div>
     </section>
   </main>
@@ -238,7 +261,7 @@
     </form>
     <div class="feedback-dialog-body">
       <h2>发现错误 / 功能建议</h2>
-      <p>提交后会打开 GitHub 反馈页面。联系方式可不填写。</p>
+      <p>无需 GitHub 账号，反馈会直接发送给网站管理员。联系方式可不填写。</p>
       <p id="feedbackContext" class="feedback-context" hidden></p>
       <form id="feedbackForm" class="feedback-form">
         <label for="feedbackType">问题类型</label>
@@ -250,10 +273,13 @@
           <option>其他</option>
         </select>
         <label for="feedbackContent">反馈内容</label>
-        <textarea id="feedbackContent" rows="6" required placeholder="请描述所在课程、章节或题目，以及具体问题。"></textarea>
+        <textarea id="feedbackContent" rows="6" minlength="5" maxlength="4000" required placeholder="请描述所在课程、章节或题目，以及具体问题。"></textarea>
         <label for="feedbackContact">可选联系方式</label>
-        <input id="feedbackContact" type="text" autocomplete="off" placeholder="选填">
-        <button class="primary-cta" type="submit">继续提交反馈</button>
+        <input id="feedbackContact" type="text" autocomplete="off" maxlength="200" placeholder="邮箱、QQ 等，选填">
+        <div class="feedback-honeypot" aria-hidden="true"><label for="feedbackWebsite">网站</label><input id="feedbackWebsite" type="text" tabindex="-1" autocomplete="off"></div>
+        <button id="feedbackSubmitBtn" class="primary-cta" type="submit">提交反馈</button>
+        <div id="feedbackMessage" class="billing-message" role="status" aria-live="polite"></div>
+        <a class="feedback-github-link" href="https://github.com/Ryan-2727/sizhengfuxi/issues" target="_blank" rel="noopener noreferrer">也可在 GitHub 公开讨论技术问题</a>
       </form>
     </div>
   </dialog>

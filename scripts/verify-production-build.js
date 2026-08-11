@@ -17,6 +17,7 @@ walk(dist);
 const output = allFiles.map((file) => fs.readFileSync(file, "utf8")).join("\n");
 const banned = [
   "SUPABASE_SERVICE_ROLE_KEY",
+  "RESEND_API_KEY",
   "service_role",
   "history-local-question-bank.js",
   "morality-local-question-bank.js",

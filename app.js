@@ -531,6 +531,7 @@ function billingRoute() {
   const path = location.pathname.replace(/\/+$/, "") || "/";
   if (path === "/buy") return { name: "buy" };
   if (path === "/admin/orders") return { name: "admin" };
+  if (path === "/admin/feedback") return { name: "adminFeedback" };
   const pay = path.match(/^\/pay\/([^/]+)$/);
   if (pay) return { name: "pay", orderNo: pay[1] };
   const order = path.match(/^\/order\/([^/]+)$/);
@@ -725,6 +726,7 @@ const els = {
   payView: document.querySelector("#payView"),
   orderView: document.querySelector("#orderView"),
   adminOrdersView: document.querySelector("#adminOrdersView"),
+  adminFeedbackView: document.querySelector("#adminFeedbackView"),
   courseGrid: document.querySelector("#courseGrid"),
   sideTitle: document.querySelector("#sideTitle"),
   chapterNav: document.querySelector("#chapterNav"),
@@ -741,11 +743,13 @@ const els = {
   feedbackDialog: document.querySelector("#feedbackDialog"),
   feedbackForm: document.querySelector("#feedbackForm"),
   feedbackContext: document.querySelector("#feedbackContext"),
+  feedbackMessage: document.querySelector("#feedbackMessage"),
   copyStatus: document.querySelector("#copyCampusLinkStatus")
 };
 
 let pendingEmail = "";
 let feedbackContext = null;
+let feedbackCooldownUntil = 0;
 let otpCooldownUntil = 0;
 let otpCooldownTimer = null;
 let orderStatusPollTimer = null;
@@ -787,6 +791,8 @@ document.querySelectorAll("[data-payment-method]").forEach((button) => button.ad
 document.querySelector("#paymentForm").addEventListener("submit", submitPaymentReference);
 document.querySelector("#adminOrderReloadBtn").addEventListener("click", () => { void loadAdminOrders(); });
 document.querySelector("#adminOrderStatus").addEventListener("change", () => { void loadAdminOrders(); });
+document.querySelector("#adminFeedbackReloadBtn").addEventListener("click", () => { void loadAdminFeedback(); });
+document.querySelector("#adminFeedbackStatus").addEventListener("change", () => { void loadAdminFeedback(); });
 document.addEventListener("click", (event) => {
   const linkedQuestionsButton = event.target.closest("[data-knowledge-questions]");
   if (linkedQuestionsButton) {
@@ -886,6 +892,7 @@ function showAuth({ message = "请输入已开通会员的邮箱，获取登录�
   els.payView.hidden = true;
   els.orderView.hidden = true;
   els.adminOrdersView.hidden = true;
+  els.adminFeedbackView.hidden = true;
   els.authView.hidden = false;
   els.authDescription.textContent = message;
   els.requestOtpForm.hidden = signedIn;
@@ -914,6 +921,7 @@ function showCampusLanding({ updateHistory = false } = {}) {
   els.payView.hidden = true;
   els.orderView.hidden = true;
   els.adminOrdersView.hidden = true;
+  els.adminFeedbackView.hidden = true;
   els.campusView.hidden = false;
   setPageMetadata();
   if (updateHistory) history.pushState("", document.title, `/campus${location.search}`);
@@ -951,27 +959,51 @@ async function copyCampusLink() {
   els.copyStatus.textContent = copied ? "链接已复制" : "复制失败，请手动复制当前网址";
 }
 
-function submitFeedback(event) {
+async function submitFeedback(event) {
   event.preventDefault();
   const type = document.querySelector("#feedbackType").value;
   const content = document.querySelector("#feedbackContent").value.trim();
   const contact = document.querySelector("#feedbackContact").value.trim();
-  if (!content) return;
-  const body = [
-    `问题类型：${type}`,
-    `反馈内容：${content}`,
-    feedbackContext ? `题目上下文：\n课程：${feedbackContext.course}\n章节：${feedbackContext.chapter}\n题目标识：${feedbackContext.questionId}\n题干摘要：${feedbackContext.question}` : null,
-    contact ? `可选联系方式：${contact}` : "可选联系方式：未填写",
-    `页面：${location.href}`
-  ].filter(Boolean).join("\n\n");
-  const url = new URL("https://github.com/Ryan-2727/sizhengfuxi/issues/new");
-  url.searchParams.set("title", `[网站反馈] ${type}`);
-  url.searchParams.set("body", body);
-  window.open(url.toString(), "_blank", "noopener,noreferrer");
+  const button = document.querySelector("#feedbackSubmitBtn");
+  if (content.length < 5) {
+    setBillingMessage(els.feedbackMessage, "请至少填写 5 个字的反馈内容。", "error");
+    return;
+  }
+  if (Date.now() < feedbackCooldownUntil) {
+    setBillingMessage(els.feedbackMessage, "反馈已提交，请稍后再试。", "error");
+    return;
+  }
+  button.disabled = true;
+  button.textContent = "正在提交…";
+  setBillingMessage(els.feedbackMessage, "");
+  try {
+    const data = await apiRequest("/api/feedback", {
+      method: "POST",
+      body: JSON.stringify({
+        type,
+        content,
+        contact,
+        website: document.querySelector("#feedbackWebsite").value,
+        context: feedbackContext,
+        page_url: location.href
+      })
+    });
+    feedbackCooldownUntil = Date.now() + 30_000;
+    els.feedbackForm.reset();
+    feedbackContext = null;
+    els.feedbackContext.hidden = true;
+    setBillingMessage(els.feedbackMessage, data.feedback_no ? `反馈已收到，编号 ${data.feedback_no}。` : "反馈已收到。", "success");
+  } catch (error) {
+    setBillingMessage(els.feedbackMessage, error.message || "暂时无法提交反馈，请稍后重试。", "error");
+  } finally {
+    button.disabled = false;
+    button.textContent = "提交反馈";
+  }
 }
 
 function openFeedbackDialog(context = null) {
   feedbackContext = context;
+  setBillingMessage(els.feedbackMessage, "");
   if (els.feedbackContext) {
     els.feedbackContext.hidden = !context;
     els.feedbackContext.textContent = context
@@ -1083,6 +1115,7 @@ function hideAllMainViews() {
   els.payView.hidden = true;
   els.orderView.hidden = true;
   els.adminOrdersView.hidden = true;
+  els.adminFeedbackView.hidden = true;
   els.appHeader.hidden = true;
 }
 
@@ -1109,6 +1142,7 @@ async function initPublicRoute() {
   else if (route.name === "pay") await showPaymentPage(route.orderNo);
   else if (route.name === "order") await showOrderPage(route.orderNo);
   else if (route.name === "admin") await showAdminOrdersPage();
+  else if (route.name === "adminFeedback") await showAdminFeedbackPage();
 }
 
 function billingConfig() {
@@ -1534,6 +1568,73 @@ async function rejectOrder(button) {
     setBillingMessage(document.querySelector("#adminOrderMessage"), error.message || "无法拒绝订单。", "error");
     button.disabled = false;
     button.textContent = "拒绝";
+  }
+}
+
+function feedbackStatusText(status) {
+  return ({ new: "未处理", reviewing: "处理中", resolved: "已解决", ignored: "已忽略" })[status] || status;
+}
+
+async function showAdminFeedbackPage() {
+  hideAllMainViews();
+  els.adminFeedbackView.hidden = false;
+  await loadAdminFeedback();
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+async function loadAdminFeedback() {
+  const message = document.querySelector("#adminFeedbackMessage");
+  const list = document.querySelector("#adminFeedbackList");
+  const status = document.querySelector("#adminFeedbackStatus").value;
+  const query = document.querySelector("#adminFeedbackQuery").value.trim();
+  setBillingMessage(message, "正在加载反馈…");
+  list.innerHTML = "";
+  try {
+    const data = await apiRequest(`/api/admin/feedback?status=${encodeURIComponent(status)}&q=${encodeURIComponent(query)}`);
+    setBillingMessage(message, data.feedback.length ? "" : "没有符合条件的反馈。");
+    list.innerHTML = data.feedback.map((item) => {
+      const context = item.context || {};
+      const contextRows = [
+        context.course ? `<dt>课程</dt><dd>${escapeHtml(context.course)}</dd>` : "",
+        context.chapter ? `<dt>章节</dt><dd>${escapeHtml(context.chapter)}</dd>` : "",
+        context.questionId ? `<dt>题目标识</dt><dd>${escapeHtml(context.questionId)}</dd>` : "",
+        context.question ? `<dt>题干摘要</dt><dd>${escapeHtml(context.question)}</dd>` : ""
+      ].join("");
+      const actions = item.status === "new"
+        ? `<button class="secondary-cta" type="button" data-feedback-status="reviewing">开始处理</button><button class="primary-cta" type="button" data-feedback-status="resolved">标记已解决</button><button class="secondary-cta" type="button" data-feedback-status="ignored">忽略</button>`
+        : item.status === "reviewing"
+          ? `<button class="primary-cta" type="button" data-feedback-status="resolved">标记已解决</button><button class="secondary-cta" type="button" data-feedback-status="ignored">忽略</button>`
+          : `<button class="secondary-cta" type="button" data-feedback-status="new">重新打开</button>`;
+      return `<article class="admin-order admin-feedback" data-feedback-no="${escapeHtml(item.feedback_no)}"><div><strong>${escapeHtml(item.feedback_no)}</strong><span>${escapeHtml(feedbackStatusText(item.status))}</span></div><p class="admin-feedback-type">${escapeHtml(item.type)}</p><p class="admin-feedback-content">${escapeHtml(item.content)}</p><dl><dt>提交时间</dt><dd>${escapeHtml(formatDateTime(item.created_at))}</dd><dt>登录邮箱</dt><dd>${escapeHtml(item.user_email || "匿名用户")}</dd><dt>联系方式</dt><dd>${escapeHtml(item.contact || "未填写")}</dd><dt>页面</dt><dd>${item.page_url ? `<a href="${escapeHtml(item.page_url)}" target="_blank" rel="noopener noreferrer">打开反馈页面</a>` : "未记录"}</dd>${contextRows}</dl>${item.reviewed_by ? `<p>处理人：${escapeHtml(item.reviewed_by)} ${escapeHtml(item.reviewed_at ? formatDateTime(item.reviewed_at) : "")}</p>` : ""}${item.review_note ? `<p>处理备注：${escapeHtml(item.review_note)}</p>` : ""}<div class="billing-actions">${actions}</div></article>`;
+    }).join("");
+    list.querySelectorAll("[data-feedback-status]").forEach((button) => button.addEventListener("click", () => { void updateFeedbackStatus(button); }));
+  } catch (error) {
+    setBillingMessage(message, error.message || "无法读取反馈。", "error");
+  }
+}
+
+async function updateFeedbackStatus(button) {
+  const card = button.closest("[data-feedback-no]");
+  const feedbackNo = card?.dataset.feedbackNo;
+  const status = button.dataset.feedbackStatus;
+  if (!feedbackNo || !status) return;
+  const reviewNote = status === "resolved" || status === "ignored"
+    ? window.prompt("处理备注（可选，最多 1000 字）：", "")
+    : "";
+  if (reviewNote === null) return;
+  button.disabled = true;
+  button.textContent = "正在保存…";
+  try {
+    await apiRequest(`/api/admin/feedback/${encodeURIComponent(feedbackNo)}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status, review_note: reviewNote })
+    });
+    await loadAdminFeedback();
+    setBillingMessage(document.querySelector("#adminFeedbackMessage"), `反馈 ${feedbackNo} 已更新为“${feedbackStatusText(status)}”。`, "success");
+  } catch (error) {
+    setBillingMessage(document.querySelector("#adminFeedbackMessage"), error.message || "无法更新反馈。", "error");
+    button.disabled = false;
+    button.textContent = "重试";
   }
 }
 

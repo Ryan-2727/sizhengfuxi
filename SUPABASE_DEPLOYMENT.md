@@ -163,9 +163,14 @@ SUPABASE_URL=https://your-project-ref.supabase.co
 SUPABASE_ANON_KEY=your-anon-or-publishable-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ADMIN_EMAILS=admin1@example.com,admin2@example.com
+RESEND_API_KEY=re_your_api_key
+FEEDBACK_NOTIFY_EMAIL=admin@example.com
+FEEDBACK_FROM_EMAIL=feedback@your-domain.example
 ```
 
 `SUPABASE_URL` and `SUPABASE_ANON_KEY` are build-time browser-safe values. `SUPABASE_SERVICE_ROLE_KEY` and `ADMIN_EMAILS` are read only by Cloudflare Pages Functions at runtime. Do not use a `VITE_` prefix for either server-only value, do not put them in `.env` committed to Git, and do not expose them in browser code. Vite inserts only the two browser-safe values above into the built client.
+
+The three feedback email variables are optional and server-only. `RESEND_API_KEY` authenticates Resend, `FEEDBACK_NOTIFY_EMAIL` accepts one or more comma-separated recipients, and `FEEDBACK_FROM_EMAIL` must use a sender domain verified in Resend. Without all three variables, feedback is still stored and visible in the admin inbox, but no email is sent.
 
 ## 7. Manual payment membership
 
@@ -188,6 +193,20 @@ Run this verification before deployment:
 
 ```powershell
 npm run verify:payments
+```
+
+## 8. User feedback inbox
+
+Run `supabase/migrations/202608110009_user_feedback.sql` in the Supabase SQL Editor after all earlier migrations. It creates the private `feedback` table, enables RLS, removes all direct `anon` and `authenticated` access, and grants access only to the service role used by Pages Functions.
+
+Users submit feedback inside the existing dialog without a GitHub account. The public endpoint accepts only the five displayed feedback types, validates lengths, stores optional signed-in account context, and never returns other users' feedback. Administrators use `/admin/feedback`; the existing OTP session and `ADMIN_EMAILS` server-side check protect both listing and status changes.
+
+For email alerts, create a Resend API key, verify the domain used by `FEEDBACK_FROM_EMAIL`, set the three optional variables above in Cloudflare Pages for Production, and redeploy. The database inbox remains the source of truth: a Resend outage does not make a submitted feedback disappear.
+
+Run this verification before deployment:
+
+```powershell
+npm run verify:feedback
 ```
 
 ## 6. Required acceptance checks after deployment

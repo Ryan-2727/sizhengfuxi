@@ -17,6 +17,7 @@
     "verify:navigation": "node scripts/verify-question-navigation.js",
     "verify:campus": "node scripts/verify-campus-mvp.js",
     "verify:payments": "node scripts/verify-payment-flow.js",
+    "verify:feedback": "node scripts/verify-feedback-flow.js",
     "verify:payloads": "node scripts/verify-original-question-payloads.js",
     "verify:editorial-migration": "node scripts/verify-editorial-quality-migration.js",
     "verify:editorial-quality": "node scripts/verify-editorial-quality.js",

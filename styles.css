@@ -2451,6 +2451,21 @@ dialog::backdrop {
   margin-top: 10px;
 }
 
+.feedback-honeypot {
+  position: absolute !important;
+  left: -10000px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+}
+
+.feedback-github-link {
+  width: fit-content;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 .locked-message {
   padding: 12px 4px 4px;
 }
@@ -2801,6 +2816,7 @@ dialog::backdrop {
 .billing-form p { margin: 0 0 8px; color: var(--muted); line-height: 1.6; }
 .billing-message { min-height: 22px; color: #38506f; line-height: 1.5; }
 .billing-message[data-state="error"], .billing-error { color: #b42318; }
+.billing-message[data-state="success"] { color: #166534; }
 .billing-message .text-action { margin-left: 8px; }
 .recent-order-resume { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 24px; padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: #f8fafc; }
 .recent-order-resume div { display: grid; gap: 4px; min-width: 0; }
@@ -2842,6 +2858,9 @@ dialog::backdrop {
 .order-copy-actions span { color: #166534; font-size: 14px; }
 .billing-actions { margin-top: 22px; }
 .admin-orders-view .billing-card { width: min(calc(100% - 32px), 1060px); }
+.admin-section-nav { display: flex; gap: 18px; margin-top: 18px; border-bottom: 1px solid var(--line); }
+.admin-section-nav a { padding: 10px 0; border-bottom: 3px solid transparent; color: #64748b; font-weight: 800; text-decoration: none; }
+.admin-section-nav a.is-active { border-bottom-color: #172033; color: #172033; }
 .admin-order-controls { margin: 24px 0 16px; }
 .admin-order-controls input { flex: 1 1 260px; }
 .admin-order-controls select { min-width: 120px; }
@@ -2850,6 +2869,9 @@ dialog::backdrop {
 .admin-order > div:first-child { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-bottom: 14px; color: #172033; }
 .admin-order > div:first-child span { color: #38506f; font-size: 14px; }
 .admin-order > p { margin: 12px 0 0; color: var(--muted); font-size: 14px; }
+.admin-feedback .admin-feedback-type { color: #38506f; font-weight: 800; }
+.admin-feedback .admin-feedback-content { color: #172033; font-size: 16px; line-height: 1.75; white-space: pre-wrap; }
+.admin-feedback a { color: #38506f; overflow-wrap: anywhere; }
 
 @media (max-width: 760px) {
   .billing-view { padding: 24px 0 42px; }
