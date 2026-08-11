@@ -2096,8 +2096,16 @@ dialog::backdrop {
   margin: 0;
 }
 
-.site-disclaimer .text-action {
+.site-disclaimer > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
   margin-top: 10px;
+}
+
+.site-disclaimer .text-action {
+  margin-top: 0;
 }
 
 .public-shell {
