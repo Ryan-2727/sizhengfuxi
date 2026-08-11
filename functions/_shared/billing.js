@@ -21,7 +21,8 @@ export function normalizeEmail(value) {
 }
 
 export function serviceClient(env) {
-  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) throw new Error("服务器未配置 Supabase 服务密钥。");
+  const missing = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"].filter((name) => !env[name]);
+  if (missing.length) throw new Error(`服务器缺少环境变量：${missing.join(", ")}。`);
   return createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
 }
 
