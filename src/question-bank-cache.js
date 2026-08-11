@@ -70,6 +70,11 @@ export async function putCourseQuestionCache({ userId, courseId, contentHash, ch
   await requestResult("readwrite", (store) => store.put(record));
 }
 
+export async function deleteCourseQuestionCache({ userId, courseId, contentHash }) {
+  if (!userId || !courseId || !contentHash) return;
+  await requestResult("readwrite", (store) => store.delete(cacheKey(userId, courseId, contentHash)));
+}
+
 export async function deleteUserQuestionCaches(userId) {
   if (!userId) return;
   await withStore("readwrite", (store) => {

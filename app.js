@@ -492,6 +492,8 @@ const studyProgress = loadStudyProgress();
 const questionLookup = new Map();
 const questionBankCatalog = new Map();
 const loadedCourseIds = new Set();
+const courseLoadTasks = new Map();
+let questionBankSessionVersion = 0;
 const sessionState = { memberValidated: false, userId: null, preview: false };
 
 const state = {
@@ -845,6 +847,8 @@ function userExamSource(title, note) {
 }
 
 function clearQuestionBank() {
+  questionBankSessionVersion += 1;
+  courseLoadTasks.clear();
   questionLookup.clear();
   loadedCourseIds.clear();
   courses.forEach((course) => {
@@ -1770,11 +1774,15 @@ async function showCourse(id, updateHash = true) {
   els.homeView.hidden = true;
   els.courseView.hidden = false;
   renderCourse();
-  renderQuestionLoading();
+  renderQuestionLoading(id);
   if (updateHash) history.pushState("", document.title, `${location.pathname}${location.search}#${id}`);
   jumpToCourseTop();
   try {
-    await ensureCourseQuestionBank(id);
+    await ensureCourseQuestionBank(id, {
+      onProgress: (progress) => {
+        if (state.courseId === id) renderQuestionLoading(id, progress);
+      }
+    });
     if (state.courseId === id) renderCourse();
   } catch (error) {
     console.error("Course question bank loading failed.", error);
@@ -1788,13 +1796,50 @@ function questionCount(courseId, type) {
   return type === "choice" ? entry.choice_count : entry.essay_count;
 }
 
-function renderQuestionLoading() {
-  els.questions.innerHTML = '<div class="question-load-state">Loading this course question bank...</div>';
+function questionLoadStateMarkup(courseId, progress = {}) {
+  const course = getCourseById(courseId);
+  const catalog = questionBankCatalog.get(courseId);
+  const total = Number(progress.total ?? ((catalog?.choice_count || 0) + (catalog?.essay_count || 0)));
+  const completed = Math.max(0, Math.min(Number(progress.completed) || 0, total));
+  const determinate = ["questions", "quality", "revisions", "saving"].includes(progress.phase) && total > 0;
+  const progressValue = determinate ? ` value="${completed}"` : "";
+  const progressMax = total > 0 ? total : 1;
+  const labels = {
+    cache: ["正在检查本机题库缓存…", "如果题库版本没有变化，将直接从本机读取。"],
+    questions: [`正在下载《${course?.short || "本课程"}》题库`, `已完成 ${completed} / ${total} 题`],
+    quality: ["正在核验题目答案与解析", `已完成 ${completed} / ${total} 题`],
+    revisions: ["正在应用已校订的答案与解析", `已完成 ${completed} / ${total} 条校订记录`],
+    saving: ["题库已下载，正在保存到本机…", "保存后再次打开会更快。"]
+  };
+  const [title, status] = labels[progress.phase] || labels.cache;
+  return `
+    <div class="question-load-state" role="status" aria-live="polite">
+      <div class="question-load-copy">
+        <strong>${escapeHtml(title)}</strong>
+        <span>${escapeHtml(status)}</span>
+      </div>
+      <progress max="${progressMax}"${progressValue}></progress>
+      <small>首次打开该课程需要下载题库，之后将从本机缓存读取。</small>
+    </div>
+  `;
+}
+
+function renderQuestionLoading(courseId, progress = { phase: "cache" }) {
+  els.questions.innerHTML = questionLoadStateMarkup(courseId, progress);
 }
 
 function renderQuestionLoadFailure(courseId, error) {
-  const detail = error?.message ? ` ${escapeHtml(error.message)}` : "";
-  els.questions.innerHTML = `<div class="question-load-state">Question bank loading failed.${detail} <button type="button" data-retry-course="${courseId}">Retry</button></div>`;
+  const detail = error?.message ? `<small>错误信息：${escapeHtml(error.message)}</small>` : "";
+  els.questions.innerHTML = `
+    <div class="question-load-state question-load-state--error" role="alert">
+      <div class="question-load-copy">
+        <strong>题库加载失败</strong>
+        <span>请检查网络后重新加载。课程正文仍可继续阅读。</span>
+      </div>
+      ${detail}
+      <button type="button" data-retry-course="${courseId}">重新加载题库</button>
+    </div>
+  `;
   els.questions.querySelector("[data-retry-course]").addEventListener("click", () => { void showCourse(courseId, false); });
 }
 
@@ -1804,42 +1849,121 @@ function hydrateCourseQuestionBank(course, choices, essays) {
   loadedCourseIds.add(course.id);
 }
 
-async function ensureCourseQuestionBank(courseId) {
+function joinCourseLoadTask(task, onProgress) {
+  if (typeof onProgress === "function") {
+    task.listeners.add(onProgress);
+    if (task.progress) onProgress(task.progress);
+  }
+  return task.promise.finally(() => {
+    if (typeof onProgress === "function") task.listeners.delete(onProgress);
+  });
+}
+
+function reportCourseLoadProgress(task, progress) {
+  task.progress = progress;
+  for (const listener of task.listeners) {
+    try {
+      listener(progress);
+    } catch (error) {
+      console.warn("Question bank progress listener failed.", error);
+    }
+  }
+}
+
+function isCurrentQuestionBankSession(userId, sessionVersion) {
+  return sessionState.memberValidated
+    && sessionState.userId === userId
+    && questionBankSessionVersion === sessionVersion;
+}
+
+function assertCurrentQuestionBankSession(userId, sessionVersion) {
+  if (!isCurrentQuestionBankSession(userId, sessionVersion)) {
+    throw new Error("会员状态已变化，本次题库加载已停止。");
+  }
+}
+
+async function ensureCourseQuestionBank(courseId, options = {}) {
   if (!sessionState.memberValidated || !sessionState.userId) {
     throw new Error("An active membership is required before reading a question bank.");
   }
-  if (loadedCourseIds.has(courseId)) return getCourseById(courseId);
+  if (loadedCourseIds.has(courseId)) {
+    const catalog = questionBankCatalog.get(courseId);
+    options.onProgress?.({
+      phase: "saving",
+      completed: (catalog?.choice_count || 0) + (catalog?.essay_count || 0),
+      total: (catalog?.choice_count || 0) + (catalog?.essay_count || 0)
+    });
+    return getCourseById(courseId);
+  }
+  const existingTask = courseLoadTasks.get(courseId);
+  if (existingTask) return joinCourseLoadTask(existingTask, options.onProgress);
+
   const course = getCourseById(courseId);
   const catalog = questionBankCatalog.get(courseId);
   if (!course || !catalog) throw new Error("Question bank catalog entry is unavailable.");
 
+  const task = { listeners: new Set(), progress: null, promise: null };
+  const userId = sessionState.userId;
+  const sessionVersion = questionBankSessionVersion;
+  const report = (progress) => reportCourseLoadProgress(task, progress);
+  task.promise = loadCourseQuestionBank({ course, catalog, userId, sessionVersion, report })
+    .finally(() => {
+      if (courseLoadTasks.get(courseId) === task) courseLoadTasks.delete(courseId);
+    });
+  courseLoadTasks.set(courseId, task);
+  return joinCourseLoadTask(task, options.onProgress);
+}
+
+async function loadCourseQuestionBank({ course, catalog, userId, sessionVersion, report }) {
+  const total = Number(catalog.choice_count || 0) + Number(catalog.essay_count || 0);
+  const assertSession = () => assertCurrentQuestionBankSession(userId, sessionVersion);
+  report({ phase: "cache", completed: 0, total });
+  assertSession();
+
   const cache = window.questionBankCache;
   const cached = cache && await cache.getCourseQuestionCache({
-    userId: sessionState.userId,
-    courseId,
+    userId,
+    courseId: course.id,
     contentHash: catalog.content_hash
   });
+  assertSession();
   if (cached && Array.isArray(cached.choices) && Array.isArray(cached.essays)
     && cached.choices.length === catalog.choice_count && cached.essays.length === catalog.essay_count) {
     hydrateCourseQuestionBank(course, cached.choices, cached.essays);
+    report({ phase: "saving", completed: total, total });
     return course;
   }
 
-  const rows = [];
   const pageSize = 100;
-  for (let from = 0; ; from += pageSize) {
+  const pageConcurrency = 3;
+  const pages = Array.from({ length: Math.ceil(total / pageSize) }, (_, pageIndex) => ({
+    from: pageIndex * pageSize,
+    to: Math.min(total, (pageIndex + 1) * pageSize) - 1
+  }));
+  let downloaded = 0;
+  report({ phase: "questions", completed: 0, total });
+  const pageRows = await window.questionBankLoader.runConcurrentBatches(pages, async ({ from, to }) => {
+    assertSession();
     const { data, error } = await window.studySupabase
       .from("questions")
       .select("id, question_type, question_order, payload, chapter_id, chapter_assignment_status")
-      .eq("course_id", courseId)
+      .eq("course_id", course.id)
       .order("question_type")
       .order("question_order")
-      .range(from, from + pageSize - 1);
+      .range(from, to);
     if (error) throw error;
-    rows.push(...data);
-    if (data.length < pageSize) break;
-  }
-  const qualityByQuestion = await loadQuestionQuality(rows);
+    if (data.length !== to - from + 1) throw new Error("题库分页数量与目录版本不一致。");
+    return data;
+  }, {
+    concurrency: pageConcurrency,
+    onBatch: ({ result }) => {
+      downloaded += result.length;
+      report({ phase: "questions", completed: downloaded, total });
+    }
+  });
+  const rows = pageRows.flat();
+  assertSession();
+  const qualityByQuestion = await loadQuestionQuality(rows, { assertSession, report });
   const withChapterAssignment = (row) => ({
     ...applyQuestionRevision(row.payload, qualityByQuestion.get(row.id)),
     chapterId: row.chapter_id || undefined,
@@ -1850,40 +1974,71 @@ async function ensureCourseQuestionBank(courseId) {
   if (choices.length !== catalog.choice_count || essays.length !== catalog.essay_count) {
     throw new Error("Question bank response does not match its catalog version.");
   }
-  if (cache) await cache.putCourseQuestionCache({
-    userId: sessionState.userId,
-    courseId,
-    contentHash: catalog.content_hash,
-    choices,
-    essays
-  });
+  assertSession();
+  report({ phase: "saving", completed: total, total });
+  if (cache) {
+    const cacheKey = { userId, courseId: course.id, contentHash: catalog.content_hash };
+    await cache.putCourseQuestionCache({ ...cacheKey, choices, essays });
+    if (!isCurrentQuestionBankSession(userId, sessionVersion)) {
+      await cache.deleteCourseQuestionCache(cacheKey);
+    }
+  }
+  assertSession();
   hydrateCourseQuestionBank(course, choices, essays);
   return course;
 }
 
-async function loadQuestionQuality(rows) {
-  const qualityRows = [];
+async function loadQuestionQuality(rows, { assertSession, report }) {
   const questionIds = rows.map((row) => row.id).filter(Boolean);
+  const qualityBatches = [];
   for (let index = 0; index < questionIds.length; index += 100) {
+    qualityBatches.push(questionIds.slice(index, index + 100));
+  }
+  let qualityCompleted = 0;
+  report({ phase: "quality", completed: 0, total: questionIds.length });
+  const qualityRows = (await window.questionBankLoader.runConcurrentBatches(qualityBatches, async (ids) => {
+    assertSession();
     const { data, error } = await window.studySupabase
       .from("question_quality")
       .select("question_id, publication_status, review_status, verification_status, source_kind, source_title, source_edition, source_chapter, source_page, source_url, verification_reference, current_revision_id")
-      .in("question_id", questionIds.slice(index, index + 100));
+      .in("question_id", ids);
     if (error) throw error;
-    qualityRows.push(...data);
-  }
+    if (data.length !== ids.length) throw new Error("已发布题目的质量信息不完整。");
+    return data;
+  }, {
+    concurrency: 3,
+    onBatch: ({ result }) => {
+      qualityCompleted += result.length;
+      report({ phase: "quality", completed: qualityCompleted, total: questionIds.length });
+    }
+  })).flat();
   if (qualityRows.length !== questionIds.length) {
     throw new Error("Published question quality metadata is incomplete.");
   }
   const revisionIds = [...new Set(qualityRows.map((row) => row.current_revision_id).filter(Boolean))];
-  const revisions = [];
+  const revisionBatches = [];
   for (let index = 0; index < revisionIds.length; index += 100) {
+    revisionBatches.push(revisionIds.slice(index, index + 100));
+  }
+  let revisionCompleted = 0;
+  if (revisionIds.length) report({ phase: "revisions", completed: 0, total: revisionIds.length });
+  const revisions = (await window.questionBankLoader.runConcurrentBatches(revisionBatches, async (ids) => {
+    assertSession();
     const { data, error } = await window.studySupabase
       .from("question_revisions")
       .select("id, display_question, display_answer, display_analysis, correct_answer_override, question_type_override, scoring_points, keywords, common_mistakes, verification_reference")
-      .in("id", revisionIds.slice(index, index + 100));
+      .in("id", ids);
     if (error) throw error;
-    revisions.push(...data);
+    return data;
+  }, {
+    concurrency: 3,
+    onBatch: ({ result }) => {
+      revisionCompleted += result.length;
+      report({ phase: "revisions", completed: revisionCompleted, total: revisionIds.length });
+    }
+  })).flat();
+  if (revisions.length !== revisionIds.length) {
+    throw new Error("已校订题目的修订信息不完整。");
   }
   const revisionById = new Map(revisions.map((row) => [row.id, row]));
   return new Map(qualityRows.map((row) => [row.question_id, {
@@ -4013,14 +4168,20 @@ function renderRandomCoursePicker() {
   els.dialogBody.querySelectorAll("[data-random-course]").forEach((button) => {
     button.addEventListener("click", async () => {
       state.randomCourseId = button.dataset.randomCourse;
-      els.dialogBody.innerHTML = '<div class="question-load-state">Loading this course question bank...</div>';
+      els.dialogBody.innerHTML = questionLoadStateMarkup(state.randomCourseId, { phase: "cache" });
       try {
-        await ensureCourseQuestionBank(state.randomCourseId);
+        await ensureCourseQuestionBank(state.randomCourseId, {
+          onProgress: (progress) => {
+            if (els.dialog.open && state.randomCourseId === button.dataset.randomCourse) {
+              els.dialogBody.innerHTML = questionLoadStateMarkup(state.randomCourseId, progress);
+            }
+          }
+        });
         renderRandomQuestion();
       } catch (error) {
         console.error("Random course question bank loading failed.", error);
-        const detail = error?.message ? ` ${escapeHtml(error.message)}` : "";
-        els.dialogBody.innerHTML = `<div class="question-load-state">Question bank loading failed.${detail} <button type="button" data-retry-random>Retry</button></div>`;
+        const detail = error?.message ? `<small>错误信息：${escapeHtml(error.message)}</small>` : "";
+        els.dialogBody.innerHTML = `<div class="question-load-state question-load-state--error" role="alert"><div class="question-load-copy"><strong>题库加载失败</strong><span>请检查网络后重新选择课程。</span></div>${detail}<button type="button" data-retry-random>返回课程选择</button></div>`;
         els.dialogBody.querySelector("[data-retry-random]").addEventListener("click", renderRandomCoursePicker);
       }
     });
