@@ -38,7 +38,7 @@ async function readCourseQuestionState(supabase, courseId) {
   const qualityRows = await readInChunks(
     supabase,
     "question_quality",
-    "question_id, publication_status, review_status, canonical_question_id, chapter_confidence, verification_status, source_kind, source_title, source_edition, source_chapter, source_page, source_url, verification_reference, current_revision_id, original_payload_hash, verified_at",
+    "question_id, publication_status, review_status, canonical_question_id, chapter_confidence, verification_status, source_kind, source_title, source_edition, source_chapter, source_page, source_url, verification_reference, current_revision_id, original_payload_hash, verified_at, curation_status, curation_rank, curation_reason, curation_version, curated_at",
     "question_id",
     ids
   );
@@ -97,7 +97,12 @@ function catalogPayload(state) {
         source_url: quality.source_url,
         verification_reference: quality.verification_reference,
         current_revision_id: quality.current_revision_id,
-        verified_at: quality.verified_at
+        verified_at: quality.verified_at,
+        curation_status: quality.curation_status,
+        curation_rank: quality.curation_rank,
+        curation_reason: quality.curation_reason,
+        curation_version: quality.curation_version,
+        curated_at: quality.curated_at
       },
       revision
     }));

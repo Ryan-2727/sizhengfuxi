@@ -8,6 +8,7 @@ const checks = [
   ["editorial-audit", "scripts/audit-editorial-quality.js"],
   ["payload-integrity", "scripts/verify-original-question-payloads.js"],
   ["editorial-quality", "scripts/verify-editorial-quality.js"],
+  ["question-curation", "scripts/verify-question-curation.js"],
   ["editorial-sample", "scripts/verify-editorial-sample.js"],
   ["question-coverage", "scripts/verify-question-coverage.js"],
   ["analysis-quality", "scripts/verify-analysis-quality.js"],

@@ -5,12 +5,14 @@ const { loadQuestionBank } = require("./load-question-bank");
 const {
   characterBigrams,
   jaccard,
+  hasHighRiskQuestionClaim,
   normalizeText,
   normalizedStem,
   payloadHash,
   questionReference,
   sourceMetadata
 } = require("./editorial-quality");
+const { buildQuestionCuration } = require("./question-curation");
 const { reviewedSourceChapter, reviewedSourceMetadata } = require("./editorial-review-overrides");
 
 function loadTextbookEvidence(root) {
@@ -252,6 +254,20 @@ function questionStemText(question) {
   return firstOption >= 0 ? text.slice(0, firstOption) : text;
 }
 
+function answerLeakedInChoiceStem(question, options, letters) {
+  const stem = questionStemText(question);
+  const parenthetical = [...stem.matchAll(/[（(]([^（）()]{2,100})[）)]/g)]
+    .map((match) => normalizeText(match[1]))
+    .filter(Boolean);
+  if (!parenthetical.length) return false;
+  return [...letters].some((letter) => {
+    const answer = normalizeText(options[letter]);
+    if (answer.length < 4) return false;
+    return parenthetical.some((content) => content.includes(answer)
+      || (content.length >= 4 && answer.includes(content)));
+  });
+}
+
 function classifyQuestion(payload, courseId, rules, reviewedAssignment = null, answerText = "") {
   if (payload.chapterId && ["candidate", "verified"].includes(payload.chapterAssignmentStatus)) {
     return {
@@ -322,6 +338,58 @@ function classifyQuestion(payload, courseId, rules, reviewedAssignment = null, a
     status: "candidate",
     confidence: Number(confidence.toFixed(2)),
     reference: `semantic-rules-v1:${semanticBest.matchedTerms.slice(0, 6).join("|")}`
+  };
+}
+
+function resolveQuestionChapter(payload, courseId, rules, evidence, reviewedSourceChapterAssignment, answerText) {
+  if (payload.chapterId && payload.chapterAssignmentStatus === "verified") {
+    return {
+      chapter: classifyQuestion(payload, courseId, rules, null, answerText),
+      evidenceConflict: false
+    };
+  }
+  if (reviewedSourceChapterAssignment?.chapterId) {
+    return {
+      chapter: classifyQuestion(payload, courseId, rules, reviewedSourceChapterAssignment, answerText),
+      evidenceConflict: Boolean(evidence?.chapterId && evidence.chapterId !== reviewedSourceChapterAssignment.chapterId)
+    };
+  }
+
+  const rulePayload = { ...payload };
+  delete rulePayload.chapterId;
+  delete rulePayload.chapterAssignmentStatus;
+  delete rulePayload.chapterAssignmentReference;
+  const ruleCandidate = classifyQuestion(rulePayload, courseId, rules, null, answerText);
+  if (!evidence?.chapterId) return { chapter: ruleCandidate, evidenceConflict: false };
+  if (ruleCandidate.chapterId === evidence.chapterId && ruleCandidate.status !== "unclassified") {
+    return {
+      chapter: {
+        chapterId: evidence.chapterId,
+        status: "verified",
+        confidence: Number(Math.min(Number(evidence.chapterConfidence || 1), Number(ruleCandidate.confidence || 1)).toFixed(2)),
+        reference: `${evidence.verificationReference}; independent-chapter-match:${ruleCandidate.reference}`
+      },
+      evidenceConflict: false
+    };
+  }
+  if (ruleCandidate.chapterId) {
+    return {
+      chapter: {
+        ...ruleCandidate,
+        status: "candidate",
+        reference: `${ruleCandidate.reference}; textbook-page-candidate:${evidence.chapterId}`
+      },
+      evidenceConflict: true
+    };
+  }
+  return {
+    chapter: {
+      chapterId: evidence.chapterId,
+      status: "candidate",
+      confidence: Number(Math.min(0.74, Number(evidence.chapterConfidence || 0.5)).toFixed(2)),
+      reference: `textbook-page-candidate:${evidence.verificationReference}`
+    },
+    evidenceConflict: false
   };
 }
 
@@ -481,19 +549,21 @@ async function buildEditorialManifest() {
       const answerText = questionType === "choice"
         ? [...api.choiceAnswerLetters(payload)].map((letter) => api.parseChoiceOptions(payload.question)[letter]).filter(Boolean).join(" ")
         : payload.answer;
-      const reviewedChapter = evidence?.chapterId
-        ? {
-            chapterId: evidence.chapterId,
-            status: evidence.chapterAssignmentStatus || "verified",
-            confidence: evidence.chapterConfidence || 1,
-            reference: evidence.verificationReference
-          }
-        : reviewedSourceChapter(course.id, payload);
-      const chapter = classifyQuestion(payload, course.id, rules, reviewedChapter, answerText);
+      const reviewedSourceChapterAssignment = reviewedSourceChapter(course.id, payload);
+      const chapterResolution = resolveQuestionChapter(
+        payload,
+        course.id,
+        rules,
+        evidence,
+        reviewedSourceChapterAssignment,
+        answerText
+      );
+      const chapter = chapterResolution.chapter;
       const chapterTerms = chapter.chapterId
         ? (rules[course.id].find(([chapterId]) => chapterId === chapter.chapterId)?.[1] || [])
         : [];
       const issues = [];
+      if (chapterResolution.evidenceConflict) issues.push("chapter-evidence-conflict");
       let revision;
       if (questionType === "choice") {
         const options = api.parseChoiceOptions(payload.question);
@@ -502,6 +572,7 @@ async function buildEditorialManifest() {
         const expectedType = letters.length > 1 ? "多选题" : "单选题";
         if (!letters || [...letters].some((letter) => !options[letter])) issues.push("invalid-choice-answer");
         if (payload.questionType !== expectedType && !manualChoiceCorrection) issues.push("choice-type-mismatch");
+        if (answerLeakedInChoiceStem(payload.question, options, letters)) issues.push("answer-leaked-in-stem");
         const enriched = analysis.enrichChoiceAnalysis({ question: payload.question, analysis: payload.analysis, letters, options });
         revision = {
           displayQuestion: null,
@@ -563,13 +634,14 @@ async function buildEditorialManifest() {
         || reviewedSource?.verificationReference
         || source.verificationReference
         || (source.sourceTitle ? `来源记录：${source.sourceTitle}` : null);
-      if (/唯一|首要|根本|核心|最[早先主要]|第一次|标志|会议|法律|《/.test(payload.question)
+      if (hasHighRiskQuestionClaim(payload.question)
         && !["teacher-key-verified", "textbook-law-verified", "authoritative-source-verified"].includes(verificationStatus)) {
         issues.push("high-risk-statement-needs-source-review");
       }
       const manualCanonicalRef = MANUAL_HIDDEN_DUPLICATE_CANONICALS.get(ref);
       const hiddenReviewReason = MANUAL_HIDDEN_REVIEW_REASONS.get(ref)
         || (!manualCanonicalRef && issues.includes("high-risk-statement-needs-source-review") ? "source-verification-required" : null)
+        || (!manualCanonicalRef && issues.includes("answer-leaked-in-stem") ? "answer-leaked-in-stem" : null)
         || (!manualCanonicalRef && chapter.status === "unclassified" ? "chapter-classification-required" : null);
       if (hiddenReviewReason) issues.push(hiddenReviewReason);
       if (manualCanonicalRef) issues.push("reviewed-conflicting-duplicate");
@@ -598,7 +670,9 @@ async function buildEditorialManifest() {
             : evidence?.sourceEdition || (source.sourceKind === "textbook-review" ? courseKnowledge.edition : null),
           sourceChapter: manualChoiceCorrection
             ? manualChoiceCorrection.sourceChapter
-            : chapter.chapterId ? chapterTitle.get(chapter.chapterId) || null : null,
+            : evidence?.chapterId
+              ? chapterTitle.get(evidence.chapterId) || null
+              : chapter.chapterId ? chapterTitle.get(chapter.chapterId) || null : null,
           sourcePage: manualChoiceCorrection?.sourcePage || evidence?.sourcePage || null,
           sourceUrl: manualChoiceCorrection?.sourceUrl
             || (/^https?:\/\//.test(source.verificationReference || "") ? source.verificationReference : null),
@@ -612,21 +686,36 @@ async function buildEditorialManifest() {
     course.essays.forEach((payload, index) => add(payload, "essay", index + 1));
   }
 
+  const entriesByRef = new Map(entries.map((entry) => [entry.ref, entry]));
+  for (const [duplicateRef, canonicalRef] of MANUAL_HIDDEN_DUPLICATE_CANONICALS) {
+    const duplicate = entriesByRef.get(duplicateRef);
+    const canonical = entriesByRef.get(canonicalRef);
+    if (!duplicate || !canonical) throw new Error(`Reviewed duplicate link is incomplete: ${duplicateRef} -> ${canonicalRef}.`);
+    if (canonical.quality.publicationStatus === "published") continue;
+    duplicate.quality.publicationStatus = "hidden_review";
+    duplicate.quality.reviewStatus = "needs_manual_review";
+    duplicate.quality.canonicalRef = null;
+    duplicate.issues.push("canonical-under-review");
+  }
+
   const automaticExactDuplicates = exactDuplicateGroups(
     entries.filter((entry) => entry.quality.publicationStatus === "published"),
     api
   );
   const semanticDuplicates = resolveEquivalentNearDuplicates(entries, api);
   const exactDuplicates = [
-    ...[...MANUAL_HIDDEN_DUPLICATE_CANONICALS.entries()].map(([duplicateRef, canonicalRef]) => ({
-      canonicalRef,
-      duplicateRefs: [duplicateRef],
-      confidence: "reviewed-conflicting-source"
-    })),
+    ...[...MANUAL_HIDDEN_DUPLICATE_CANONICALS.entries()]
+      .filter(([duplicateRef]) => entriesByRef.get(duplicateRef)?.quality.publicationStatus === "hidden_duplicate")
+      .map(([duplicateRef, canonicalRef]) => ({
+        canonicalRef,
+        duplicateRefs: [duplicateRef],
+        confidence: "reviewed-conflicting-source"
+      })),
     ...automaticExactDuplicates,
     ...semanticDuplicates.resolved
   ];
   const nearDuplicates = semanticDuplicates.unresolved;
+  const curation = buildQuestionCuration(entries, api, knowledgeModule.courseKnowledge);
   const report = {
     generatedAt: new Date().toISOString(),
     totals: {
@@ -642,13 +731,23 @@ async function buildEditorialManifest() {
       archivedUnclassifiedChapters: entries.filter((entry) => entry.chapter.status === "unclassified" && entry.quality.publicationStatus === "hidden_review").length,
       sourceReviewQueue: entries.filter((entry) => entry.issues.includes("high-risk-statement-needs-source-review") && entry.quality.publicationStatus === "published").length,
       archivedSourceReview: entries.filter((entry) => entry.issues.includes("high-risk-statement-needs-source-review") && entry.quality.publicationStatus === "hidden_review").length,
-      revisions: entries.filter((entry) => entry.revision).length
+      revisions: entries.filter((entry) => entry.revision).length,
+      curatedChoices: curation.report.totals.choices,
+      curatedEssays: curation.report.totals.essays,
+      curatedCompleteChapters: curation.report.totals.completeChapters,
+      curatedChaptersWithGaps: curation.report.totals.chaptersWithGaps
     },
     exactDuplicates,
     nearDuplicates,
     issueCounts: entries.flatMap((entry) => entry.issues).reduce((counts, issue) => ({ ...counts, [issue]: (counts[issue] || 0) + 1 }), {})
   };
-  return { version: 1, report, entries };
+  return {
+    version: 1,
+    report,
+    entries,
+    curation: curation.manifest,
+    curationReport: curation.report
+  };
 }
 
 module.exports = {
@@ -658,8 +757,10 @@ module.exports = {
   MANUAL_DISTINCT_NEAR_DUPLICATES,
   MANUAL_HIDDEN_DUPLICATE_CANONICALS,
   MANUAL_HIDDEN_REVIEW_REASONS,
+  answerLeakedInChoiceStem,
   buildEditorialManifest,
   classifyQuestion,
+  resolveQuestionChapter,
   essayCommonMistakes,
   essayKeywords,
   scoringPoints

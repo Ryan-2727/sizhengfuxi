@@ -33,6 +33,8 @@ Open the Supabase SQL editor and run every file in `supabase/migrations/` in fil
 -- supabase/migrations/202608110009_user_feedback.sql
 -- Public-write rate limits and correction evidence:
 -- supabase/migrations/202608110010_production_hardening.sql
+-- Chapter-level curated question metadata:
+-- supabase/migrations/202608120011_question_curation.sql
 ```
 
 The migrations create `memberships`, `questions`, `question_bank_catalog`, `question_quality`, `question_revisions`, and `question_quality_events`, enable RLS on every business table, grant no browser write permissions, and permit catalog and published-question reads only through `public.is_active_member()`.
@@ -48,6 +50,8 @@ Run `202608110007_order_experience.sql` before deploying the matching order-stat
 Run `202608110008_fix_question_quality_digest.sql` before appending new questions. It only rebuilds the question-quality insert function so SHA-256 hashing resolves from Supabase's `extensions` schema; it does not replace or edit existing question rows.
 
 Run `202608110010_production_hardening.sql` after the feedback migration and before deploying the matching frontend. It creates a server-only atomic rate-limit table/RPC and adds feedback correction evidence fields. It does not modify question payloads, answers, analyses, ordering, memberships, or orders.
+
+Run `202608120011_question_curation.sql` before deploying the chapter-curation frontend or applying the matching quality manifest. It adds only `question_quality` metadata fields and preserves existing RLS and browser read-only permissions. It does not update `questions.payload`.
 
 ## 3. Local environment and question import
 
@@ -85,16 +89,18 @@ When a reviewed correction affects only the curated supplement, create a display
 npm run import:questions -- --sync-curated
 ```
 
-After the fifth migration, generate and verify the full editorial manifest. The first command writes only to the Git-ignored local source directory; the second and third commands are read-only:
+After running migrations through `202608120011_question_curation.sql`, generate and verify the full editorial manifest. The audit commands write only to the Git-ignored local source directory and the lightweight curation manifest; the verification and preview commands do not write to Supabase:
 
 ```powershell
 npm run verify:payloads
 npm run questions:audit-quality
+npm run questions:audit-curation
 npm run verify:editorial-quality
+npm run verify:curation
 npm run questions:sync-quality
 ```
 
-Review `data/question-bank-source/editorial-quality-report.json`, then explicitly apply the manifest with the local service-role key:
+Review `data/question-bank-source/editorial-quality-report.json`, `data/question-bank-source/question-curation-report.json`, and `docs/question-curation-coverage-2026-08-12.md`, then explicitly apply the manifest with the local service-role key:
 
 ```powershell
 npm run questions:sync-quality -- --apply
@@ -102,13 +108,13 @@ npm run questions:sync-quality -- --apply
 
 The apply command verifies every database payload hash before writing, creates or reuses non-destructive revisions, updates publication/source/chapter quality metadata, and refreshes `question_bank_catalog`. It never updates `questions.payload`. Exact answer-equivalent duplicates may be hidden and linked to a canonical row; reviewed cross-course or malformed source records use `hidden_review`; semantic near-duplicates and low-confidence chapter matches remain review candidates.
 
-For this content-quality release, run `202608110008_fix_question_quality_digest.sql` first. With the service-role environment available locally, deploy the content in this order:
+For this content-quality release, run both `202608110008_fix_question_quality_digest.sql` and `202608120011_question_curation.sql` first. The catalog hash code reads the new curation columns, so the curation migration must precede any import command from this release. With the service-role environment available locally, deploy the content in this order:
 
 ```powershell
-# 1. After running migration 202608110008, append only missing reviewed additions.
+# 1. After running migrations 202608110008 and 202608120011, append only missing reviewed additions.
 npm run import:questions -- --append-curated
 
-# 2. Preview, then apply publication/source/chapter/revision metadata.
+# 2. Preview, then apply publication/source/chapter/revision/curation metadata.
 npm run questions:sync-quality
 npm run questions:sync-quality -- --apply
 

@@ -28,6 +28,8 @@ async function main() {
     if (entry.quality.publicationStatus === "hidden_review") {
       const reason = MANUAL_HIDDEN_REVIEW_REASONS.get(entry.ref)
         || (entry.issues.includes("source-verification-required") ? "source-verification-required" : null)
+        || (entry.issues.includes("answer-leaked-in-stem") ? "answer-leaked-in-stem" : null)
+        || (entry.issues.includes("canonical-under-review") ? "canonical-under-review" : null)
         || (entry.issues.includes("chapter-classification-required") ? "chapter-classification-required" : null);
       assert(reason, `${entry.ref} is hidden for review without a registered reason.`);
       assert(entry.issues.includes(reason), `${entry.ref} lacks its reviewed hidden-state issue.`);
@@ -78,16 +80,29 @@ async function main() {
     }
   }
   assert.equal(manifest.report.totals.hiddenForReview, manifest.entries.filter((entry) => entry.quality.publicationStatus === "hidden_review").length, "Hidden-review total drifted.");
+  assert.equal(manifest.report.totals.sourceReviewQueue, 0, "Published high-risk questions without strong source evidence remain accessible.");
+  assert.equal(manifest.entries.filter((entry) => entry.issues.includes("answer-leaked-in-stem") && entry.quality.publicationStatus === "published").length, 0, "Answer-leaking question stems remain published.");
   for (const [ref, reason] of MANUAL_HIDDEN_REVIEW_REASONS) {
     const entry = manifest.entries.find((candidate) => candidate.ref === ref);
     assert(entry && entry.issues.includes(reason), `${ref} lost its manually reviewed hidden-state reason.`);
   }
   for (const [duplicateRef, canonicalRef] of MANUAL_HIDDEN_DUPLICATE_CANONICALS) {
     const duplicate = manifest.entries.find((entry) => entry.ref === duplicateRef);
-    assert.equal(duplicate.quality.publicationStatus, "hidden_duplicate", `${duplicateRef} must remain hidden.`);
-    assert.equal(duplicate.quality.canonicalRef, canonicalRef, `${duplicateRef} reviewed canonical reference drifted.`);
+    const canonical = manifest.entries.find((entry) => entry.ref === canonicalRef);
+    if (canonical.quality.publicationStatus === "published") {
+      assert.equal(duplicate.quality.publicationStatus, "hidden_duplicate", `${duplicateRef} must remain hidden as a duplicate.`);
+      assert.equal(duplicate.quality.canonicalRef, canonicalRef, `${duplicateRef} reviewed canonical reference drifted.`);
+    } else {
+      assert.equal(duplicate.quality.publicationStatus, "hidden_review", `${duplicateRef} must wait while its canonical source is under review.`);
+      assert.equal(duplicate.quality.canonicalRef, null, `${duplicateRef} must not point to a hidden canonical question.`);
+      assert(duplicate.issues.includes("canonical-under-review"), `${duplicateRef} lacks the canonical review reason.`);
+    }
   }
   assert.equal(manifest.entries.filter((entry) => entry.issues.includes("reviewed-conflicting-duplicate")).length, MANUAL_HIDDEN_DUPLICATE_CANONICALS.size, "Reviewed duplicate total drifted.");
+  for (const entry of manifest.entries.filter((candidate) => candidate.quality.publicationStatus === "hidden_duplicate")) {
+    const canonical = manifest.entries.find((candidate) => candidate.ref === entry.quality.canonicalRef);
+    assert.equal(canonical?.quality.publicationStatus, "published", `${entry.ref} points to a non-published canonical question.`);
+  }
   assert.equal(manifest.entries.filter((entry) => entry.revision.displayAnswer && MANUAL_CHOICE_CORRECTIONS.has(entry.ref)).length, MANUAL_CHOICE_CORRECTIONS.size, "Manual choice review total drifted.");
   assert.equal(manifest.entries.filter((entry) => entry.issues.includes("manual-text-correction")).length, MANUAL_ANSWER_CORRECTIONS.size, "Manual correction total drifted.");
   console.table([manifest.report.totals]);

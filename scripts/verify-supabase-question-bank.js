@@ -1,7 +1,7 @@
 const path = require("path");
 const { createClient } = require("@supabase/supabase-js");
-const { normalizeText } = require("./lib/editorial-quality");
-const { DEFAULT_COURSE_IDS, readCourseQuestionState } = require("./lib/question-catalog");
+const { normalizeText, sha256, stableJson } = require("./lib/editorial-quality");
+const { DEFAULT_COURSE_IDS, catalogPayload, readCourseQuestionState } = require("./lib/question-catalog");
 const { loadLocalEnv } = require("./lib/load-local-env");
 
 loadLocalEnv(path.resolve(__dirname, ".."));
@@ -53,6 +53,7 @@ async function main() {
     const states = await readCourseQuestionState(supabase, courseId);
     const published = states.filter((state) => state.quality.publication_status === "published");
     const seen = new Map();
+    const curatedRanks = new Map();
     for (const state of states) {
       const { question, quality, revision } = state;
       if (!/^[a-f0-9]{64}$/.test(quality.original_payload_hash || "")) {
@@ -60,6 +61,27 @@ async function main() {
       }
       if (!validVerificationStatuses.has(quality.verification_status)) {
         issues.push(`${courseId}/${question.question_type}/${question.question_order}: invalid verification status`);
+      }
+      if (!["standard", "chapter_core"].includes(quality.curation_status)) {
+        issues.push(`${courseId}/${question.question_type}/${question.question_order}: invalid curation status`);
+      }
+      if (quality.curation_status === "chapter_core") {
+        if (quality.publication_status !== "published"
+          || quality.review_status !== "source_verified"
+          || question.chapter_assignment_status !== "verified") {
+          issues.push(`${courseId}/${question.question_type}/${question.question_order}: curated question lacks published, source-verified or chapter-verified state`);
+        }
+        if (!Number.isInteger(quality.curation_rank)
+          || quality.curation_rank < 1
+          || quality.curation_rank > (question.question_type === "choice" ? 10 : 2)) {
+          issues.push(`${courseId}/${question.question_type}/${question.question_order}: invalid curation rank`);
+        }
+        if (!quality.curation_reason || !quality.curation_version || !quality.curated_at) {
+          issues.push(`${courseId}/${question.question_type}/${question.question_order}: incomplete curation metadata`);
+        }
+        const rankKey = `${question.chapter_id}:${question.question_type}`;
+        if (!curatedRanks.has(rankKey)) curatedRanks.set(rankKey, []);
+        curatedRanks.get(rankKey).push(quality.curation_rank);
       }
       if (quality.publication_status === "hidden_duplicate" && !quality.canonical_question_id) {
         issues.push(`${courseId}/${question.question_type}/${question.question_order}: hidden duplicate lacks canonical question`);
@@ -105,6 +127,14 @@ async function main() {
       }
     }
 
+    for (const [rankKey, ranks] of curatedRanks) {
+      const sorted = [...ranks].sort((left, right) => left - right);
+      if (new Set(sorted).size !== sorted.length
+        || sorted.some((rank, index) => rank !== index + 1)) {
+        issues.push(`${courseId}/${rankKey}: curated ranks must be unique and contiguous from 1`);
+      }
+    }
+
     const { data: catalog, error: catalogError } = await supabase
       .from("question_bank_catalog")
       .select("choice_count, essay_count, content_hash")
@@ -113,7 +143,8 @@ async function main() {
     if (catalogError) throw catalogError;
     const choices = published.filter((state) => state.question.question_type === "choice").length;
     const essays = published.filter((state) => state.question.question_type === "essay").length;
-    if (catalog.choice_count !== choices || catalog.essay_count !== essays || !/^[a-f0-9]{64}$/.test(catalog.content_hash || "")) {
+    const expectedHash = sha256(stableJson(catalogPayload(states)));
+    if (catalog.choice_count !== choices || catalog.essay_count !== essays || catalog.content_hash !== expectedHash) {
       issues.push(`${courseId}: catalog does not match published question counts/hash`);
     }
     summary.push({
@@ -127,7 +158,7 @@ async function main() {
   }
   console.table(summary);
   if (issues.length) throw new Error(`Supabase editorial verification failed:\n${issues.slice(0, 40).join("\n")}`);
-  console.log("Supabase question quality, revisions, publication state and catalog passed.");
+  console.log("Supabase question quality, revisions, curation state, publication state and catalog passed.");
 }
 
 main().catch((error) => {

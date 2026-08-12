@@ -25,7 +25,10 @@ const banned = [
   "morality-local-question-bank.js",
   "mao-xi-local-question-bank.js",
   "marx-local-question-bank.js",
-  "verified-question-overrides.js"
+  "verified-question-overrides.js",
+  "question-curation-manifest",
+  "question-curation-report",
+  "editorial-quality-manifest"
 ];
 for (const value of banned) {
   if (output.includes(value)) throw new Error(`Production build contains forbidden content: ${value}`);

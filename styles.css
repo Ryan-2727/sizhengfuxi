@@ -1504,12 +1504,23 @@ input {
 .question-chapter-pill,
 .question-source-pill,
 .question-level-pill,
+.question-curation-pill,
 .wrong-reason-pill {
   padding: 3px 7px;
   border: 1px solid var(--line);
   border-radius: 4px;
   color: #475569;
   font-size: 12px;
+}
+
+.question-curation-pill {
+  padding: 3px 7px;
+  border: 1px solid #b9d8c3;
+  border-radius: 4px;
+  background: #edf8f0;
+  color: #17633a;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .question-level-pill {

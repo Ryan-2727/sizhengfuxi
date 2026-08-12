@@ -56,6 +56,11 @@ async function main() {
   assert(ensure.includes("loadQuestionQuality(rows, { assertSession, report })"), "published questions must load quality metadata before caching");
   assert(app.includes('from("question_quality")'), "question quality metadata must come from Supabase");
   assert(app.includes('from("question_revisions")'), "current editorial revisions must come from Supabase");
+  assert(app.includes('const curationColumns = "curation_status, curation_rank, curation_reason, curation_version"'), "course loading must fetch curation metadata");
+  assert(ensure.includes("merged.curationStatus = quality?.curation_status"), "curation metadata must be merged before IndexedDB caching");
+  assert(ensure.includes('result.error?.code === "42703"'), "the frontend must remain usable while the curation migration is pending");
+  assert(app.includes('filterButton("curated", "章节精选")'), "the question bank needs a chapter-curated filter");
+  assert(app.includes('hasCuratedQuestions ? filterButton("curated", "章节精选") : ""'), "the curation filter must stay hidden until the course has curated questions");
   assert(ensure.indexOf("loadQuestionQuality(rows, { assertSession, report })") < ensure.indexOf("putCourseQuestionCache"), "quality overlays must be applied before IndexedDB caching");
   assert(app.includes("courseLoadTasks.get(courseId)"), "simultaneous entry points must reuse one course load task");
   assert(app.includes("questionBankSessionVersion === sessionVersion"), "logout or account changes must stop stale downloads before caching");

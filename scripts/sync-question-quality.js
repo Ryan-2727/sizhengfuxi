@@ -61,7 +61,12 @@ function qualityComparable(quality) {
     verification_reference: quality.verification_reference,
     current_revision_id: quality.current_revision_id,
     original_payload_hash: quality.original_payload_hash,
-    verified_at: quality.verified_at
+    verified_at: quality.verified_at,
+    curation_status: quality.curation_status,
+    curation_rank: quality.curation_rank,
+    curation_reason: quality.curation_reason,
+    curation_version: quality.curation_version,
+    curated_at: quality.curated_at
   };
 }
 
@@ -89,11 +94,16 @@ async function upsertQuality(supabase, rows) {
 
 async function updateChapterAssignments(supabase, rows) {
   let updated = 0;
+  const managedReference = (value) => /PDF第\d+页.*题干核心语义与正确答案同页匹配|weighted-rules-v\d+|semantic-rules-v\d+|textbook-page-candidate/.test(String(value || ""));
   for (let index = 0; index < rows.length; index += 25) {
     await Promise.all(rows.slice(index, index + 25).map(async ({ state, entry }) => {
       if (!entry.chapter.chapterId || !["candidate", "verified"].includes(entry.chapter.status)) return;
+      const allowManagedDowngrade = state.question.chapter_assignment_status === "verified"
+        && entry.chapter.status === "candidate"
+        && managedReference(state.question.chapter_assignment_reference);
       if (state.question.chapter_assignment_status === "verified"
-        && (entry.chapter.status !== "verified" || state.question.chapter_id !== entry.chapter.chapterId)) return;
+        && (entry.chapter.status !== "verified" || state.question.chapter_id !== entry.chapter.chapterId)
+        && !allowManagedDowngrade) return;
       if (state.question.chapter_id === entry.chapter.chapterId
         && state.question.chapter_assignment_status === entry.chapter.status
         && state.question.chapter_assignment_reference === entry.chapter.reference) return;
@@ -105,7 +115,9 @@ async function updateChapterAssignments(supabase, rows) {
           chapter_assignment_reference: entry.chapter.reference
         })
         .eq("id", state.question.id);
-      if (entry.chapter.status === "candidate") query = query.neq("chapter_assignment_status", "verified");
+      if (entry.chapter.status === "candidate" && !allowManagedDowngrade) {
+        query = query.neq("chapter_assignment_status", "verified");
+      }
       const { error } = await query;
       if (error) throw error;
       updated += 1;
@@ -168,27 +180,40 @@ async function applyManifest(supabase, manifest) {
   const insertedByQuestion = await insertRevisions(supabase, revisionRows);
   const idByRef = new Map(pairs.map(({ state, entry }) => [entry.ref, state.question.id]));
   const now = new Date().toISOString();
-  const qualityRowsWithState = desiredRows.map(({ state, entry, currentRevisionId }) => ({
-    state,
-    row: {
-      question_id: state.question.id,
-      publication_status: entry.quality.publicationStatus,
-      review_status: entry.quality.reviewStatus,
-      canonical_question_id: entry.quality.canonicalRef ? idByRef.get(entry.quality.canonicalRef) : null,
-      chapter_confidence: entry.chapter.confidence,
-      verification_status: entry.quality.verificationStatus,
-      source_kind: entry.quality.sourceKind,
-      source_title: entry.quality.sourceTitle,
-      source_edition: entry.quality.sourceEdition,
-      source_chapter: entry.quality.sourceChapter,
-      source_page: entry.quality.sourcePage,
-      source_url: entry.quality.sourceUrl,
-      verification_reference: entry.quality.verificationReference,
-      current_revision_id: currentRevisionId || insertedByQuestion.get(state.question.id),
-      original_payload_hash: state.quality.original_payload_hash,
-      verified_at: entry.quality.reviewStatus === "source_verified" ? state.quality.verified_at || now : null
-    }
-  }));
+  const qualityRowsWithState = desiredRows.map(({ state, entry, currentRevisionId }) => {
+    const curationUnchanged = state.quality.curation_status === entry.quality.curationStatus
+      && state.quality.curation_rank === entry.quality.curationRank
+      && state.quality.curation_reason === entry.quality.curationReason
+      && state.quality.curation_version === entry.quality.curationVersion;
+    return {
+      state,
+      row: {
+        question_id: state.question.id,
+        publication_status: entry.quality.publicationStatus,
+        review_status: entry.quality.reviewStatus,
+        canonical_question_id: entry.quality.canonicalRef ? idByRef.get(entry.quality.canonicalRef) : null,
+        chapter_confidence: entry.chapter.confidence,
+        verification_status: entry.quality.verificationStatus,
+        source_kind: entry.quality.sourceKind,
+        source_title: entry.quality.sourceTitle,
+        source_edition: entry.quality.sourceEdition,
+        source_chapter: entry.quality.sourceChapter,
+        source_page: entry.quality.sourcePage,
+        source_url: entry.quality.sourceUrl,
+        verification_reference: entry.quality.verificationReference,
+        current_revision_id: currentRevisionId || insertedByQuestion.get(state.question.id),
+        original_payload_hash: state.quality.original_payload_hash,
+        verified_at: entry.quality.reviewStatus === "source_verified" ? state.quality.verified_at || now : null,
+        curation_status: entry.quality.curationStatus,
+        curation_rank: entry.quality.curationRank,
+        curation_reason: entry.quality.curationReason,
+        curation_version: entry.quality.curationVersion,
+        curated_at: entry.quality.curationStatus === "chapter_core"
+          ? (curationUnchanged ? state.quality.curated_at || now : now)
+          : null
+      }
+    };
+  });
   const qualityRows = qualityRowsWithState
     .filter(({ state, row }) => stableJson(qualityComparable(state.quality)) !== stableJson(qualityComparable(row)))
     .map(({ row }) => row);

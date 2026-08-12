@@ -2166,13 +2166,23 @@ async function loadQuestionQuality(rows, { assertSession, report }) {
   report({ phase: "quality", completed: 0, total: questionIds.length });
   const qualityRows = (await window.questionBankLoader.runConcurrentBatches(qualityBatches, async (ids) => {
     assertSession();
-    const { data, error } = await window.studySupabase
+    const baseColumns = "question_id, publication_status, review_status, verification_status, source_kind, source_title, source_edition, source_chapter, source_page, source_url, verification_reference, current_revision_id";
+    const curationColumns = "curation_status, curation_rank, curation_reason, curation_version";
+    let result = await window.studySupabase
       .from("question_quality")
-      .select("question_id, publication_status, review_status, verification_status, source_kind, source_title, source_edition, source_chapter, source_page, source_url, verification_reference, current_revision_id")
+      .select(`${baseColumns}, ${curationColumns}`)
       .in("question_id", ids);
-    if (error) throw error;
-    if (data.length !== ids.length) throw new Error("已发布题目的质量信息不完整。");
-    return data;
+    const missingCurationColumns = result.error?.code === "42703"
+      || /curation_(?:status|rank|reason|version)/.test(result.error?.message || "");
+    if (missingCurationColumns) {
+      result = await window.studySupabase
+        .from("question_quality")
+        .select(baseColumns)
+        .in("question_id", ids);
+    }
+    if (result.error) throw result.error;
+    if (result.data.length !== ids.length) throw new Error("已发布题目的质量信息不完整。");
+    return result.data;
   }, {
     concurrency: 3,
     onBatch: ({ result }) => {
@@ -2231,6 +2241,10 @@ function applyQuestionRevision(payload, quality) {
     merged.verificationReference = revision?.verification_reference || quality.verification_reference;
   }
   merged.editorialReviewStatus = quality?.review_status || "unreviewed";
+  merged.curationStatus = quality?.curation_status || "standard";
+  merged.curationRank = quality?.curation_rank || null;
+  merged.curationReason = quality?.curation_reason || null;
+  merged.curationVersion = quality?.curation_version || null;
   merged.editorialSource = quality ? {
     kind: quality.source_kind,
     title: quality.source_title,
@@ -2434,6 +2448,8 @@ function renderQuestions(course) {
     ? [course.knowledge.chapters[window.campusPreview.chapterIndex]]
     : course.knowledge?.chapters || [];
   const sourceTypes = [...new Set(all.map((item) => item.sourceLabel))];
+  const hasCuratedQuestions = all.some((item) => item.curationStatus === "chapter_core");
+  if (state.type === "curated" && !hasCuratedQuestions) state.type = "all";
   const mockExamIds = state.mockExamQuestionIds ? new Set(state.mockExamQuestionIds) : null;
   const filtered = all.filter((item) => {
     const typeOk = questionMatchesFilter(item, state.type);
@@ -2451,6 +2467,7 @@ function renderQuestions(course) {
       <div class="question-toolbar-actions">
         <div class="filters">
           ${filterButton("all", "全部")}
+          ${hasCuratedQuestions ? filterButton("curated", "章节精选") : ""}
           ${filterButton("选择题", "选择题")}
           ${filterButton("大题", "大题")}
           ${filterButton("wrong", "错题本")}
@@ -2568,6 +2585,7 @@ async function showKnowledgeQuestions(button) {
 
 function questionMatchesFilter(item, filter) {
   if (filter === "all") return true;
+  if (filter === "curated") return item.curationStatus === "chapter_core";
   if (filter === "选择题" || filter === "大题") return item.type === filter;
   if (filter === "wrong") return Boolean(studyProgress.wrong[item.questionId]);
   if (filter === "favorites") return Boolean(studyProgress.favorites[item.questionId]);
@@ -3661,8 +3679,9 @@ function renderQuestion(item) {
       <div class="question-head">
         <div class="question-meta">
           <span class="type-pill">${questionTypeLabel(item)}${item.index ? ` ${item.index}` : ""}</span>
-          <span class="question-chapter-pill" title="${item.chapterInfo.reviewed ? "人工核验的章节定位" : item.chapterInfo.assignmentStatus === "candidate" ? "候选章节定位，仍需人工复核" : item.chapterInfo.automated ? "根据题干关键词自动归类，可结合教材目录复核" : "未能可靠定位到单一章节"}">${item.chapterInfo.reviewed ? "核对章节：" : item.chapterInfo.assignmentStatus === "candidate" ? "候选章节：" : item.chapterInfo.automated ? "章节定位：" : "题集归类："}${escapeHtml(item.chapterInfo.title)}</span>
+          <span class="question-chapter-pill" title="${item.chapterInfo.reviewed ? "具有教材页码、已审分章资料或明确编辑依据的章节定位" : item.chapterInfo.assignmentStatus === "candidate" ? "候选章节定位，仍需人工复核" : item.chapterInfo.automated ? "根据题干关键词自动归类，可结合教材目录复核" : "未能可靠定位到单一章节"}">${item.chapterInfo.reviewed ? "核对章节：" : item.chapterInfo.assignmentStatus === "candidate" ? "候选章节：" : item.chapterInfo.automated ? "章节定位：" : "题集归类："}${escapeHtml(item.chapterInfo.title)}</span>
           <span class="question-source-pill">${escapeHtml(item.sourceLabel)}</span>
+          ${item.curationStatus === "chapter_core" ? `<span class="question-curation-pill" title="${escapeHtml(item.curationReason || "通过章节、来源、答案和解析质量门槛")}">章节精选${item.curationRank ? ` ${item.curationRank}` : ""}</span>` : ""}
           <span class="question-level-pill">难度：${escapeHtml(difficulty)}</span>
           <span class="question-level-pill">频次：${escapeHtml(frequency)}</span>
           ${verificationLabel ? `<span class="verification-status">${escapeHtml(verificationLabel)}</span>` : ""}

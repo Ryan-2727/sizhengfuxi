@@ -7,6 +7,12 @@ const VALID_VERIFICATION_STATUSES = new Set([
   "source-backed"
 ]);
 
+const HIGH_RISK_QUESTION_PATTERN = /唯一|首要|根本|核心|最高|最大|最低|最早|最先|最主要|最重要|最根本|最本质|最突出|最深刻|最广泛|最彻底|最集中|最典型|最有力|第一次|第一个|第一部|第一批|第一要义|第一动力|第一生产力|首次|开端|转折点|决定性|本质特征|总目标|总任务|主要矛盾|中心任务|指导方针|基本路线|精髓|灵魂|法宝|标志|会议|法律|《/;
+
+function hasHighRiskQuestionClaim(value) {
+  return HIGH_RISK_QUESTION_PATTERN.test(String(value || ""));
+}
+
 function stableJson(value) {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
   if (value && typeof value === "object") {
@@ -96,9 +102,11 @@ function questionReference(courseId, questionType, questionOrder) {
 }
 
 module.exports = {
+  HIGH_RISK_QUESTION_PATTERN,
   VALID_VERIFICATION_STATUSES,
   characterBigrams,
   jaccard,
+  hasHighRiskQuestionClaim,
   normalizeText,
   normalizedStem,
   payloadHash,
