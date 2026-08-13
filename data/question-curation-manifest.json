@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-12-v1",
+  "version": "2026-08-13-v2",
   "targets": {
     "choice": 10,
     "essay": 2
@@ -15,7 +15,61 @@
       "curationReason": "权威题源与章节定位已核对，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "history:choice:1038",
+      "ref": "history:choice:148",
+      "courseId": "history",
+      "chapterId": "history-1",
+      "questionType": "choice",
+      "rank": 2,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:1171",
+      "courseId": "history",
+      "chapterId": "history-1",
+      "questionType": "choice",
+      "rank": 3,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:1170",
+      "courseId": "history",
+      "chapterId": "history-1",
+      "questionType": "choice",
+      "rank": 4,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:1029",
+      "courseId": "history",
+      "chapterId": "history-1",
+      "questionType": "choice",
+      "rank": 5,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:essay:9",
+      "courseId": "history",
+      "chapterId": "history-1",
+      "questionType": "essay",
+      "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材依据与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:essay:7",
+      "courseId": "history",
+      "chapterId": "history-1",
+      "questionType": "essay",
+      "rank": 2,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材依据与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:113",
       "courseId": "history",
       "chapterId": "history-2",
       "questionType": "choice",
@@ -24,7 +78,7 @@
       "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "history:choice:81",
+      "ref": "history:choice:1038",
       "courseId": "history",
       "chapterId": "history-2",
       "questionType": "choice",
@@ -33,11 +87,56 @@
       "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "history:choice:82",
+      "ref": "history:choice:81",
       "courseId": "history",
       "chapterId": "history-2",
       "questionType": "choice",
       "rank": 3,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:89",
+      "courseId": "history",
+      "chapterId": "history-2",
+      "questionType": "choice",
+      "rank": 4,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:168",
+      "courseId": "history",
+      "chapterId": "history-2",
+      "questionType": "choice",
+      "rank": 5,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:82",
+      "courseId": "history",
+      "chapterId": "history-2",
+      "questionType": "choice",
+      "rank": 6,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:1175",
+      "courseId": "history",
+      "chapterId": "history-2",
+      "questionType": "choice",
+      "rank": 7,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:58",
+      "courseId": "history",
+      "chapterId": "history-2",
+      "questionType": "choice",
+      "rank": 8,
       "verificationStatus": "textbook-law-verified",
       "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
     },
@@ -51,11 +150,146 @@
       "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "history:choice:1255",
+      "ref": "history:essay:12",
+      "courseId": "history",
+      "chapterId": "history-2",
+      "questionType": "essay",
+      "rank": 2,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材依据与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:359",
       "courseId": "history",
       "chapterId": "history-3",
       "questionType": "choice",
       "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:277",
+      "courseId": "history",
+      "chapterId": "history-3",
+      "questionType": "choice",
+      "rank": 2,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:358",
+      "courseId": "history",
+      "chapterId": "history-3",
+      "questionType": "choice",
+      "rank": 3,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:335",
+      "courseId": "history",
+      "chapterId": "history-3",
+      "questionType": "choice",
+      "rank": 4,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:339",
+      "courseId": "history",
+      "chapterId": "history-3",
+      "questionType": "choice",
+      "rank": 5,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:900",
+      "courseId": "history",
+      "chapterId": "history-3",
+      "questionType": "choice",
+      "rank": 6,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:336",
+      "courseId": "history",
+      "chapterId": "history-3",
+      "questionType": "choice",
+      "rank": 7,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:1255",
+      "courseId": "history",
+      "chapterId": "history-3",
+      "questionType": "choice",
+      "rank": 8,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:1241",
+      "courseId": "history",
+      "chapterId": "history-3",
+      "questionType": "choice",
+      "rank": 9,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:essay:13",
+      "courseId": "history",
+      "chapterId": "history-3",
+      "questionType": "essay",
+      "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材依据与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:379",
+      "courseId": "history",
+      "chapterId": "history-4",
+      "questionType": "choice",
+      "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:380",
+      "courseId": "history",
+      "chapterId": "history-4",
+      "questionType": "choice",
+      "rank": 2,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:325",
+      "courseId": "history",
+      "chapterId": "history-4",
+      "questionType": "choice",
+      "rank": 3,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:362",
+      "courseId": "history",
+      "chapterId": "history-4",
+      "questionType": "choice",
+      "rank": 4,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:16",
+      "courseId": "history",
+      "chapterId": "history-4",
+      "questionType": "choice",
+      "rank": 5,
       "verificationStatus": "textbook-law-verified",
       "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
     },
@@ -69,11 +303,101 @@
       "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "history:choice:202",
+      "ref": "history:essay:14",
+      "courseId": "history",
+      "chapterId": "history-4",
+      "questionType": "essay",
+      "rank": 2,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材依据与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:1064",
       "courseId": "history",
       "chapterId": "history-5",
       "questionType": "choice",
       "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:1065",
+      "courseId": "history",
+      "chapterId": "history-5",
+      "questionType": "choice",
+      "rank": 2,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:1055",
+      "courseId": "history",
+      "chapterId": "history-5",
+      "questionType": "choice",
+      "rank": 3,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:1051",
+      "courseId": "history",
+      "chapterId": "history-5",
+      "questionType": "choice",
+      "rank": 4,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:1197",
+      "courseId": "history",
+      "chapterId": "history-5",
+      "questionType": "choice",
+      "rank": 5,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:196",
+      "courseId": "history",
+      "chapterId": "history-5",
+      "questionType": "choice",
+      "rank": 6,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:193",
+      "courseId": "history",
+      "chapterId": "history-5",
+      "questionType": "choice",
+      "rank": 7,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:884",
+      "courseId": "history",
+      "chapterId": "history-5",
+      "questionType": "choice",
+      "rank": 8,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:211",
+      "courseId": "history",
+      "chapterId": "history-5",
+      "questionType": "choice",
+      "rank": 9,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:202",
+      "courseId": "history",
+      "chapterId": "history-5",
+      "questionType": "choice",
+      "rank": 10,
       "verificationStatus": "textbook-law-verified",
       "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
     },
@@ -87,7 +411,7 @@
       "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "history:choice:256",
+      "ref": "history:choice:366",
       "courseId": "history",
       "chapterId": "history-6",
       "questionType": "choice",
@@ -96,11 +420,83 @@
       "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "history:choice:254",
+      "ref": "history:choice:1214",
       "courseId": "history",
       "chapterId": "history-6",
       "questionType": "choice",
       "rank": 2,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:228",
+      "courseId": "history",
+      "chapterId": "history-6",
+      "questionType": "choice",
+      "rank": 3,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:895",
+      "courseId": "history",
+      "chapterId": "history-6",
+      "questionType": "choice",
+      "rank": 4,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:331",
+      "courseId": "history",
+      "chapterId": "history-6",
+      "questionType": "choice",
+      "rank": 5,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:353",
+      "courseId": "history",
+      "chapterId": "history-6",
+      "questionType": "choice",
+      "rank": 6,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:92",
+      "courseId": "history",
+      "chapterId": "history-6",
+      "questionType": "choice",
+      "rank": 7,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:256",
+      "courseId": "history",
+      "chapterId": "history-6",
+      "questionType": "choice",
+      "rank": 8,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:218",
+      "courseId": "history",
+      "chapterId": "history-6",
+      "questionType": "choice",
+      "rank": 9,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:254",
+      "courseId": "history",
+      "chapterId": "history-6",
+      "questionType": "choice",
+      "rank": 10,
       "verificationStatus": "textbook-law-verified",
       "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
     },
@@ -114,11 +510,146 @@
       "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "history:choice:1098",
+      "ref": "history:essay:17",
+      "courseId": "history",
+      "chapterId": "history-6",
+      "questionType": "essay",
+      "rank": 2,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材依据与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:400",
+      "courseId": "history",
+      "chapterId": "history-7",
+      "questionType": "choice",
+      "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:392",
+      "courseId": "history",
+      "chapterId": "history-7",
+      "questionType": "choice",
+      "rank": 2,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:439",
+      "courseId": "history",
+      "chapterId": "history-7",
+      "questionType": "choice",
+      "rank": 3,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:450",
+      "courseId": "history",
+      "chapterId": "history-7",
+      "questionType": "choice",
+      "rank": 4,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:408",
+      "courseId": "history",
+      "chapterId": "history-7",
+      "questionType": "choice",
+      "rank": 5,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:440",
+      "courseId": "history",
+      "chapterId": "history-7",
+      "questionType": "choice",
+      "rank": 6,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:512",
       "courseId": "history",
       "chapterId": "history-8",
       "questionType": "choice",
       "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:803",
+      "courseId": "history",
+      "chapterId": "history-8",
+      "questionType": "choice",
+      "rank": 2,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:428",
+      "courseId": "history",
+      "chapterId": "history-8",
+      "questionType": "choice",
+      "rank": 3,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:455",
+      "courseId": "history",
+      "chapterId": "history-8",
+      "questionType": "choice",
+      "rank": 4,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:29",
+      "courseId": "history",
+      "chapterId": "history-8",
+      "questionType": "choice",
+      "rank": 5,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:415",
+      "courseId": "history",
+      "chapterId": "history-8",
+      "questionType": "choice",
+      "rank": 6,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:1093",
+      "courseId": "history",
+      "chapterId": "history-8",
+      "questionType": "choice",
+      "rank": 7,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:1098",
+      "courseId": "history",
+      "chapterId": "history-8",
+      "questionType": "choice",
+      "rank": 8,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:1099",
+      "courseId": "history",
+      "chapterId": "history-8",
+      "questionType": "choice",
+      "rank": 9,
       "verificationStatus": "textbook-law-verified",
       "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
     },
@@ -127,48 +658,30 @@
       "courseId": "history",
       "chapterId": "history-8",
       "questionType": "choice",
+      "rank": 10,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:essay:19",
+      "courseId": "history",
+      "chapterId": "history-8",
+      "questionType": "essay",
+      "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材依据与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:essay:18",
+      "courseId": "history",
+      "chapterId": "history-8",
+      "questionType": "essay",
       "rank": 2,
       "verificationStatus": "textbook-law-verified",
-      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+      "curationReason": "教材依据与章节定位已核对，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "history:choice:458",
-      "courseId": "history",
-      "chapterId": "history-8",
-      "questionType": "choice",
-      "rank": 3,
-      "verificationStatus": "textbook-law-verified",
-      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
-    },
-    {
-      "ref": "history:choice:961",
-      "courseId": "history",
-      "chapterId": "history-8",
-      "questionType": "choice",
-      "rank": 4,
-      "verificationStatus": "textbook-law-verified",
-      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
-    },
-    {
-      "ref": "history:choice:502",
-      "courseId": "history",
-      "chapterId": "history-8",
-      "questionType": "choice",
-      "rank": 5,
-      "verificationStatus": "textbook-law-verified",
-      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
-    },
-    {
-      "ref": "history:choice:515",
-      "courseId": "history",
-      "chapterId": "history-8",
-      "questionType": "choice",
-      "rank": 6,
-      "verificationStatus": "textbook-law-verified",
-      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
-    },
-    {
-      "ref": "history:choice:546",
+      "ref": "history:choice:30",
       "courseId": "history",
       "chapterId": "history-9",
       "questionType": "choice",
@@ -177,11 +690,137 @@
       "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:821",
+      "ref": "history:choice:571",
+      "courseId": "history",
+      "chapterId": "history-9",
+      "questionType": "choice",
+      "rank": 2,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:585",
+      "courseId": "history",
+      "chapterId": "history-9",
+      "questionType": "choice",
+      "rank": 3,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:566",
+      "courseId": "history",
+      "chapterId": "history-9",
+      "questionType": "choice",
+      "rank": 4,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:1004",
+      "courseId": "history",
+      "chapterId": "history-9",
+      "questionType": "choice",
+      "rank": 5,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:1007",
+      "courseId": "history",
+      "chapterId": "history-9",
+      "questionType": "choice",
+      "rank": 6,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:998",
+      "courseId": "history",
+      "chapterId": "history-9",
+      "questionType": "choice",
+      "rank": 7,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:866",
+      "courseId": "history",
+      "chapterId": "history-9",
+      "questionType": "choice",
+      "rank": 8,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:540",
+      "courseId": "history",
+      "chapterId": "history-9",
+      "questionType": "choice",
+      "rank": 9,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:choice:546",
+      "courseId": "history",
+      "chapterId": "history-9",
+      "questionType": "choice",
+      "rank": 10,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:essay:21",
+      "courseId": "history",
+      "chapterId": "history-9",
+      "questionType": "essay",
+      "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材依据与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:essay:20",
+      "courseId": "history",
+      "chapterId": "history-9",
+      "questionType": "essay",
+      "rank": 2,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材依据与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:essay:8",
+      "courseId": "history",
+      "chapterId": "history-intro",
+      "questionType": "essay",
+      "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材依据与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "history:essay:1",
+      "courseId": "history",
+      "chapterId": "history-intro",
+      "questionType": "essay",
+      "rank": 2,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材依据与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:choice:813",
       "courseId": "mao",
       "chapterId": "mao-1",
       "questionType": "choice",
       "rank": 1,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:choice:821",
+      "courseId": "mao",
+      "chapterId": "mao-1",
+      "questionType": "choice",
+      "rank": 2,
       "verificationStatus": "teacher-key-verified",
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
@@ -190,7 +829,7 @@
       "courseId": "mao",
       "chapterId": "mao-1",
       "questionType": "choice",
-      "rank": 2,
+      "rank": 3,
       "verificationStatus": "teacher-key-verified",
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
@@ -199,21 +838,12 @@
       "courseId": "mao",
       "chapterId": "mao-1",
       "questionType": "choice",
-      "rank": 3,
-      "verificationStatus": "teacher-key-verified",
-      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
-    },
-    {
-      "ref": "mao:choice:817",
-      "courseId": "mao",
-      "chapterId": "mao-1",
-      "questionType": "choice",
       "rank": 4,
       "verificationStatus": "teacher-key-verified",
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:818",
+      "ref": "mao:choice:814",
       "courseId": "mao",
       "chapterId": "mao-1",
       "questionType": "choice",
@@ -222,7 +852,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:815",
+      "ref": "mao:choice:817",
       "courseId": "mao",
       "chapterId": "mao-1",
       "questionType": "choice",
@@ -231,7 +861,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:809",
+      "ref": "mao:choice:818",
       "courseId": "mao",
       "chapterId": "mao-1",
       "questionType": "choice",
@@ -240,7 +870,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:810",
+      "ref": "mao:choice:815",
       "courseId": "mao",
       "chapterId": "mao-1",
       "questionType": "choice",
@@ -249,7 +879,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:811",
+      "ref": "mao:choice:819",
       "courseId": "mao",
       "chapterId": "mao-1",
       "questionType": "choice",
@@ -258,7 +888,25 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:873",
+      "ref": "mao:choice:809",
+      "courseId": "mao",
+      "chapterId": "mao-1",
+      "questionType": "choice",
+      "rank": 10,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:essay:1",
+      "courseId": "mao",
+      "chapterId": "mao-1",
+      "questionType": "essay",
+      "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材依据与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:choice:880",
       "courseId": "mao",
       "chapterId": "mao-2",
       "questionType": "choice",
@@ -267,7 +915,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:879",
+      "ref": "mao:choice:872",
       "courseId": "mao",
       "chapterId": "mao-2",
       "questionType": "choice",
@@ -276,7 +924,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:867",
+      "ref": "mao:choice:873",
       "courseId": "mao",
       "chapterId": "mao-2",
       "questionType": "choice",
@@ -285,13 +933,76 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:871",
+      "ref": "mao:choice:875",
       "courseId": "mao",
       "chapterId": "mao-2",
       "questionType": "choice",
       "rank": 4,
       "verificationStatus": "teacher-key-verified",
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:choice:876",
+      "courseId": "mao",
+      "chapterId": "mao-2",
+      "questionType": "choice",
+      "rank": 5,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:choice:883",
+      "courseId": "mao",
+      "chapterId": "mao-2",
+      "questionType": "choice",
+      "rank": 6,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:choice:882",
+      "courseId": "mao",
+      "chapterId": "mao-2",
+      "questionType": "choice",
+      "rank": 7,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:choice:881",
+      "courseId": "mao",
+      "chapterId": "mao-2",
+      "questionType": "choice",
+      "rank": 8,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:choice:878",
+      "courseId": "mao",
+      "chapterId": "mao-2",
+      "questionType": "choice",
+      "rank": 9,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:choice:879",
+      "courseId": "mao",
+      "chapterId": "mao-2",
+      "questionType": "choice",
+      "rank": 10,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:essay:2",
+      "courseId": "mao",
+      "chapterId": "mao-2",
+      "questionType": "essay",
+      "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材依据与章节定位已核对，答案和解析达到章节精选门槛。"
     },
     {
       "ref": "mao:choice:860",
@@ -303,11 +1014,47 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:859",
+      "ref": "mao:choice:866",
       "courseId": "mao",
       "chapterId": "mao-3",
       "questionType": "choice",
       "rank": 2,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:choice:859",
+      "courseId": "mao",
+      "chapterId": "mao-3",
+      "questionType": "choice",
+      "rank": 3,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:choice:858",
+      "courseId": "mao",
+      "chapterId": "mao-3",
+      "questionType": "choice",
+      "rank": 4,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:choice:864",
+      "courseId": "mao",
+      "chapterId": "mao-3",
+      "questionType": "choice",
+      "rank": 5,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:choice:865",
+      "courseId": "mao",
+      "chapterId": "mao-3",
+      "questionType": "choice",
+      "rank": 6,
       "verificationStatus": "teacher-key-verified",
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
@@ -316,7 +1063,7 @@
       "courseId": "mao",
       "chapterId": "mao-3",
       "questionType": "choice",
-      "rank": 3,
+      "rank": 7,
       "verificationStatus": "teacher-key-verified",
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
@@ -325,7 +1072,7 @@
       "courseId": "mao",
       "chapterId": "mao-3",
       "questionType": "choice",
-      "rank": 4,
+      "rank": 8,
       "verificationStatus": "teacher-key-verified",
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
@@ -334,7 +1081,7 @@
       "courseId": "mao",
       "chapterId": "mao-3",
       "questionType": "choice",
-      "rank": 5,
+      "rank": 9,
       "verificationStatus": "teacher-key-verified",
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
@@ -343,30 +1090,21 @@
       "courseId": "mao",
       "chapterId": "mao-3",
       "questionType": "choice",
-      "rank": 6,
+      "rank": 10,
       "verificationStatus": "teacher-key-verified",
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:851",
+      "ref": "mao:essay:3",
       "courseId": "mao",
       "chapterId": "mao-3",
-      "questionType": "choice",
-      "rank": 7,
-      "verificationStatus": "teacher-key-verified",
-      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+      "questionType": "essay",
+      "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材依据与章节定位已核对，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:853",
-      "courseId": "mao",
-      "chapterId": "mao-3",
-      "questionType": "choice",
-      "rank": 8,
-      "verificationStatus": "teacher-key-verified",
-      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
-    },
-    {
-      "ref": "mao:choice:937",
+      "ref": "mao:choice:933",
       "courseId": "mao",
       "chapterId": "mao-4",
       "questionType": "choice",
@@ -375,7 +1113,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:929",
+      "ref": "mao:choice:937",
       "courseId": "mao",
       "chapterId": "mao-4",
       "questionType": "choice",
@@ -384,7 +1122,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:928",
+      "ref": "mao:choice:935",
       "courseId": "mao",
       "chapterId": "mao-4",
       "questionType": "choice",
@@ -393,7 +1131,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:938",
+      "ref": "mao:choice:936",
       "courseId": "mao",
       "chapterId": "mao-4",
       "questionType": "choice",
@@ -402,7 +1140,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:922",
+      "ref": "mao:choice:929",
       "courseId": "mao",
       "chapterId": "mao-4",
       "questionType": "choice",
@@ -411,7 +1149,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:939",
+      "ref": "mao:choice:928",
       "courseId": "mao",
       "chapterId": "mao-4",
       "questionType": "choice",
@@ -420,7 +1158,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:932",
+      "ref": "mao:choice:930",
       "courseId": "mao",
       "chapterId": "mao-4",
       "questionType": "choice",
@@ -429,7 +1167,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:934",
+      "ref": "mao:choice:938",
       "courseId": "mao",
       "chapterId": "mao-4",
       "questionType": "choice",
@@ -438,7 +1176,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:926",
+      "ref": "mao:choice:922",
       "courseId": "mao",
       "chapterId": "mao-4",
       "questionType": "choice",
@@ -447,7 +1185,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:923",
+      "ref": "mao:choice:939",
       "courseId": "mao",
       "chapterId": "mao-4",
       "questionType": "choice",
@@ -483,7 +1221,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:893",
+      "ref": "mao:choice:887",
       "courseId": "mao",
       "chapterId": "mao-6",
       "questionType": "choice",
@@ -492,7 +1230,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:898",
+      "ref": "mao:choice:902",
       "courseId": "mao",
       "chapterId": "mao-6",
       "questionType": "choice",
@@ -501,7 +1239,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:885",
+      "ref": "mao:choice:894",
       "courseId": "mao",
       "chapterId": "mao-6",
       "questionType": "choice",
@@ -510,7 +1248,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:896",
+      "ref": "mao:choice:901",
       "courseId": "mao",
       "chapterId": "mao-6",
       "questionType": "choice",
@@ -519,7 +1257,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:888",
+      "ref": "mao:choice:893",
       "courseId": "mao",
       "chapterId": "mao-6",
       "questionType": "choice",
@@ -528,7 +1266,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:892",
+      "ref": "mao:choice:898",
       "courseId": "mao",
       "chapterId": "mao-6",
       "questionType": "choice",
@@ -537,7 +1275,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:890",
+      "ref": "mao:choice:885",
       "courseId": "mao",
       "chapterId": "mao-6",
       "questionType": "choice",
@@ -546,7 +1284,16 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:921",
+      "ref": "mao:essay:4",
+      "courseId": "mao",
+      "chapterId": "mao-6",
+      "questionType": "essay",
+      "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材依据与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:choice:915",
       "courseId": "mao",
       "chapterId": "mao-7",
       "questionType": "choice",
@@ -555,7 +1302,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:916",
+      "ref": "mao:choice:919",
       "courseId": "mao",
       "chapterId": "mao-7",
       "questionType": "choice",
@@ -564,11 +1311,74 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:911",
+      "ref": "mao:choice:918",
       "courseId": "mao",
       "chapterId": "mao-7",
       "questionType": "choice",
       "rank": 3,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:choice:921",
+      "courseId": "mao",
+      "chapterId": "mao-7",
+      "questionType": "choice",
+      "rank": 4,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:choice:914",
+      "courseId": "mao",
+      "chapterId": "mao-7",
+      "questionType": "choice",
+      "rank": 5,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:choice:912",
+      "courseId": "mao",
+      "chapterId": "mao-7",
+      "questionType": "choice",
+      "rank": 6,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:choice:907",
+      "courseId": "mao",
+      "chapterId": "mao-7",
+      "questionType": "choice",
+      "rank": 7,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:choice:913",
+      "courseId": "mao",
+      "chapterId": "mao-7",
+      "questionType": "choice",
+      "rank": 8,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:choice:916",
+      "courseId": "mao",
+      "chapterId": "mao-7",
+      "questionType": "choice",
+      "rank": 9,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:choice:920",
+      "courseId": "mao",
+      "chapterId": "mao-7",
+      "questionType": "choice",
+      "rank": 10,
       "verificationStatus": "teacher-key-verified",
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
@@ -582,7 +1392,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:848",
+      "ref": "mao:choice:845",
       "courseId": "mao",
       "chapterId": "mao-8",
       "questionType": "choice",
@@ -591,7 +1401,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:847",
+      "ref": "mao:choice:844",
       "courseId": "mao",
       "chapterId": "mao-8",
       "questionType": "choice",
@@ -600,7 +1410,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:831",
+      "ref": "mao:choice:833",
       "courseId": "mao",
       "chapterId": "mao-8",
       "questionType": "choice",
@@ -609,7 +1419,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:832",
+      "ref": "mao:choice:848",
       "courseId": "mao",
       "chapterId": "mao-8",
       "questionType": "choice",
@@ -618,7 +1428,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:842",
+      "ref": "mao:choice:847",
       "courseId": "mao",
       "chapterId": "mao-8",
       "questionType": "choice",
@@ -627,11 +1437,38 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "mao:choice:822",
+      "ref": "mao:choice:839",
       "courseId": "mao",
       "chapterId": "mao-8",
       "questionType": "choice",
       "rank": 7,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:choice:841",
+      "courseId": "mao",
+      "chapterId": "mao-8",
+      "questionType": "choice",
+      "rank": 8,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:choice:831",
+      "courseId": "mao",
+      "chapterId": "mao-8",
+      "questionType": "choice",
+      "rank": 9,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "mao:choice:829",
+      "courseId": "mao",
+      "chapterId": "mao-8",
+      "questionType": "choice",
+      "rank": 10,
       "verificationStatus": "teacher-key-verified",
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
@@ -724,6 +1561,15 @@
       "rank": 10,
       "verificationStatus": "teacher-key-verified",
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "marx:essay:1",
+      "courseId": "marx",
+      "chapterId": "marx-1",
+      "questionType": "essay",
+      "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材依据与章节定位已核对，答案和解析达到章节精选门槛。"
     },
     {
       "ref": "marx:choice:113",
@@ -1032,6 +1878,24 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
+      "ref": "marx:essay:75",
+      "courseId": "marx",
+      "chapterId": "marx-4",
+      "questionType": "essay",
+      "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材依据与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "marx:essay:79",
+      "courseId": "marx",
+      "chapterId": "marx-5",
+      "questionType": "essay",
+      "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材依据与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
       "ref": "marx:essay:92",
       "courseId": "marx",
       "chapterId": "marx-7",
@@ -1039,6 +1903,15 @@
       "rank": 1,
       "verificationStatus": "textbook-law-verified",
       "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "marx:essay:5",
+      "courseId": "marx",
+      "chapterId": "marx-intro",
+      "questionType": "essay",
+      "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材依据与章节定位已核对，答案和解析达到章节精选门槛。"
     },
     {
       "ref": "morality:choice:24",
@@ -1059,11 +1932,83 @@
       "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
     },
     {
+      "ref": "morality:essay:1",
+      "courseId": "morality",
+      "chapterId": "morality-2",
+      "questionType": "essay",
+      "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材依据与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "morality:choice:65",
+      "courseId": "morality",
+      "chapterId": "morality-3",
+      "questionType": "choice",
+      "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
       "ref": "morality:choice:3",
       "courseId": "morality",
       "chapterId": "morality-4",
       "questionType": "choice",
       "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "morality:essay:2",
+      "courseId": "morality",
+      "chapterId": "morality-4",
+      "questionType": "essay",
+      "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材依据与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "morality:choice:30",
+      "courseId": "morality",
+      "chapterId": "morality-5",
+      "questionType": "choice",
+      "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "morality:choice:113",
+      "courseId": "morality",
+      "chapterId": "morality-5",
+      "questionType": "choice",
+      "rank": 2,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "morality:choice:69",
+      "courseId": "morality",
+      "chapterId": "morality-5",
+      "questionType": "choice",
+      "rank": 3,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "morality:choice:49",
+      "courseId": "morality",
+      "chapterId": "morality-5",
+      "questionType": "choice",
+      "rank": 4,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "morality:choice:27",
+      "courseId": "morality",
+      "chapterId": "morality-5",
+      "questionType": "choice",
+      "rank": 5,
       "verificationStatus": "textbook-law-verified",
       "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
     },
@@ -1080,6 +2025,33 @@
       "ref": "morality:choice:317",
       "courseId": "morality",
       "chapterId": "morality-6",
+      "questionType": "choice",
+      "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "morality:choice:152",
+      "courseId": "morality",
+      "chapterId": "morality-6",
+      "questionType": "choice",
+      "rank": 2,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "morality:essay:3",
+      "courseId": "morality",
+      "chapterId": "morality-6",
+      "questionType": "essay",
+      "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材依据与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "morality:choice:63",
+      "courseId": "morality",
+      "chapterId": "morality-intro",
       "questionType": "choice",
       "rank": 1,
       "verificationStatus": "textbook-law-verified",
@@ -1104,13 +2076,31 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "xi:choice:58",
+      "ref": "xi:choice:27",
       "courseId": "xi",
       "chapterId": "xi-1",
       "questionType": "choice",
       "rank": 3,
       "verificationStatus": "textbook-law-verified",
       "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:choice:58",
+      "courseId": "xi",
+      "chapterId": "xi-1",
+      "questionType": "choice",
+      "rank": 4,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:choice:147",
+      "courseId": "xi",
+      "chapterId": "xi-10",
+      "questionType": "choice",
+      "rank": 1,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
       "ref": "xi:essay:17",
@@ -1122,13 +2112,49 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "xi:choice:149",
+      "ref": "xi:choice:158",
+      "courseId": "xi",
+      "chapterId": "xi-11",
+      "questionType": "choice",
+      "rank": 1,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:choice:159",
       "courseId": "xi",
       "chapterId": "xi-12",
       "questionType": "choice",
       "rank": 1,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:choice:149",
+      "courseId": "xi",
+      "chapterId": "xi-12",
+      "questionType": "choice",
+      "rank": 2,
       "verificationStatus": "textbook-law-verified",
       "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:choice:18",
+      "courseId": "xi",
+      "chapterId": "xi-13",
+      "questionType": "choice",
+      "rank": 1,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:choice:67",
+      "courseId": "xi",
+      "chapterId": "xi-13",
+      "questionType": "choice",
+      "rank": 2,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
       "ref": "xi:choice:66",
@@ -1140,6 +2166,42 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
+      "ref": "xi:choice:119",
+      "courseId": "xi",
+      "chapterId": "xi-15",
+      "questionType": "choice",
+      "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:choice:145",
+      "courseId": "xi",
+      "chapterId": "xi-15",
+      "questionType": "choice",
+      "rank": 2,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:choice:115",
+      "courseId": "xi",
+      "chapterId": "xi-16",
+      "questionType": "choice",
+      "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:choice:73",
+      "courseId": "xi",
+      "chapterId": "xi-16",
+      "questionType": "choice",
+      "rank": 2,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
       "ref": "xi:essay:13",
       "courseId": "xi",
       "chapterId": "xi-16",
@@ -1149,7 +2211,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "xi:choice:102",
+      "ref": "xi:choice:85",
       "courseId": "xi",
       "chapterId": "xi-2",
       "questionType": "choice",
@@ -1158,7 +2220,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "xi:choice:100",
+      "ref": "xi:choice:40",
       "courseId": "xi",
       "chapterId": "xi-2",
       "questionType": "choice",
@@ -1167,7 +2229,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "xi:choice:98",
+      "ref": "xi:choice:39",
       "courseId": "xi",
       "chapterId": "xi-2",
       "questionType": "choice",
@@ -1176,7 +2238,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "xi:choice:82",
+      "ref": "xi:choice:48",
       "courseId": "xi",
       "chapterId": "xi-2",
       "questionType": "choice",
@@ -1185,7 +2247,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "xi:choice:88",
+      "ref": "xi:choice:102",
       "courseId": "xi",
       "chapterId": "xi-2",
       "questionType": "choice",
@@ -1194,7 +2256,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "xi:choice:86",
+      "ref": "xi:choice:99",
       "courseId": "xi",
       "chapterId": "xi-2",
       "questionType": "choice",
@@ -1203,11 +2265,110 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
+      "ref": "xi:choice:84",
+      "courseId": "xi",
+      "chapterId": "xi-2",
+      "questionType": "choice",
+      "rank": 7,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:choice:100",
+      "courseId": "xi",
+      "chapterId": "xi-2",
+      "questionType": "choice",
+      "rank": 8,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:choice:89",
+      "courseId": "xi",
+      "chapterId": "xi-2",
+      "questionType": "choice",
+      "rank": 9,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:choice:98",
+      "courseId": "xi",
+      "chapterId": "xi-2",
+      "questionType": "choice",
+      "rank": 10,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:essay:2",
+      "courseId": "xi",
+      "chapterId": "xi-2",
+      "questionType": "essay",
+      "rank": 1,
+      "verificationStatus": "authoritative-source-verified",
+      "curationReason": "权威题源与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:essay:3",
+      "courseId": "xi",
+      "chapterId": "xi-3",
+      "questionType": "essay",
+      "rank": 1,
+      "verificationStatus": "authoritative-source-verified",
+      "curationReason": "权威题源与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:choice:9",
+      "courseId": "xi",
+      "chapterId": "xi-5",
+      "questionType": "choice",
+      "rank": 1,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:choice:166",
+      "courseId": "xi",
+      "chapterId": "xi-5",
+      "questionType": "choice",
+      "rank": 2,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:choice:173",
+      "courseId": "xi",
+      "chapterId": "xi-5",
+      "questionType": "choice",
+      "rank": 3,
+      "verificationStatus": "authoritative-source-verified",
+      "curationReason": "权威题源与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:choice:171",
+      "courseId": "xi",
+      "chapterId": "xi-5",
+      "questionType": "choice",
+      "rank": 4,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
       "ref": "xi:essay:20",
       "courseId": "xi",
       "chapterId": "xi-5",
       "questionType": "essay",
       "rank": 1,
+      "verificationStatus": "authoritative-source-verified",
+      "curationReason": "权威题源与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:essay:19",
+      "courseId": "xi",
+      "chapterId": "xi-5",
+      "questionType": "essay",
+      "rank": 2,
       "verificationStatus": "authoritative-source-verified",
       "curationReason": "权威题源与章节定位已核对，答案和解析达到章节精选门槛。"
     },
@@ -1230,7 +2391,7 @@
       "curationReason": "权威题源与章节定位已核对，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "xi:choice:176",
+      "ref": "xi:choice:174",
       "courseId": "xi",
       "chapterId": "xi-6",
       "questionType": "choice",
@@ -1239,11 +2400,20 @@
       "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "xi:choice:142",
+      "ref": "xi:choice:176",
       "courseId": "xi",
       "chapterId": "xi-6",
       "questionType": "choice",
       "rank": 4,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:choice:142",
+      "courseId": "xi",
+      "chapterId": "xi-6",
+      "questionType": "choice",
+      "rank": 5,
       "verificationStatus": "textbook-law-verified",
       "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
     },
@@ -1255,6 +2425,24 @@
       "rank": 1,
       "verificationStatus": "authoritative-source-verified",
       "curationReason": "权威题源与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:essay:21",
+      "courseId": "xi",
+      "chapterId": "xi-6",
+      "questionType": "essay",
+      "rank": 2,
+      "verificationStatus": "authoritative-source-verified",
+      "curationReason": "权威题源与章节定位已核对，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:choice:134",
+      "courseId": "xi",
+      "chapterId": "xi-7",
+      "questionType": "choice",
+      "rank": 1,
+      "verificationStatus": "textbook-law-verified",
+      "curationReason": "教材页码与章节定位已核对，答案和解析达到章节精选门槛。"
     },
     {
       "ref": "xi:essay:23",
@@ -1275,7 +2463,16 @@
       "curationReason": "权威题源与章节定位已核对，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "xi:choice:128",
+      "ref": "xi:choice:153",
+      "courseId": "xi",
+      "chapterId": "xi-8",
+      "questionType": "choice",
+      "rank": 1,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:choice:130",
       "courseId": "xi",
       "chapterId": "xi-intro",
       "questionType": "choice",
@@ -1284,7 +2481,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "xi:choice:120",
+      "ref": "xi:choice:131",
       "courseId": "xi",
       "chapterId": "xi-intro",
       "questionType": "choice",
@@ -1293,7 +2490,7 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "xi:choice:121",
+      "ref": "xi:choice:122",
       "courseId": "xi",
       "chapterId": "xi-intro",
       "questionType": "choice",
@@ -1302,13 +2499,76 @@
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
     },
     {
-      "ref": "xi:choice:118",
+      "ref": "xi:choice:111",
       "courseId": "xi",
       "chapterId": "xi-intro",
       "questionType": "choice",
       "rank": 4,
       "verificationStatus": "teacher-key-verified",
       "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:choice:106",
+      "courseId": "xi",
+      "chapterId": "xi-intro",
+      "questionType": "choice",
+      "rank": 5,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:choice:125",
+      "courseId": "xi",
+      "chapterId": "xi-intro",
+      "questionType": "choice",
+      "rank": 6,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:choice:128",
+      "courseId": "xi",
+      "chapterId": "xi-intro",
+      "questionType": "choice",
+      "rank": 7,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:choice:107",
+      "courseId": "xi",
+      "chapterId": "xi-intro",
+      "questionType": "choice",
+      "rank": 8,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:choice:117",
+      "courseId": "xi",
+      "chapterId": "xi-intro",
+      "questionType": "choice",
+      "rank": 9,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:choice:120",
+      "courseId": "xi",
+      "chapterId": "xi-intro",
+      "questionType": "choice",
+      "rank": 10,
+      "verificationStatus": "teacher-key-verified",
+      "curationReason": "教师答案与章节来源明确，答案和解析达到章节精选门槛。"
+    },
+    {
+      "ref": "xi:essay:1",
+      "courseId": "xi",
+      "chapterId": "xi-intro",
+      "questionType": "essay",
+      "rank": 1,
+      "verificationStatus": "authoritative-source-verified",
+      "curationReason": "权威题源与章节定位已核对，答案和解析达到章节精选门槛。"
     }
   ]
 }

@@ -5,7 +5,7 @@ const {
   normalizedStem
 } = require("./editorial-quality");
 
-const CURATION_VERSION = "2026-08-12-v1";
+const CURATION_VERSION = "2026-08-13-v2";
 const CURATION_TARGETS = Object.freeze({ choice: 10, essay: 2 });
 const STRONG_VERIFICATION_STATUSES = new Set([
   "teacher-key-verified",
@@ -72,7 +72,7 @@ function choiceEligibility(entry, api) {
   if ([...letters].some((letter) => !normalizeText(analysis).includes(normalizeText(options[letter])))) {
     reasons.push("analysis-misses-correct-option");
   }
-  if (!/因为|由于|因此|所以|表明|体现|说明|依据|对应|区别|排除|混淆|限定|关键|属于|不属于|不能|分别|发生|形成|提出|确立|完成|标志/.test(sourceAnalysis)) {
+  if (!/因为|由于|因此|所以|表明|体现|说明|依据|对应|区别|排除|混淆|限定|关键|属于|不属于|不能|分别|发生|形成|提出|确立|完成|标志/.test(analysis)) {
     reasons.push("analysis-lacks-question-reasoning");
   }
   if (letters.length > 1 && !/多选|未入选项|逐项|共同|包括|均为|属于/.test(analysis)) {

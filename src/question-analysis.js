@@ -49,6 +49,9 @@ export function enrichChoiceAnalysis({ question, analysis, letters, options }) {
   } else if (result.length < 3 && correct.length) {
     result.push(`记忆提示：将“${shortQuestionKey(question)}”与“${options?.[answerLetters] || correct[0]}”对应复习。`);
   }
+  if (!/因为|由于|因此|所以|表明|体现|说明|依据|对应|区别|排除|混淆|限定|关键|属于|不属于|不能|分别|发生|形成|提出|确立|完成|标志/.test(result.join(""))) {
+    result.push(`解题步骤：先依据题干中的“${shortQuestionKey(question)}”限定知识范围，再逐项排除与该限定不对应的表述。`);
+  }
   return result.map(endSentence).filter(Boolean).join("\n");
 }
 

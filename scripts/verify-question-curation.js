@@ -1,7 +1,11 @@
 const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
-const { buildEditorialManifest } = require("./lib/editorial-manifest");
+const {
+  buildEditorialManifest,
+  cleanChoiceQuestion,
+  cleanChoiceSourceMarker
+} = require("./lib/editorial-manifest");
 const { loadQuestionBank } = require("./lib/load-question-bank");
 const {
   CURATION_TARGETS,
@@ -10,6 +14,7 @@ const {
   tooSimilar
 } = require("./lib/question-curation");
 const { payloadHash, stableJson } = require("./lib/editorial-quality");
+const { MANUAL_QUESTION_CHAPTERS } = require("./lib/editorial-review-overrides");
 
 async function main() {
   const first = await buildEditorialManifest();
@@ -57,6 +62,16 @@ async function main() {
   assert(!JSON.stringify(committed).includes("question\""), "Lightweight curation manifest must not contain question text.");
   assert.equal(first.entries.filter((entry) => entry.issues.includes("high-risk-statement-needs-source-review") && entry.quality.publicationStatus === "published").length, 0, "A high-risk question without strong evidence remains published.");
   assert.equal(first.entries.filter((entry) => entry.issues.includes("answer-leaked-in-stem") && entry.quality.publicationStatus === "published").length, 0, "A choice question leaking its answer remains published.");
+  assert.equal(
+    cleanChoiceQuestion("示例题（ ）。 正确\nA. 甲\nB. 乙"),
+    "示例题（ ）。\nA. 甲\nB. 乙",
+    "Trailing source answer markers must be removed from displayed choice stems."
+  );
+  assert.equal(
+    cleanChoiceSourceMarker("本题问的是“示例题（ ）。 正确”。正确项为A。"),
+    "本题问的是“示例题（ ）。”。正确项为A。",
+    "Trailing source answer markers must be removed from displayed analysis."
+  );
 
   const conflictingChapter = byRef.get("history:choice:2");
   assert.equal(conflictingChapter.chapter.status, "candidate", "Conflicting textbook and stem chapter evidence must not be marked verified.");
@@ -66,6 +81,25 @@ async function main() {
   const recoveredEssay = byRef.get("xi:essay:16");
   assert(recoveredEssay.issues.includes("answer-recovered-from-question"), "The recovered-answer regression sample changed unexpectedly.");
   assert.equal(recoveredEssay.quality.curationStatus, "standard", "A recovered-answer essay must not enter the curated set.");
+
+  for (const [ref, chapterId] of MANUAL_QUESTION_CHAPTERS) {
+    const entry = byRef.get(ref);
+    assert(entry, `${ref} manual chapter review points to a missing question.`);
+    assert.equal(entry.chapter.chapterId, chapterId, `${ref} manual chapter review drifted.`);
+    assert.equal(entry.chapter.status, "verified", `${ref} manual chapter review is not verified.`);
+    assert.equal(entry.chapter.reference, `manual-question-review:${ref}`, `${ref} manual chapter reference drifted.`);
+  }
+
+  for (const ref of ["mao:essay:31", "mao:essay:33"]) {
+    const entry = byRef.get(ref);
+    assert(entry.issues.includes("answer-recovered-from-question"), `${ref} source-boundary issue is no longer visible.`);
+    assert.equal(entry.quality.curationStatus, "standard", `${ref} must remain outside the curated set.`);
+    assert(!/三个代表|科学发展观|社会主义的本质/.test(entry.revision.displayAnalysis), `${ref} still exposes unrelated source analysis.`);
+  }
+
+  const truncatedDuplicate = byRef.get("history:choice:577");
+  assert.equal(truncatedDuplicate.quality.publicationStatus, "hidden_duplicate", "The truncated choice duplicate must stay hidden.");
+  assert.equal(truncatedDuplicate.quality.canonicalRef, "history:choice:1004", "The truncated choice duplicate must point to the complete question.");
 
   console.table([first.curationReport.totals]);
   console.log("Chapter curation quality contract passed without mutating original payloads.");

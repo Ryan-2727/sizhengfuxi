@@ -13,7 +13,11 @@ const {
   sourceMetadata
 } = require("./editorial-quality");
 const { buildQuestionCuration } = require("./question-curation");
-const { reviewedSourceChapter, reviewedSourceMetadata } = require("./editorial-review-overrides");
+const {
+  reviewedQuestionChapter,
+  reviewedSourceChapter,
+  reviewedSourceMetadata
+} = require("./editorial-review-overrides");
 
 function loadTextbookEvidence(root) {
   const evidencePath = path.join(root, "data", "question-editorial-evidence.json");
@@ -44,6 +48,7 @@ const MANUAL_HIDDEN_REVIEW_REASONS = new Map([
 
 const MANUAL_HIDDEN_DUPLICATE_CANONICALS = new Map([
   ["history:choice:376", "history:choice:936"],
+  ["history:choice:577", "history:choice:1004"],
   ["history:choice:660", "history:choice:1038"],
   ["history:choice:836", "history:choice:1102"],
   ["history:choice:850", "history:choice:1110"],
@@ -254,6 +259,22 @@ function questionStemText(question) {
   return firstOption >= 0 ? text.slice(0, firstOption) : text;
 }
 
+function cleanChoiceQuestion(question) {
+  const text = String(question || "");
+  const firstOption = text.search(/(?:^|\n|\s)A(?:[.．、]\s*|\s+|(?=[\u4e00-\u9fff]))/);
+  if (firstOption < 0) return text;
+  const stem = text.slice(0, firstOption);
+  const cleanedStem = cleanChoiceSourceMarker(stem);
+  return cleanedStem === stem ? text : `${cleanedStem}\n${text.slice(firstOption).trimStart()}`;
+}
+
+function cleanChoiceSourceMarker(value) {
+  return String(value || "").replace(
+    /([（(]\s*[）)])([。！？!?；;，,：:]*)\s*(?:正确|错误|正|误)(?=\s*(?:[”"'’]|[。！？!?；;\n]|$))/gu,
+    "$1$2"
+  );
+}
+
 function answerLeakedInChoiceStem(question, options, letters) {
   const stem = questionStemText(question);
   const parenthetical = [...stem.matchAll(/[（(]([^（）()]{2,100})[）)]/g)]
@@ -341,17 +362,19 @@ function classifyQuestion(payload, courseId, rules, reviewedAssignment = null, a
   };
 }
 
-function resolveQuestionChapter(payload, courseId, rules, evidence, reviewedSourceChapterAssignment, answerText) {
+function resolveQuestionChapter(payload, courseId, rules, evidence, reviewedChapterAssignment, answerText) {
   if (payload.chapterId && payload.chapterAssignmentStatus === "verified") {
     return {
       chapter: classifyQuestion(payload, courseId, rules, null, answerText),
       evidenceConflict: false
     };
   }
-  if (reviewedSourceChapterAssignment?.chapterId) {
+  if (reviewedChapterAssignment?.chapterId) {
+    const { supersedesEvidence, ...chapterAssignment } = reviewedChapterAssignment;
     return {
-      chapter: classifyQuestion(payload, courseId, rules, reviewedSourceChapterAssignment, answerText),
-      evidenceConflict: Boolean(evidence?.chapterId && evidence.chapterId !== reviewedSourceChapterAssignment.chapterId)
+      chapter: classifyQuestion(payload, courseId, rules, chapterAssignment, answerText),
+      evidenceConflict: !supersedesEvidence
+        && Boolean(evidence?.chapterId && evidence.chapterId !== reviewedChapterAssignment.chapterId)
     };
   }
 
@@ -549,13 +572,13 @@ async function buildEditorialManifest() {
       const answerText = questionType === "choice"
         ? [...api.choiceAnswerLetters(payload)].map((letter) => api.parseChoiceOptions(payload.question)[letter]).filter(Boolean).join(" ")
         : payload.answer;
-      const reviewedSourceChapterAssignment = reviewedSourceChapter(course.id, payload);
+      const reviewedChapterAssignment = reviewedQuestionChapter(ref) || reviewedSourceChapter(course.id, payload);
       const chapterResolution = resolveQuestionChapter(
         payload,
         course.id,
         rules,
         evidence,
-        reviewedSourceChapterAssignment,
+        reviewedChapterAssignment,
         answerText
       );
       const chapter = chapterResolution.chapter;
@@ -566,16 +589,22 @@ async function buildEditorialManifest() {
       if (chapterResolution.evidenceConflict) issues.push("chapter-evidence-conflict");
       let revision;
       if (questionType === "choice") {
-        const options = api.parseChoiceOptions(payload.question);
+        const displayQuestion = cleanChoiceQuestion(payload.question);
+        const options = api.parseChoiceOptions(displayQuestion);
         const extractedLetters = api.choiceAnswerLetters(payload);
         const letters = manualChoiceCorrection?.answer || extractedLetters;
         const expectedType = letters.length > 1 ? "多选题" : "单选题";
         if (!letters || [...letters].some((letter) => !options[letter])) issues.push("invalid-choice-answer");
         if (payload.questionType !== expectedType && !manualChoiceCorrection) issues.push("choice-type-mismatch");
         if (answerLeakedInChoiceStem(payload.question, options, letters)) issues.push("answer-leaked-in-stem");
-        const enriched = analysis.enrichChoiceAnalysis({ question: payload.question, analysis: payload.analysis, letters, options });
+        const enriched = analysis.enrichChoiceAnalysis({
+          question: displayQuestion,
+          analysis: cleanChoiceSourceMarker(payload.analysis),
+          letters,
+          options
+        });
         revision = {
-          displayQuestion: null,
+          displayQuestion: displayQuestion === payload.question ? null : displayQuestion,
           displayAnswer: manualChoiceCorrection ? `正确答案：${letters}` : null,
           displayAnalysis: enriched === payload.analysis ? null : enriched,
           correctAnswerOverride: letters && letters !== payload.correctAnswer ? letters : null,
@@ -585,6 +614,8 @@ async function buildEditorialManifest() {
           commonMistakes: [],
           revisionNote: manualChoiceCorrection
             ? "选择题人工答案校正：保留原始记录，通过修订层写入教材或权威资料核验后的完整答案，并重建解析。"
+            : displayQuestion !== payload.question
+              ? "选择题格式审校：保留原始记录，通过修订层移除题干末尾泄露答案判断的来源标记，并补充答案定位和记忆提示。"
             : "选择题结构审校：保留原题与原答案，补充答案定位和记忆提示。",
           verificationReference: manualChoiceCorrection?.verificationReference || source.verificationReference
         };
@@ -605,9 +636,10 @@ async function buildEditorialManifest() {
           displayAnswer = displayAnswer.replace(manualCorrection.from, manualCorrection.to);
           issues.push("manual-text-correction");
         }
+        const sourceAnalysis = recovered ? "" : payload.analysis;
         const points = scoringPoints(displayAnswer);
         const keywords = essayKeywords(displayQuestion, displayAnswer, chapterTerms, points);
-        const enriched = analysis.enrichEssayAnalysis({ question: displayQuestion, analysis: payload.analysis, answer: displayAnswer, keywords });
+        const enriched = analysis.enrichEssayAnalysis({ question: displayQuestion, analysis: sourceAnalysis, answer: displayAnswer, keywords });
         revision = {
           displayQuestion: recovered ? displayQuestion : null,
           displayAnswer,
@@ -616,7 +648,7 @@ async function buildEditorialManifest() {
           questionTypeOverride: "大题",
           scoringPoints: points,
           keywords,
-          commonMistakes: essayCommonMistakes(payload.analysis, points, keywords),
+          commonMistakes: essayCommonMistakes(sourceAnalysis, points, keywords),
           revisionNote: manualCorrection
             ? "大题人工文本校正：保留原始记录，通过修订层纠正已确认的 OCR 错字，并补充得分点、关键词、常见失分和解题解析。"
             : MANUAL_ESSAY_ANSWER_COMBINATIONS.has(ref)
@@ -759,6 +791,8 @@ module.exports = {
   MANUAL_HIDDEN_REVIEW_REASONS,
   answerLeakedInChoiceStem,
   buildEditorialManifest,
+  cleanChoiceQuestion,
+  cleanChoiceSourceMarker,
   classifyQuestion,
   resolveQuestionChapter,
   essayCommonMistakes,

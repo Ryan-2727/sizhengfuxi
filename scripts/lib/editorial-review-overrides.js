@@ -44,6 +44,95 @@ const SOURCE_VERIFICATION_RULES = [
   }
 ];
 
+const MANUAL_QUESTION_CHAPTERS = new Map([
+  ["history:choice:29", "history-8"],
+  ["history:choice:30", "history-9"],
+  ["history:choice:113", "history-2"],
+  ["history:choice:196", "history-5"],
+  ["history:choice:228", "history-6"],
+  ["history:choice:237", "history-6"],
+  ["history:choice:331", "history-6"],
+  ["history:choice:366", "history-6"],
+  ["history:choice:392", "history-7"],
+  ["history:choice:400", "history-7"],
+  ["history:choice:408", "history-7"],
+  ["history:choice:415", "history-8"],
+  ["history:choice:428", "history-8"],
+  ["history:choice:439", "history-7"],
+  ["history:choice:440", "history-7"],
+  ["history:choice:450", "history-7"],
+  ["history:choice:455", "history-8"],
+  ["history:choice:512", "history-8"],
+  ["history:choice:566", "history-9"],
+  ["history:choice:571", "history-9"],
+  ["history:choice:585", "history-9"],
+  ["history:choice:803", "history-8"],
+  ["history:choice:895", "history-6"],
+  ["history:choice:1004", "history-9"],
+  ["history:choice:1007", "history-9"],
+  ["history:choice:1051", "history-5"],
+  ["history:choice:1055", "history-5"],
+  ["history:choice:1064", "history-5"],
+  ["history:choice:1065", "history-5"],
+  ["history:choice:1214", "history-6"],
+  ["history:essay:1", "history-intro"],
+  ["history:essay:3", "history-4"],
+  ["history:essay:7", "history-1"],
+  ["history:essay:8", "history-intro"],
+  ["history:essay:9", "history-1"],
+  ["history:essay:10", "history-1"],
+  ["history:essay:12", "history-2"],
+  ["history:essay:13", "history-3"],
+  ["history:essay:14", "history-4"],
+  ["history:essay:15", "history-4"],
+  ["history:essay:17", "history-6"],
+  ["history:essay:18", "history-8"],
+  ["history:essay:19", "history-8"],
+  ["history:essay:20", "history-9"],
+  ["history:essay:21", "history-9"],
+  ["morality:essay:1", "morality-2"],
+  ["morality:essay:2", "morality-4"],
+  ["morality:essay:3", "morality-6"],
+  ["morality:choice:63", "morality-intro"],
+  ["mao:essay:1", "mao-1"],
+  ["mao:essay:2", "mao-2"],
+  ["mao:essay:3", "mao-3"],
+  ["mao:essay:4", "mao-6"],
+  ["xi:essay:1", "xi-intro"],
+  ["xi:essay:2", "xi-2"],
+  ["xi:essay:3", "xi-3"],
+  ["xi:essay:19", "xi-5"],
+  ["xi:essay:21", "xi-6"],
+  ["xi:choice:28", "xi-2"],
+  ["xi:choice:29", "xi-2"],
+  ["xi:choice:35", "xi-2"],
+  ["xi:choice:115", "xi-16"],
+  ["xi:choice:119", "xi-15"],
+  ["xi:choice:174", "xi-6"],
+  ["marx:essay:1", "marx-1"],
+  ["marx:essay:3", "marx-3"],
+  ["marx:essay:5", "marx-intro"],
+  ["marx:essay:23", "marx-2"],
+  ["marx:essay:25", "marx-2"],
+  ["marx:essay:52", "marx-3"],
+  ["marx:essay:75", "marx-4"],
+  ["marx:essay:79", "marx-5"],
+  ["marx:choice:1", "marx-1"],
+  ["marx:choice:13", "marx-3"]
+]);
+
+function reviewedQuestionChapter(ref) {
+  const chapterId = MANUAL_QUESTION_CHAPTERS.get(ref);
+  if (!chapterId) return null;
+  return {
+    chapterId,
+    status: "verified",
+    confidence: 1,
+    reference: `manual-question-review:${ref}`,
+    supersedesEvidence: true
+  };
+}
+
 function reviewedSourceChapter(courseId, payload) {
   const source = String(payload?.source || "");
   const rule = SOURCE_CHAPTER_RULES.find(([ruleCourseId, pattern]) => ruleCourseId === courseId && pattern.test(source));
@@ -70,8 +159,10 @@ function reviewedSourceMetadata(courseId, payload) {
 }
 
 module.exports = {
+  MANUAL_QUESTION_CHAPTERS,
   SOURCE_CHAPTER_RULES,
   SOURCE_VERIFICATION_RULES,
+  reviewedQuestionChapter,
   reviewedSourceChapter,
   reviewedSourceMetadata
 };
