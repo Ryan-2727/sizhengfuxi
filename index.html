@@ -218,6 +218,7 @@
         <h1>订单审核</h1>
         <nav class="admin-section-nav" aria-label="管理员功能">
           <a class="is-active" href="/admin/orders">订单审核 <span class="admin-count" data-admin-order-count>–</span></a>
+          <a href="/admin/members">会员列表</a>
           <a href="/admin/feedback">用户反馈 <span class="admin-count" data-admin-feedback-count>–</span></a>
         </nav>
         <div class="admin-order-controls">
@@ -230,6 +231,26 @@
       </div>
     </section>
 
+    <section id="adminMembersView" class="billing-view admin-orders-view" hidden>
+      <div class="billing-card public-shell">
+        <a class="billing-back" href="/">返回首页</a>
+        <p class="public-kicker">管理员</p>
+        <h1>会员列表</h1>
+        <nav class="admin-section-nav" aria-label="管理员功能">
+          <a href="/admin/orders">订单审核 <span class="admin-count" data-admin-order-count>–</span></a>
+          <a class="is-active" href="/admin/members">会员列表</a>
+          <a href="/admin/feedback">用户反馈 <span class="admin-count" data-admin-feedback-count>–</span></a>
+        </nav>
+        <div class="admin-order-controls">
+          <select id="adminMemberStatus" aria-label="会员状态筛选"><option value="active">有效会员</option><option value="expired">已过期</option><option value="revoked">已停用</option><option value="all">全部</option></select>
+          <input id="adminMemberQuery" type="search" inputmode="email" placeholder="搜索会员邮箱">
+          <button id="adminMemberReloadBtn" class="secondary-cta" type="button">刷新</button>
+        </div>
+        <div id="adminMemberMessage" class="billing-message" role="status" aria-live="polite"></div>
+        <div id="adminMemberList" class="admin-order-list"></div>
+      </div>
+    </section>
+
     <section id="adminFeedbackView" class="billing-view admin-orders-view" hidden>
       <div class="billing-card public-shell">
         <a class="billing-back" href="/">返回首页</a>
@@ -237,6 +258,7 @@
         <h1>用户反馈</h1>
         <nav class="admin-section-nav" aria-label="管理员功能">
           <a href="/admin/orders">订单审核 <span class="admin-count" data-admin-order-count>–</span></a>
+          <a href="/admin/members">会员列表</a>
           <a class="is-active" href="/admin/feedback">用户反馈 <span class="admin-count" data-admin-feedback-count>–</span></a>
         </nav>
         <div class="admin-order-controls">

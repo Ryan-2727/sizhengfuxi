@@ -2943,6 +2943,10 @@ dialog::backdrop {
 .admin-order > div:first-child { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-bottom: 14px; color: #172033; }
 .admin-order > div:first-child span { color: #38506f; font-size: 14px; }
 .admin-order > p { margin: 12px 0 0; color: var(--muted); font-size: 14px; }
+.admin-member-status { font-weight: 800; }
+.admin-member .admin-member-status[data-state="active"] { color: #166534; }
+.admin-member .admin-member-status[data-state="expired"] { color: #9a3412; }
+.admin-member .admin-member-status[data-state="revoked"] { color: #b42318; }
 .admin-feedback .admin-feedback-type { color: #38506f; font-weight: 800; }
 .admin-feedback .admin-feedback-content { color: #172033; font-size: 16px; line-height: 1.75; white-space: pre-wrap; }
 .admin-feedback a { color: #38506f; overflow-wrap: anywhere; }

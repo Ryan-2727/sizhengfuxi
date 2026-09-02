@@ -95,7 +95,7 @@ npm run member:add -- student@example.com 30
 
 同一设备会将私人订单访问令牌保留最多 60 天，用于恢复未完成订单；待审核页面每 20 秒自动刷新。审批成功后，订单会保存并展示该笔订单实际产生的会员到期时间。部署本版本前需按顺序执行 `supabase/migrations/202608110007_order_experience.sql`。使用当前导入脚本追加新题前，还需先执行 `supabase/migrations/202608110008_fix_question_quality_digest.sql` 和 `supabase/migrations/202608120011_question_curation.sql`；前者确保 Supabase 中的 SHA-256 初始化触发器正常工作，后者提供目录哈希需要读取的精选元数据列。
 
-管理员在 `/admin/orders` 人工核对支付宝或微信实际到账后，再点击“确认付款并开通”。该操作由 Cloudflare Pages Function 调用受限 Supabase RPC：同一订单只处理一次；未过期会员在原 `expires_at` 基础上增加 30 天，过期或新会员从服务器当前时间增加 30 天。
+管理员在 `/admin/orders` 人工核对支付宝或微信实际到账后，再点击“确认付款并开通”。该操作由 Cloudflare Pages Function 调用受限 Supabase RPC：同一订单只处理一次；未过期会员在原 `expires_at` 基础上增加 30 天，过期或新会员从服务器当前时间增加 30 天。管理员可在 `/admin/members` 按邮箱和状态查看会员及到期时间。
 
 部署时除浏览器所需的 `SUPABASE_URL`、`SUPABASE_ANON_KEY` 外，还要在 Cloudflare Pages runtime 设置 `SUPABASE_SERVICE_ROLE_KEY` 和服务器端 `ADMIN_EMAILS`。二者不能使用 `VITE_` 前缀，也不能提交到仓库。收款码位于 `public/payment/alipay-qr.jpg` 与 `public/payment/wechat-qr.jpg`。
 

@@ -534,6 +534,7 @@ function billingRoute() {
   if (path === "/buy") return { name: "buy" };
   if (path === "/terms") return { name: "terms" };
   if (path === "/admin/orders") return { name: "admin" };
+  if (path === "/admin/members") return { name: "adminMembers" };
   if (path === "/admin/feedback") return { name: "adminFeedback" };
   const pay = path.match(/^\/pay\/([^/]+)$/);
   if (pay) return { name: "pay", orderNo: pay[1] };
@@ -729,6 +730,7 @@ const els = {
   payView: document.querySelector("#payView"),
   orderView: document.querySelector("#orderView"),
   adminOrdersView: document.querySelector("#adminOrdersView"),
+  adminMembersView: document.querySelector("#adminMembersView"),
   adminFeedbackView: document.querySelector("#adminFeedbackView"),
   termsView: document.querySelector("#termsView"),
   courseGrid: document.querySelector("#courseGrid"),
@@ -795,6 +797,8 @@ document.querySelectorAll("[data-payment-method]").forEach((button) => button.ad
 document.querySelector("#paymentForm").addEventListener("submit", submitPaymentReference);
 document.querySelector("#adminOrderReloadBtn").addEventListener("click", () => { void loadAdminOrders(); });
 document.querySelector("#adminOrderStatus").addEventListener("change", () => { void loadAdminOrders(); });
+document.querySelector("#adminMemberReloadBtn").addEventListener("click", () => { void loadAdminMembers(); });
+document.querySelector("#adminMemberStatus").addEventListener("change", () => { void loadAdminMembers(); });
 document.querySelector("#adminFeedbackReloadBtn").addEventListener("click", () => { void loadAdminFeedback(); });
 document.querySelector("#adminFeedbackStatus").addEventListener("change", () => { void loadAdminFeedback(); });
 document.addEventListener("click", (event) => {
@@ -896,6 +900,7 @@ function showAuth({ message = "请输入已开通会员的邮箱，获取登录�
   els.payView.hidden = true;
   els.orderView.hidden = true;
   els.adminOrdersView.hidden = true;
+  els.adminMembersView.hidden = true;
   els.adminFeedbackView.hidden = true;
   els.termsView.hidden = true;
   els.authView.hidden = false;
@@ -926,6 +931,7 @@ function showCampusLanding({ updateHistory = false } = {}) {
   els.payView.hidden = true;
   els.orderView.hidden = true;
   els.adminOrdersView.hidden = true;
+  els.adminMembersView.hidden = true;
   els.adminFeedbackView.hidden = true;
   els.termsView.hidden = true;
   els.campusView.hidden = false;
@@ -1131,6 +1137,7 @@ function hideAllMainViews() {
   els.payView.hidden = true;
   els.orderView.hidden = true;
   els.adminOrdersView.hidden = true;
+  els.adminMembersView.hidden = true;
   els.adminFeedbackView.hidden = true;
   els.termsView.hidden = true;
   els.appHeader.hidden = true;
@@ -1160,6 +1167,7 @@ async function initPublicRoute() {
   else if (route.name === "pay") await showPaymentPage(route.orderNo);
   else if (route.name === "order") await showOrderPage(route.orderNo);
   else if (route.name === "admin") await showAdminOrdersPage();
+  else if (route.name === "adminMembers") await showAdminMembersPage();
   else if (route.name === "adminFeedback") await showAdminFeedbackPage();
 }
 
@@ -1615,6 +1623,41 @@ async function rejectOrder(button) {
     setBillingMessage(document.querySelector("#adminOrderMessage"), error.message || "无法拒绝订单。", "error");
     button.disabled = false;
     button.textContent = "拒绝";
+  }
+}
+
+function adminMembershipState(member) {
+  if (member.status === "revoked") return { key: "revoked", label: "已停用", remaining: "不可使用" };
+  const expiresAt = Date.parse(member.expires_at);
+  if (Number.isNaN(expiresAt) || expiresAt <= Date.now()) return { key: "expired", label: "已过期", remaining: "已到期" };
+  const days = Math.max(1, Math.ceil((expiresAt - Date.now()) / 86_400_000));
+  return { key: "active", label: "有效", remaining: `约剩 ${days} 天` };
+}
+
+async function showAdminMembersPage() {
+  hideAllMainViews();
+  els.adminMembersView.hidden = false;
+  await Promise.all([loadAdminMembers(), loadAdminSummary()]);
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+async function loadAdminMembers() {
+  const message = document.querySelector("#adminMemberMessage");
+  const list = document.querySelector("#adminMemberList");
+  const status = document.querySelector("#adminMemberStatus").value;
+  const query = document.querySelector("#adminMemberQuery").value.trim();
+  setBillingMessage(message, "正在加载会员…");
+  list.innerHTML = "";
+  try {
+    const data = await apiRequest(`/api/admin/members?status=${encodeURIComponent(status)}&q=${encodeURIComponent(query)}`);
+    setBillingMessage(message, data.members.length ? `共 ${data.total} 位符合条件的会员。` : "没有符合条件的会员。");
+    list.innerHTML = data.members.map((member) => {
+      const state = adminMembershipState(member);
+      const expiry = formatDateTime(member.expires_at) || "时间无效";
+      return `<article class="admin-order admin-member"><div><strong>${escapeHtml(member.email)}</strong><span class="admin-member-status" data-state="${state.key}">${state.label}</span></div><dl><dt>到期时间</dt><dd>${escapeHtml(expiry)}</dd><dt>剩余状态</dt><dd>${escapeHtml(state.remaining)}</dd></dl></article>`;
+    }).join("");
+  } catch (error) {
+    setBillingMessage(message, error.message || "无法读取会员列表。", "error");
   }
 }
 
