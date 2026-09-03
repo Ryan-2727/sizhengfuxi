@@ -603,13 +603,27 @@ function stableQuestionId(item) {
   return `${item.courseId}-${item.type === "大题" ? "essay" : "choice"}-${(hash >>> 0).toString(36)}`;
 }
 
+function cleanQuestionText(value, courseName = "") {
+  const label = String(courseName || "本课程").trim();
+  return String(value ?? "")
+    .replace(/\bundefined(?=的章节知识结构)/g, label)
+    .replace(/\bundefined\b/g, "")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
 function registerQuestion(item) {
   const questionId = stableQuestionId(item);
-  const registered = {
+  const courseName = item.courseName || getCourseById(item.courseId)?.name || "本课程";
+  const normalizedItem = {
     ...item,
+    question: cleanQuestionText(item.question, courseName)
+  };
+  const registered = {
+    ...normalizedItem,
     questionId,
-    chapterInfo: questionChapterInfo(item),
-    sourceLabel: questionSourceLabel(item)
+    chapterInfo: questionChapterInfo(normalizedItem),
+    sourceLabel: questionSourceLabel(normalizedItem)
   };
   questionLookup.set(questionId, registered);
   return registered;
@@ -2475,11 +2489,23 @@ function renderPreviewNavigation(course, chapter) {
       document.querySelector("#questions")?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   });
-  els.chapterNav.querySelector("[data-chapter-index]").addEventListener("click", () => {
-    recordRecentStudy(course.id, window.campusPreview.chapterIndex);
-  });
+  bindCourseSectionNavigation(course);
   els.chapterNav.querySelector("[data-preview-lock]").addEventListener("click", showLockedContent);
   els.chapterNav.querySelector("[data-preview-login]").addEventListener("click", showPublicLogin);
+}
+
+function bindCourseSectionNavigation(course) {
+  els.chapterNav.querySelectorAll('a[href^="#"]:not([data-question-nav-type])').forEach((link) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      if (link.dataset.chapterIndex !== undefined) {
+        recordRecentStudy(course.id, Number(link.dataset.chapterIndex));
+      }
+      const targetId = link.getAttribute("href")?.slice(1);
+      if (!targetId) return;
+      document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
 }
 
 function renderQuestions(course) {
@@ -4044,7 +4070,9 @@ function setEssayMastery(button) {
 
 function questionTypeLabel(item) {
   if (item.type === "大题") return item.type;
-  return item.questionType || (choiceAnswerLetters(item).length > 1 ? "多选题" : "单选题");
+  return ["单选题", "多选题"].includes(item.questionType)
+    ? item.questionType
+    : (choiceAnswerLetters(item).length > 1 ? "多选题" : "单选题");
 }
 
 function choiceAnswerLetters(item) {
@@ -4159,9 +4187,7 @@ function renderCourseNavigation(course) {
       document.querySelector("#questions")?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   });
-  els.chapterNav.querySelectorAll("[data-chapter-index]").forEach((link) => {
-    link.addEventListener("click", () => recordRecentStudy(course.id, Number(link.dataset.chapterIndex)));
-  });
+  bindCourseSectionNavigation(course);
 }
 
 function normalizeSectionTitle(title) {
@@ -4480,7 +4506,7 @@ function searchable(course) {
 }
 
 function escapeHtml(value) {
-  return value
+  return String(value ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")

@@ -73,6 +73,10 @@ function formatKeywordGroup(point) {
   return uniqueValues(point.keywords || []).slice(0, 3).join("、");
 }
 
+function courseDisplayName(course) {
+  return String(course?.name || course?.title || "本课程").trim();
+}
+
 function directChoice(course, chapter, point, statement, pointIndex, allPoints) {
   const distractors = distractorsFor(allPoints, { ...point, chapterId: chapter.id }, (candidate) => candidate.keyPoints || [], pointIndex, 3);
   if (distractors.length < 3) return null;
@@ -82,7 +86,7 @@ function directChoice(course, chapter, point, statement, pointIndex, allPoints) 
   ], pointIndex % 4);
   const correctIndexes = entries.map((entry, index) => entry.correct ? index : -1).filter((index) => index >= 0);
   return choiceQuestion(
-    `在${course.title}的章节知识结构中，属于“${point.title}”的正确表述是（ ）`,
+    `在${courseDisplayName(course)}的章节知识结构中，属于“${point.title}”的正确表述是（ ）`,
     entries.map((entry) => entry.text),
     correctIndexes,
     `本题定位到${chapter.title}的“${point.title}”。正确项直接概括该知识点；其余表述分别属于同课程的其他知识点，不能因表述本身成立就误选。记忆时把“${formatKeywordGroup(point)}”与本题结论绑定，并先看题干限定的所属知识点。`,
@@ -166,7 +170,7 @@ function appendChoiceExpansion(course, knowledgeCourse, target) {
   const candidatesByChapter = new Map(knowledgeCourse.chapters.map((chapter) => [chapter.id, []]));
   allPoints.forEach(({ point, chapter }, pointIndex) => {
     const candidates = candidatesByChapter.get(chapter.id);
-    for (const statement of point.keyPoints || []) candidates.push(directChoice(knowledgeCourse, chapter, point, statement, pointIndex + candidates.length, allPoints));
+    for (const statement of point.keyPoints || []) candidates.push(directChoice(course, chapter, point, statement, pointIndex + candidates.length, allPoints));
     candidates.push(keywordChoice(knowledgeCourse, chapter, point, pointIndex, allPoints));
     candidates.push(multipleChoice(knowledgeCourse, chapter, point, pointIndex, allPoints));
   });
